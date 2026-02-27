@@ -1,0 +1,175 @@
+local BarbiUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/crowleybaleia-dot/GUI/refs/heads/main/Kyotakihub"))()
+
+local Window = BarbiUI:CreateWindow({
+    Title      = "Kyotaki HUB",
+    Key        = Enum.KeyCode.RightShift,
+    Background = "rbxassetid://105846778817840",
+    -- Logo    = "rbxassetid://SEU_ID_AQUI",
+})
+
+-- ══════════════════════════════════════════════════════════════════
+-- ABA 1: TODOS OS COMPONENTES
+-- ══════════════════════════════════════════════════════════════════
+local Tab1 = Window:AddTab({ Name = "Componentes" })
+
+-- ── Seção: Toggles
+local SecToggles = Tab1:AddSection("Toggles")
+
+local Toggle1 = SecToggles:AddToggle({
+    Name     = "Toggle Ativo",
+    Default  = true,
+    Callback = function(v)
+        print("[Toggle1]", v)
+    end,
+})
+
+local Toggle2 = SecToggles:AddToggle({
+    Name     = "Toggle Inativo",
+    Default  = false,
+    Callback = function(v)
+        print("[Toggle2]", v)
+    end,
+})
+
+-- ── Seção: Sliders
+local SecSliders = Tab1:AddSection("Sliders")
+
+local Slider1 = SecSliders:AddSlider({
+    Name     = "Volume",
+    Min      = 0,
+    Max      = 100,
+    Default  = 75,
+    Suffix   = "%",
+    Integer  = true,
+    Callback = function(v)
+        print("[Slider Volume]", v)
+    end,
+})
+
+local Slider2 = SecSliders:AddSlider({
+    Name     = "Velocidade",
+    Min      = 1,
+    Max      = 10,
+    Default  = 3,
+    Suffix   = "x",
+    Integer  = false,
+    Callback = function(v)
+        print("[Slider Velocidade]", v)
+    end,
+})
+
+-- ── Seção: Botões
+local SecBtns = Tab1:AddSection("Botões")
+
+SecBtns:AddButton({
+    Name     = "Botão Simples",
+    Callback = function()
+        print("[Botão Simples] clicado")
+    end,
+})
+
+SecBtns:AddButton({
+    Name        = "Botão com Descrição",
+    Description = "Isso é uma descrição do botão",
+    Callback    = function()
+        print("[Botão Descrição] clicado")
+    end,
+})
+
+-- ── Seção: Inputs e Keybind
+local SecInputs = Tab1:AddSection("Inputs")
+
+local TextBox1 = SecInputs:AddTextBox({
+    Name        = "Texto Livre",
+    Placeholder = "Digite algo...",
+    Default     = "",
+    Callback    = function(v)
+        print("[TextBox]", v)
+    end,
+})
+
+local TextBox2 = SecInputs:AddTextBox({
+    Name        = "Só Números",
+    Placeholder = "0",
+    NumberOnly  = true,
+    Callback    = function(v)
+        print("[TextBox Número]", v)
+    end,
+})
+
+local Bind1 = SecInputs:AddBind({
+    Name     = "Keybind",
+    Default  = Enum.KeyCode.F,
+    Callback = function()
+        print("[Keybind] ativado")
+    end,
+})
+
+-- ══════════════════════════════════════════════════════════════════
+-- ABA 2: DROPDOWN + COLOR + LABELS
+-- ══════════════════════════════════════════════════════════════════
+local Tab2 = Window:AddTab({ Name = "Extras", Badge = "NEW" })
+
+local SecExtras = Tab2:AddSection("Dropdown")
+
+local Drop1 = SecExtras:AddDropdown({
+    Name    = "Escolha uma opção",
+    Options = { "Opção 1", "Opção 2", "Opção 3", "Opção 4" },
+    Default = "Opção 1",
+    Callback = function(v)
+        print("[Dropdown]", v)
+    end,
+})
+
+local SecColor = Tab2:AddSection("Color Picker")
+
+local Color1 = SecColor:AddColorPicker({
+    Name    = "Cor do Accent",
+    Default = Color3.fromRGB(162, 89, 255),
+    Callback = function(v)
+        print("[ColorPicker]", v)
+    end,
+})
+
+local SecLabels = Tab2:AddSection("Labels e Separadores")
+
+SecLabels:AddLabel("Isso é um label de texto informativo.")
+SecLabels:AddSeparator()
+SecLabels:AddLabel("Separador sem título acima.")
+SecLabels:AddSeparator("COM TÍTULO")
+SecLabels:AddLabel("Separador com título acima.")
+
+-- ══════════════════════════════════════════════════════════════════
+-- ABA 3: NOTIFICAÇÕES
+-- ══════════════════════════════════════════════════════════════════
+local Tab3 = Window:AddTab({ Name = "Notificações" })
+
+local SecNotifs = Tab3:AddSection("Testar Notificações")
+
+SecNotifs:AddButton({
+    Name = "Notif: Info",
+    Callback = function()
+        BarbiUI:Notify({ Title="Info", Message="Isso é uma notificação de info.", Type="info", Duration=4 })
+    end,
+})
+
+SecNotifs:AddButton({
+    Name = "Notif: Success",
+    Callback = function()
+        BarbiUI:Notify({ Title="Sucesso", Message="Operação concluída com sucesso!", Type="success", Duration=4 })
+    end,
+})
+
+SecNotifs:AddButton({
+    Name = "Notif: Warning",
+    Callback = function()
+        BarbiUI:Notify({ Title="Atenção", Message="Isso é um aviso importante.", Type="warning", Duration=4 })
+    end,
+})
+
+SecNotifs:AddButton({
+    Name = "Notif: Error",
+    Callback = function()
+        BarbiUI:Notify({ Title="Erro", Message="Algo deu errado.", Type="error", Duration=4 })
+    end,
+})
