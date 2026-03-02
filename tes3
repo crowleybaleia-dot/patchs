@@ -211,8 +211,13 @@ function BarbiUI:CreateWindow(cfg)
     local minimized = false
     CtrlBtn("−", T.Warning, -56, function()
         minimized = not minimized
-        if minimized then U.Tw(win,{Size=UDim2.new(0,winW,0,titleH)},0.3,Enum.EasingStyle.Quart)
-        else U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.4,Enum.EasingStyle.Back) end
+        if minimized then
+            TwBlur(0, 0.3) -- FIX: remove blur ao minimizar
+            U.Tw(win,{Size=UDim2.new(0,winW,0,titleH)},0.3,Enum.EasingStyle.Quart)
+        else
+            TwBlur(8, 0.3) -- FIX: volta blur ao restaurar
+            U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.4,Enum.EasingStyle.Back)
+        end
     end)
 
     local dragging, dStart, dSPos
@@ -231,7 +236,6 @@ function BarbiUI:CreateWindow(cfg)
     end)
 
     local body = U.New("Frame", { BackgroundTransparency=1, Position=UDim2.new(0,0,0,titleH), Size=UDim2.new(1,0,1,-titleH), ClipsDescendants=false, Parent=clipFrame })
-
     local sidebar = U.New("ScrollingFrame", { BackgroundColor3=Color3.fromRGB(5,4,10), BackgroundTransparency=0, BorderSizePixel=0, Size=UDim2.new(0,sideW,1,0), ScrollBarThickness=2, ScrollBarImageColor3=T.PinkMute, CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y, ClipsDescendants=true, Parent=body })
     U.New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,1), Parent=sidebar})
     U.Pad(sidebar, 10, 8, 12, 8)
@@ -246,6 +250,20 @@ function BarbiUI:CreateWindow(cfg)
     local contentArea = U.New("Frame", { BackgroundTransparency=1, Position=UDim2.new(0,sideW+1,0,0), Size=UDim2.new(1,-(sideW+1),1,0), ClipsDescendants=true, Parent=body })
 
     local Win = {_tabs={}, _btns={}, _active=nil, _ord=2}
+
+    -- FIX: Toggle público com blur
+    function Win:Toggle()
+        vis = not vis
+        if vis then
+            win.Visible=true win.Size=UDim2.new(0,winW,0,20)
+            U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.4,Enum.EasingStyle.Back)
+            TwBlur(8,0.3)
+        else
+            TwBlur(0,0.3)
+            U.Tw(win,{Size=UDim2.new(0,winW,0,20)},0.3,Enum.EasingStyle.Quart,Enum.EasingDirection.In)
+            task.wait(0.38) win.Visible=false
+        end
+    end
 
     function Win:AddTab(tc)
         tc = tc or {}
@@ -462,8 +480,12 @@ function BarbiUI:CreateWindow(cfg)
                 U.Corner(panel,10) U.Stroke(panel,T.BrdCard,1,T.BrdTCard) U.Pad(panel,10,10,10,10)
                 U.New("UIListLayout",{Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=panel})
 
-                -- FIX: bloqueia cliques passando pro fundo
-                local blocker=U.New("TextButton",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text="",ZIndex=199,Parent=panel})
+                -- FIX: blocker como irmão do panel em contentArea, não dentro do UIListLayout
+                local blocker=U.New("TextButton",{
+                    BackgroundTransparency=1, Text="", ZIndex=198,
+                    Size=UDim2.new(0,185,0,118), Visible=false,
+                    Parent=contentArea,
+                })
                 blocker.MouseButton1Click:Connect(function()end)
 
                 local function Rebuild() cur=Color3.fromHSV(hsv.h,hsv.s,hsv.v) sw.BackgroundColor3=cur hexLbl.Text=ToHex(cur) cb(cur) end
@@ -492,9 +514,15 @@ function BarbiUI:CreateWindow(cfg)
                     popen=not popen
                     if popen then
                         local ax=sw.AbsolutePosition.X-contentArea.AbsolutePosition.X local ay=sw.AbsolutePosition.Y-contentArea.AbsolutePosition.Y
-                        panel.Position=UDim2.new(0,math.clamp(ax-148,0,contentArea.AbsoluteSize.X-190),0,ay+28) panel.Visible=true panel.Size=UDim2.new(0,185,0,0)
+                        local px=math.clamp(ax-148,0,contentArea.AbsoluteSize.X-190)
+                        local py=ay+28
+                        panel.Position=UDim2.new(0,px,0,py)
+                        blocker.Position=UDim2.new(0,px,0,py) -- FIX: sincroniza posição do blocker
+                        blocker.Visible=true
+                        panel.Visible=true panel.Size=UDim2.new(0,185,0,0)
                         U.Tw(panel,{Size=UDim2.new(0,185,0,118)},0.3,Enum.EasingStyle.Back)
                     else
+                        blocker.Visible=false
                         U.Tw(panel,{Size=UDim2.new(0,185,0,0)},0.22) task.wait(0.25) panel.Visible=false
                     end
                 end)
