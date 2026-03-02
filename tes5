@@ -1,9 +1,8 @@
 --[[
-    BarbiUI v3.2 — Violet Edition
-    FIXES:
-    - Blur some corretamente ao esconder UI (task.delay ao invés de task.wait no toggle)
-    - Sliders H/S/V do ColorPicker funcionam (ZIndex blocker: 150, thumbs: 210)
-    - ClipsDescendants do panel reseta ao fechar para não travar na próxima abertura
+    BarbiUI v3.2 — Violet Edition (FIXED)
+    CORREÇÕES APLICADAS:
+    - Bug 1: TwBlur agora usa TweenService diretamente (sem U.Tw) → blur some corretamente
+    - Bug 2: slTrk ZIndex=205, sr ZIndex=201 → sliders do ColorPicker funcionam acima do blocker
 ]]
 
 local Players          = game:GetService("Players")
@@ -147,8 +146,25 @@ function BarbiUI:CreateWindow(cfg)
     local sg = U.New("ScreenGui", { Name="BarbiUI_"..title, ResetOnSpawn=false, ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui })
 
     local blur = nil
-    pcall(function() blur = Instance.new("BlurEffect") blur.Size = 0 blur.Parent = game:GetService("Lighting") end)
-    local function TwBlur(sz, t) if blur then pcall(function() U.Tw(blur, {Size=sz}, t or 0.3) end) end end
+    pcall(function()
+        blur = Instance.new("BlurEffect")
+        blur.Size = 0
+        blur.Parent = game:GetService("Lighting")
+    end)
+
+    -- ✅ FIX 1: TwBlur usa TweenService diretamente, sem passar por U.Tw
+    -- Isso garante que o blur some corretamente ao esconder a UI,
+    -- evitando falhas silenciosas do guard "not obj.Parent" em executors.
+    local function TwBlur(sz, t)
+        if not blur then return end
+        pcall(function()
+            TweenService:Create(
+                blur,
+                TweenInfo.new(t or 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                { Size = sz }
+            ):Play()
+        end)
+    end
 
     local win = U.New("Frame", { Name="Window", BackgroundColor3=T.GlassWin, BackgroundTransparency=T.TWin, Size=UDim2.new(0,winW,0,0), Position=UDim2.new(0.5,-winW/2,0.5,-winH/2), ClipsDescendants=false, Parent=sg })
     U.Corner(win, 12)
@@ -229,7 +245,6 @@ function BarbiUI:CreateWindow(cfg)
     UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
 
     local vis = true
-    -- FIX: task.delay garante que o blur some antes de esconder a janela
     UserInputService.InputBegan:Connect(function(i, gp)
         if gp then return end
         if i.KeyCode == key then
@@ -481,19 +496,28 @@ function BarbiUI:CreateWindow(cfg)
 
             function Sec:AddColorPicker(c)
                 c = c or {}
-                local row=Row(c.Name or "Color",34) local cb=c.Callback or function()end local cur=c.Default or Color3.fromRGB(162,89,255) local popen=false
-                local hsv={} do local h,s,v=Color3.toHSV(cur) hsv.h,hsv.s,hsv.v=h,s,v end
+                local row=Row(c.Name or "Color",34)
+                local cb=c.Callback or function()end
+                local cur=c.Default or Color3.fromRGB(162,89,255)
+                local popen=false
+                local hsv={}
+                do local h,s,v=Color3.toHSV(cur) hsv.h,hsv.s,hsv.v=h,s,v end
+
                 local sw=U.New("TextButton",{BackgroundColor3=cur,Position=UDim2.new(1,-36,0.5,-11),Size=UDim2.new(0,32,0,22),Text="",Parent=row})
                 U.Corner(sw,5) U.Stroke(sw,T.BrdElem,1,T.BrdTElem)
                 local function ToHex(col) return string.format("#%02X%02X%02X",math.round(col.R*255),math.round(col.G*255),math.round(col.B*255)) end
                 local hexLbl=U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(1,-100,0.5,-7),Size=UDim2.new(0,58,0,14),Text=ToHex(cur),TextColor3=T.TxtMute,Font=T.FntMono,TextSize=8,Parent=row})
 
-                -- FIX: ClipsDescendants=false por padrão
-                local panel=U.New("Frame",{BackgroundColor3=T.GlassCard,BackgroundTransparency=0.08,Size=UDim2.new(0,185,0,0),ZIndex=200,Visible=false,ClipsDescendants=false,Parent=contentArea})
+                local panel=U.New("Frame",{
+                    BackgroundColor3=T.GlassCard, BackgroundTransparency=0.08,
+                    Size=UDim2.new(0,185,0,0), ZIndex=200,
+                    Visible=false, ClipsDescendants=false,
+                    Parent=contentArea,
+                })
                 U.Corner(panel,10) U.Stroke(panel,T.BrdCard,1,T.BrdTCard) U.Pad(panel,10,10,10,10)
                 U.New("UIListLayout",{Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=panel})
 
-                -- FIX: ZIndex=150 (não bloqueia os sliders em ZIndex=210)
+                -- Blocker: ZIndex=150, captura cliques "de fundo" sem interferir nos sliders (ZIndex=205)
                 local blocker=U.New("TextButton",{
                     BackgroundTransparency=1, Text="", ZIndex=150,
                     Size=UDim2.new(0,185,0,118), Visible=false,
@@ -501,51 +525,122 @@ function BarbiUI:CreateWindow(cfg)
                 })
                 blocker.MouseButton1Click:Connect(function()end)
 
-                local function Rebuild() cur=Color3.fromHSV(hsv.h,hsv.s,hsv.v) sw.BackgroundColor3=cur hexLbl.Text=ToHex(cur) cb(cur) end
-                local sdefs={{lbl="H",key="h",c1=Color3.fromRGB(255,0,0),c2=Color3.fromRGB(160,0,255)},{lbl="S",key="s",c1=Color3.fromRGB(170,170,170),c2=Color3.fromRGB(162,89,255)},{lbl="V",key="v",c1=Color3.fromRGB(0,0,0),c2=Color3.fromRGB(255,255,255)}}
-                for i,sd in ipairs(sdefs) do
-                    local slDrag=false
-                    local sr=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,26),LayoutOrder=i,Parent=panel})
-                    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,12,1,0),Text=sd.lbl,TextColor3=T.TxtMute,Font=T.FntMono,TextSize=9,Parent=sr})
-                    local slTrk=U.New("Frame",{BackgroundColor3=T.GlassInput,BackgroundTransparency=0.28,Position=UDim2.new(0,16,0.5,-5),Size=UDim2.new(1,-16,0,10),Parent=sr})
-                    U.Corner(slTrk,999) U.New("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,sd.c1),ColorSequenceKeypoint.new(1,sd.c2)}),Parent=slTrk})
-                    -- FIX: ZIndex=210
-                    local slTh=U.New("Frame",{BackgroundColor3=Color3.new(1,1,1),AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.new(hsv[sd.key],0,0.5,0),Size=UDim2.new(0,12,0,12),ZIndex=210,Parent=slTrk})
-                    U.Corner(slTh,999) U.Stroke(slTh,Color3.new(1,1,1),2)
+                local function Rebuild()
+                    cur=Color3.fromHSV(hsv.h,hsv.s,hsv.v)
+                    sw.BackgroundColor3=cur
+                    hexLbl.Text=ToHex(cur)
+                    cb(cur)
+                end
+
+                local sdefs={
+                    {lbl="H", key="h", c1=Color3.fromRGB(255,0,0),   c2=Color3.fromRGB(160,0,255)},
+                    {lbl="S", key="s", c1=Color3.fromRGB(170,170,170),c2=Color3.fromRGB(162,89,255)},
+                    {lbl="V", key="v", c1=Color3.fromRGB(0,0,0),      c2=Color3.fromRGB(255,255,255)},
+                }
+
+                for i, sd in ipairs(sdefs) do
+                    local slDrag = false
+
+                    -- ✅ FIX 2: ZIndex=201 → acima do blocker (150), abaixo dos thumbs (210)
+                    -- Com ZIndexBehavior.Global, sem ZIndex explícito o frame fica em ZIndex=1
+                    -- e o blocker (ZIndex=150) interceptava todos os InputBegan das tracks.
+                    local sr = U.New("Frame", {
+                        BackgroundTransparency=1,
+                        Size=UDim2.new(1,0,0,26),
+                        LayoutOrder=i,
+                        ZIndex=201,   -- ← FIX
+                        Parent=panel,
+                    })
+
+                    U.New("TextLabel",{
+                        BackgroundTransparency=1, Size=UDim2.new(0,12,1,0),
+                        Text=sd.lbl, TextColor3=T.TxtMute, Font=T.FntMono, TextSize=9,
+                        ZIndex=202,
+                        Parent=sr,
+                    })
+
+                    -- ✅ ZIndex=205: maior que o blocker (150), garante InputBegan funcione
+                    local slTrk = U.New("Frame", {
+                        BackgroundColor3=T.GlassInput, BackgroundTransparency=0.28,
+                        Position=UDim2.new(0,16,0.5,-5), Size=UDim2.new(1,-16,0,10),
+                        ZIndex=205,   -- ← FIX
+                        Parent=sr,
+                    })
+                    U.Corner(slTrk,999)
+                    U.New("UIGradient",{
+                        Color=ColorSequence.new({ColorSequenceKeypoint.new(0,sd.c1),ColorSequenceKeypoint.new(1,sd.c2)}),
+                        Parent=slTrk,
+                    })
+
+                    -- Thumb: ZIndex=210 (acima do track e do blocker)
+                    local slTh = U.New("Frame",{
+                        BackgroundColor3=Color3.new(1,1,1),
+                        AnchorPoint=Vector2.new(0.5,0.5),
+                        Position=UDim2.new(hsv[sd.key],0,0.5,0),
+                        Size=UDim2.new(0,12,0,12),
+                        ZIndex=210,
+                        Parent=slTrk,
+                    })
+                    U.Corner(slTh,999)
+                    U.Stroke(slTh,Color3.new(1,1,1),2)
+
                     slTrk.InputBegan:Connect(function(inp)
                         if inp.UserInputType==Enum.UserInputType.MouseButton1 then
-                            slDrag=true local p=math.clamp((inp.Position.X-slTrk.AbsolutePosition.X)/slTrk.AbsoluteSize.X,0,1) hsv[sd.key]=p slTh.Position=UDim2.new(p,0,0.5,0) Rebuild()
+                            slDrag=true
+                            local p=math.clamp((inp.Position.X-slTrk.AbsolutePosition.X)/slTrk.AbsoluteSize.X,0,1)
+                            hsv[sd.key]=p
+                            slTh.Position=UDim2.new(p,0,0.5,0)
+                            Rebuild()
                         end
                     end)
+
                     local mv=UserInputService.InputChanged:Connect(function(inp)
-                        if slDrag and inp.UserInputType==Enum.UserInputType.MouseMovement then local p=math.clamp((inp.Position.X-slTrk.AbsolutePosition.X)/slTrk.AbsoluteSize.X,0,1) hsv[sd.key]=p slTh.Position=UDim2.new(p,0,0.5,0) Rebuild() end
+                        if slDrag and inp.UserInputType==Enum.UserInputType.MouseMovement then
+                            local p=math.clamp((inp.Position.X-slTrk.AbsolutePosition.X)/slTrk.AbsoluteSize.X,0,1)
+                            hsv[sd.key]=p
+                            slTh.Position=UDim2.new(p,0,0.5,0)
+                            Rebuild()
+                        end
                     end)
-                    local ed=UserInputService.InputEnded:Connect(function(inp) if inp.UserInputType==Enum.UserInputType.MouseButton1 then slDrag=false end end)
-                    panel.AncestryChanged:Connect(function() if not panel.Parent then mv:Disconnect() ed:Disconnect() end end)
+                    local ed=UserInputService.InputEnded:Connect(function(inp)
+                        if inp.UserInputType==Enum.UserInputType.MouseButton1 then slDrag=false end
+                    end)
+                    panel.AncestryChanged:Connect(function()
+                        if not panel.Parent then mv:Disconnect() ed:Disconnect() end
+                    end)
                 end
 
                 sw.MouseButton1Click:Connect(function()
-                    popen=not popen
+                    popen = not popen
                     if popen then
-                        local ax=sw.AbsolutePosition.X-contentArea.AbsolutePosition.X local ay=sw.AbsolutePosition.Y-contentArea.AbsolutePosition.Y
+                        local ax=sw.AbsolutePosition.X-contentArea.AbsolutePosition.X
+                        local ay=sw.AbsolutePosition.Y-contentArea.AbsolutePosition.Y
                         local px=math.clamp(ax-148,0,contentArea.AbsoluteSize.X-190)
                         local py=ay+28
                         panel.Position=UDim2.new(0,px,0,py)
                         blocker.Position=UDim2.new(0,px,0,py)
                         blocker.Visible=true
-                        panel.ClipsDescendants=true  -- FIX: ativa ao abrir
-                        panel.Visible=true panel.Size=UDim2.new(0,185,0,0)
+                        panel.ClipsDescendants=true
+                        panel.Visible=true
+                        panel.Size=UDim2.new(0,185,0,0)
                         U.Tw(panel,{Size=UDim2.new(0,185,0,118)},0.3,Enum.EasingStyle.Back)
                     else
                         blocker.Visible=false
                         U.Tw(panel,{Size=UDim2.new(0,185,0,0)},0.22)
-                        task.delay(0.25, function()
-                            panel.ClipsDescendants=false  -- FIX: reseta ao fechar
+                        task.delay(0.25,function()
+                            panel.ClipsDescendants=false
                             panel.Visible=false
                         end)
                     end
                 end)
-                local o={} function o:Set(col) cur=col sw.BackgroundColor3=col hexLbl.Text=ToHex(col) local h,s,v=Color3.toHSV(col) hsv.h,hsv.s,hsv.v=h,s,v end function o:Get() return cur end return o
+
+                local o={}
+                function o:Set(col)
+                    cur=col sw.BackgroundColor3=col hexLbl.Text=ToHex(col)
+                    local h,s,v=Color3.toHSV(col) hsv.h,hsv.s,hsv.v=h,s,v
+                end
+                function o:Get() return cur end
+                return o
             end
 
             function Sec:AddLabel(text)
@@ -571,7 +666,8 @@ function BarbiUI:CreateWindow(cfg)
     end
 
     win.Size=UDim2.new(0,winW,0,0) task.wait(0.05)
-    U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.45,Enum.EasingStyle.Back) TwBlur(8,0.45)
+    U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.45,Enum.EasingStyle.Back)
+    TwBlur(8,0.45)
     return Win
 end
 
