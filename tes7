@@ -1,13 +1,12 @@
 --[[
-    BarbiUI v3.2 — Violet Edition (FIXED v3)
+    BarbiUI v3.2 — Violet Edition (FIXED v4)
     CORREÇÕES APLICADAS:
     - Bug 1: slTrk ZIndex=205, sr ZIndex=201 → sliders do ColorPicker funcionam acima do blocker
     - Bug 2: Blur não sumia ao esconder o HUB
-        → Replicado o sistema de blur da versão original que funciona:
-          TwBlur usa U.Tw (idêntico à v2 original)
-          Toggle do keybind usa task.wait() bloqueante (igual ao original)
-          → Isso garante que o blur complete a animação ANTES do win.Visible = false
-        → Botão × também usa task.wait() em vez de task.delay()
+        → blur.Enabled = false ao esconder (win.Visible = false)
+        → blur.Enabled = true  ao mostrar  (win.Visible = true)
+        → Aplicado em: toggle do keybind, Win:Toggle(), botão ×, botão −
+        → HideBlur() anima para Size=0 e depois desativa blur.Enabled
 ]]
 
 local Players          = game:GetService("Players")
@@ -151,22 +150,36 @@ function BarbiUI:CreateWindow(cfg)
     local sg = U.New("ScreenGui", { Name="BarbiUI_"..title, ResetOnSpawn=false, ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui })
 
     -- ════════════════════════════════════════════════
-    -- BLUR SYSTEM — CORRIGIDO v2
-    -- Problema original: o blur não sumia ao esconder o hub porque:
-    --   1. Em alguns executors, TweenService em objetos de Lighting é silenciado
-    --   2. O win.Visible=false ocorria antes do tween de blur completar
-    --   3. blur.Enabled nunca era desativado como fallback
+    -- BLUR SYSTEM — FIXED v4
+    -- PROBLEMA: BlurEffect no Lighting persiste mesmo com win.Visible = false
+    -- SOLUÇÃO:
+    --   TwBlur()  → reativa blur.Enabled + anima Size para o valor desejado
+    --   HideBlur() → anima Size para 0 e após a animação seta blur.Enabled = false
     -- ════════════════════════════════════════════════
     local blur = nil
     pcall(function()
         blur = Instance.new("BlurEffect")
         blur.Size = 0
+        blur.Enabled = true
         blur.Parent = game:GetService("Lighting")
     end)
 
-    -- Sistema de blur idêntico à versão original que funciona corretamente
+    -- Mostra o blur: reativa e anima até o tamanho desejado
     local function TwBlur(sz, t)
-        if blur then pcall(function() U.Tw(blur, {Size=sz}, t or 0.3) end) end
+        if blur then pcall(function()
+            blur.Enabled = true
+            U.Tw(blur, {Size = sz}, t or 0.3)
+        end) end
+    end
+
+    -- Esconde o blur: anima até 0 e desativa após a animação
+    local function HideBlur(t)
+        if blur then pcall(function()
+            U.Tw(blur, {Size = 0}, t or 0.3)
+            task.delay((t or 0.3) + 0.05, function()
+                if blur then pcall(function() blur.Enabled = false end) end
+            end)
+        end) end
     end
 
     local win = U.New("Frame", { Name="Window", BackgroundColor3=T.GlassWin, BackgroundTransparency=T.TWin, Size=UDim2.new(0,winW,0,0), Position=UDim2.new(0.5,-winW/2,0.5,-winH/2), ClipsDescendants=false, Parent=sg })
@@ -224,19 +237,21 @@ function BarbiUI:CreateWindow(cfg)
         return b
     end
 
+    -- Botão × — fecha e destroi tudo
     CtrlBtn("×", T.Error, -30, function()
-        TwBlur(0, 0.3)
+        HideBlur(0.3)
         U.Tw(win, {Size=UDim2.new(0,winW,0,0), BackgroundTransparency=1}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
         task.wait(0.38)
         sg:Destroy()
         if blur then pcall(function() blur:Destroy() end) end
     end)
 
+    -- Botão − — minimiza (blur some) / restaura (blur volta)
     local minimized = false
     CtrlBtn("−", T.Warning, -56, function()
         minimized = not minimized
         if minimized then
-            TwBlur(0, 0.3)
+            HideBlur(0.3)
             U.Tw(win,{Size=UDim2.new(0,winW,0,titleH)},0.3,Enum.EasingStyle.Quart)
         else
             TwBlur(8, 0.3)
@@ -250,17 +265,22 @@ function BarbiUI:CreateWindow(cfg)
     UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
 
     local vis = true
+
+    -- Toggle via keybind — CORRIGIDO: usa HideBlur() ao esconder, TwBlur() ao mostrar
     UserInputService.InputBegan:Connect(function(i, gp)
         if gp then return end
         if i.KeyCode == key then
             vis = not vis
             if vis then
+                -- MOSTRAR: reativa blur ANTES de mostrar a janela
+                if blur then pcall(function() blur.Enabled = true end) end
                 win.Visible = true
                 win.Size = UDim2.new(0, winW, 0, 20)
                 U.Tw(win, {Size=UDim2.new(0,winW,0,winH)}, 0.4, Enum.EasingStyle.Back)
                 TwBlur(8, 0.3)
             else
-                TwBlur(0, 0.3)
+                -- ESCONDER: anima blur para 0, desativa, depois esconde a janela
+                HideBlur(0.3)
                 U.Tw(win, {Size=UDim2.new(0,winW,0,20)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
                 task.wait(0.38)
                 win.Visible = false
@@ -284,15 +304,17 @@ function BarbiUI:CreateWindow(cfg)
 
     local Win = {_tabs={}, _btns={}, _active=nil, _ord=2}
 
+    -- Win:Toggle() — mesma lógica do keybind
     function Win:Toggle()
         vis = not vis
         if vis then
+            if blur then pcall(function() blur.Enabled = true end) end
             win.Visible = true
             win.Size = UDim2.new(0, winW, 0, 20)
             U.Tw(win, {Size=UDim2.new(0,winW,0,winH)}, 0.4, Enum.EasingStyle.Back)
             TwBlur(8, 0.3)
         else
-            TwBlur(0, 0.3)
+            HideBlur(0.3)
             U.Tw(win, {Size=UDim2.new(0,winW,0,20)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.wait(0.38)
             win.Visible = false
