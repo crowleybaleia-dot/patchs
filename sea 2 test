@@ -1,0 +1,2556 @@
+
+-----------------------------------------bypass lixo---------------------------------
+local function checkExecutorSupport()
+    local required = {
+        run_on_actor    = run_on_actor,
+        hookfunction    = hookfunction or hookfunc,
+        hookmetamethod  = hookmetamethod,
+        getnamecallmethod = getnamecallmethod,
+        checkcaller     = checkcaller,
+        getnilinstances = getnilinstances,
+    }
+    for name, func in pairs(required) do
+        if not func then
+            warn("Executor não suporta: " .. name)
+            return false, name
+        end
+    end
+    print("Executor suportado")
+    return true
+end
+
+local _bypassSupported, _bypassMissing = checkExecutorSupport()
+
+if not _bypassSupported then
+    warn(".. " .. tostring(_bypassMissing) .. " — ok...")
+end
+
+-- Proteção contra double-load
+if getgenv().AntiCheatBypassLoaded then
+    warn(" lol")
+else
+    getgenv().AntiCheatBypassLoaded = false
+
+    print("...")
+    repeat task.wait() until game:IsLoaded()
+    print(" okay")
+
+    -- ─── Adonis Destroyer ───────────────────────────────────────
+    local function destroyAdonis()
+        local destroyed = 0
+        pcall(function()
+            for _, obj in ipairs(game:GetDescendants()) do
+                local name = obj.Name:lower()
+                if name:match("adonis") or name == "__function"
+                or name:match("clientmover") or name:match("anticheat") or name:match("ac_") then
+                    pcall(function() obj:Destroy() end)
+                    destroyed = destroyed + 1
+                end
+            end
+        end)
+        pcall(function()
+            for _, obj in ipairs(getnilinstances()) do
+                if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction")
+                or obj.Name:match("ClientMover") or obj.Name == "__FUNCTION" then
+                    pcall(function() obj:Destroy() end)
+                    destroyed = destroyed + 1
+                end
+            end
+        end)
+        print("" .. destroyed .. "")
+        return destroyed
+    end
+    destroyAdonis()
+    getgenv()._KyotakiDestroyAdonis = destroyAdonis
+
+    -- ─── Actor Bypass ────────────────────────────────────────────
+    if _bypassSupported then
+        local function applyActorBypass()
+            if game.PlaceId == 1730877806 then
+                print("")
+                getgenv().AntiCheatBypassLoaded = true
+                return true
+            end
+            print("")
+            local actorWait = 0
+            while not game:GetService("ReplicatedFirst"):FindFirstChild("paul greyrat") do
+                task.wait(0.5)
+                actorWait = actorWait + 0.5
+                if actorWait >= 30 then warn("ops") return false end
+            end
+            print("ok")
+            local actor = game:GetService("ReplicatedFirst")["paul greyrat"]
+            repeat task.wait() until #actor:GetChildren() < 1
+            task.wait(1)
+            local bypassCode = [[
+                pcall(function()
+                    local Context = game:GetService('ScriptContext')
+                    for i, connection in pairs(getconnections(Context.Error)) do
+                        if connection.Function then
+                            local info = debug.getinfo(connection.Function)
+                            if info and info.nups and info.nups > 1 then
+                                connection.Function = function() end
+                                print("ok " .. i)
+                            end
+                        end
+                    end
+                end)
+            ]]
+            local ok = pcall(function() run_on_actor(actor, bypassCode) end)
+            if not ok then warn("loki") return false end
+            task.wait(5)
+            getgenv().AntiCheatBypassLoaded = true
+            print("ok")
+            return true
+        end
+
+        local attempts = 0
+        while not getgenv().AntiCheatBypassLoaded and attempts < 3 do
+            attempts = attempts + 1
+            print("1 " .. attempts .. "/3")
+            if applyActorBypass() then break end
+            if attempts < 3 then task.wait(3) end
+        end
+
+        -- ─── FireServer Hook ─────────────────────────────────────
+        pcall(function()
+            local oldFireServer
+            oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, function(self, ...)
+                local args = {...}
+                if typeof(args[1]) == "table" then
+                    if args[1].Mode == "Get" or args[1].Type == "Anticheat" or args[1].Check == true then
+                        return
+                    end
+                end
+                return oldFireServer(self, ...)
+            end)
+            print("ok")
+        end)
+    else
+        getgenv().AntiCheatBypassLoaded = false
+    end
+
+    
+end
+
+--------------------------------------GUI-----------------------------------------
+
+local Players           = game:GetService("Players")
+local UserInputService  = game:GetService("UserInputService")
+local RunService        = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace         = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+
+local TakeStam     = ReplicatedStorage:WaitForChild("Events"):WaitForChild("takestam")
+local GunManager   = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GunManager")
+local gunFunctions = GunManager:WaitForChild("gunFunctions")
+local QuestRemote  = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Quest")
+local StatsRemote  = ReplicatedStorage:WaitForChild("Events"):WaitForChild("stats")
+
+--------------------------------------configs do auto farm lixo-----------------------------------------
+
+local TrackSettings = {
+    Enabled      = false,
+    FlySpeed     = 130,
+    GroundSpeed  = 50,
+    TravelHeight = 900,
+    FloatHeight  = 3,
+    ArrivalDist  = 2.1,
+    NoclipOn     = true,
+    StamInterval = 0.3,
+}
+
+local RifleSettings = {
+    Enabled              = false,
+    Range                = 500,
+    MinRange             = 5,
+    FireDelay            = 0,
+    AutoReload           = true,
+    MaxAmmo              = 1,
+    ReloadTime           = 0.1,
+    ShowESP              = false,
+    IgnoreForceField     = true,
+    UpdateRate           = 0.05,
+    UsePrediction        = true,
+    BulletSpeed          = 200,
+    PredictionMultiplier = 1.0,
+}
+
+local QuestSettings = {
+    NpcPosition = Vector3.new(7731.06104, -2176.10864, -17222.7422),
+    ArrivalDist = 8,
+    FlySpeed    = 75,
+    QuestName   = "Help becky",
+    MinLevel    = 190,
+}
+
+local AutoStatsSettings = {
+    Enabled  = false,
+    Interval = 0.1,
+    Stat     = "GunMastery",
+}
+
+local QOLSettings = {
+    AntiStun      = false,
+    SpeedEnabled  = false,
+    SpeedBoost    = 15,
+    InfiniteJump  = false,
+    GeppoLoop     = false,
+    NoDash        = false,
+}
+
+local SlidsSettings = {
+    Enabled      = false,
+    FlySpeed     = 135,
+    TravelHeight = 900,
+    FloatHeight  = 5,
+    ArrivalDist  = 8,
+    NoclipOn     = true,
+    StamInterval = 0.3,
+}
+
+-- ───────────────────────────────────────────────────────────────────
+-- ILHAS
+-- ───────────────────────────────────────────────────────────────────
+
+local Islands_Sea1 = {
+    ["Town of Beginnings"] = Vector3.new(-522.6,    -9.0,   -3396.0),
+    ["Shell's Town"]       = Vector3.new(-1238.6,   80.2,   -5484.3),
+    ["Sandora"]            = Vector3.new(-1810.3,   15.3,   -3352.7),
+    ["Kori Island"]        = Vector3.new(-4266.8,   44.5,   -2976.2),
+    ["Marine Fort F-1"]    = Vector3.new(455.2,     10.1,   -4463.6),
+    ["Orange Town"]        = Vector3.new(-4623.7, -109.4,   -6642.8),
+    ["Roca Island"]        = Vector3.new(1792.2,   -33.5,   -6464.7),
+    ["Restaurant Baratie"] = Vector3.new(-2972.3,   68.0,   -6782.3),
+    ["Island Of Zou"]      = Vector3.new(-3078.3,    9.2,   -5257.9),
+    ["Colosseum"]          = Vector3.new(-2023.1,   40.2,   -7896.0),
+}
+
+local Islands_Sea2 = {
+    ["Mysterious Cliff"]   = Vector3.new(83.8,     160.9,   -8302.9),
+    ["Land of the Sky"]    = Vector3.new(2539.1,   -54.3,   -8366.0),
+    ["Sphinx Island"]      = Vector3.new(-4160.2,   18.4,   -9088.4),
+    ["Reverse Mountain"]   = Vector3.new(-9148.8,  805.8,   -8397.5),
+    ["Logue Town"]         = Vector3.new(-6837.9,  -35.6,   -7643.2),
+    ["Shark Park"]         = Vector3.new(-1753.7,    0.6,  -10277.5),
+    ["Marine Base G-1"]    = Vector3.new(-6038.0,  269.1,  -11329.1),
+    ["Coco Island"]        = Vector3.new(-3069.1,  -18.8,  -11790.2),
+    ["Gravito's Fort"]     = Vector3.new(274.4,      7.6,  -11476.6),
+    ["Fishman Cave"]       = Vector3.new(1793.7,   -92.8,  -12327.5),
+}
+
+local Islands = {}
+for k, v in pairs(Islands_Sea1) do Islands[k] = v end
+for k, v in pairs(Islands_Sea2) do Islands[k] = v end
+
+local IslandNames_Sea1 = {}
+for name in pairs(Islands_Sea1) do table.insert(IslandNames_Sea1, name) end
+table.sort(IslandNames_Sea1)
+
+local IslandNames_Sea2 = {}
+for name in pairs(Islands_Sea2) do table.insert(IslandNames_Sea2, name) end
+table.sort(IslandNames_Sea2)
+
+local IslandNames = {}
+for name in pairs(Islands) do table.insert(IslandNames, name) end
+table.sort(IslandNames)
+
+--------------------------------------TPS DO FLY DO AUUTO FARM-----------------------------------------
+
+local Waypoints = {
+    { pos = Vector3.new(1839.4,    4.1,  -12173.1), fly = true,  delay = 0 },
+    { pos = Vector3.new(1793.7,  -92.8,  -12327.5), fly = false, delay = 1.5 },
+    { pos = Vector3.new(7822.7, -2159.8, -17143.8), fly = false, delay = 0 },
+}
+
+local FARM_WAYPOINT        = Waypoints[3]
+local currentWaypointIndex = 1
+local waypointsDone        = false
+local isLanding            = false
+local isGroundMode         = false
+local lastStam             = 0
+
+local questEnabled   = false
+local questRunning   = false
+local questDone      = false
+local progressConn   = nil
+local questMoveConn  = nil
+local questFloatConn = nil
+local questFloatAtt  = nil
+local questFloatLV   = nil
+local questLastStam  = 0
+local autoStatsConn  = nil
+
+--------------------------------------HELPER-----------------------------------------
+
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+local function GetChar() return LocalPlayer.Character end
+local function GetRoot()
+    local c = GetChar()
+    if c then rayParams.FilterDescendantsInstances = { c } end
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function GetHum()
+    local c = GetChar()
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+
+local function DashBypass()
+    task.spawn(function() pcall(function() TakeStam:FireServer(0.505, "dash") end) end)
+end
+
+local function GetCurrentLevel()
+    local ok, result = pcall(function()
+        local label = LocalPlayer.PlayerGui.HUD.Main.Bars.Experience.Detail.Level
+        return tonumber(label.Text:match("%d+"))
+    end)
+    return ok and result or nil
+end
+
+local function PurgePhysics()
+    local root = GetRoot()
+    if not root then return end
+    for _, obj in ipairs(root:GetChildren()) do
+        if obj.Name == "FloatAttachment" or obj.Name == "FloatLV"
+        or obj.Name == "QFA" or obj.Name == "QFLV" then
+            obj:Destroy()
+        end
+    end
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+end
+
+--------------------------------------NOCLIP-----------------------------------------
+
+local noclipConn = nil
+
+local function StartNoclip()
+    if noclipConn then noclipConn:Disconnect() end
+    noclipConn = RunService.Stepped:Connect(function()
+        if not TrackSettings.NoclipOn then return end
+        local c = GetChar()
+        if not c then return end
+        for _, p in ipairs(c:GetDescendants()) do
+            if p:IsA("BasePart") then p.CanCollide = false end
+        end
+    end)
+end
+
+local function StopNoclip()
+    if noclipConn then noclipConn:Disconnect() noclipConn = nil end
+    local c = GetChar()
+    if not c then return end
+    for _, p in ipairs(c:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = true end
+    end
+end
+
+--------------------------------------FLOAT-----------------------------------------
+
+local floatAtt  = nil
+local floatLV   = nil
+local floatConn = nil
+
+local function StopFloat()
+    if floatConn then floatConn:Disconnect() floatConn = nil end
+    if floatLV  and floatLV.Parent  then floatLV:Destroy()  end ; floatLV  = nil
+    if floatAtt and floatAtt.Parent then floatAtt:Destroy() end ; floatAtt = nil
+end
+
+local function StartFloat()
+    StopFloat()
+    local root = GetRoot()
+    if not root then return end
+    floatAtt = Instance.new("Attachment")
+    floatAtt.Name   = "FloatAttachment"
+    floatAtt.Parent = root
+    floatLV = Instance.new("LinearVelocity")
+    floatLV.Name                   = "FloatLV"
+    floatLV.Attachment0            = floatAtt
+    floatLV.VelocityConstraintMode = Enum.VelocityConstraintMode.Line
+    floatLV.LineDirection          = Vector3.new(0, 1, 0)
+    floatLV.LineVelocity           = 0
+    floatLV.MaxForce               = 1e5
+    floatLV.Parent                 = root
+    floatConn = RunService.Heartbeat:Connect(function()
+        if not TrackSettings.Enabled then return end
+        if isLanding then return end
+        local r = GetRoot()
+        if not r or not floatLV or not floatLV.Parent then return end
+        local targetY
+        if isGroundMode then
+            local wp = Waypoints[currentWaypointIndex]
+            targetY = wp and wp.pos.Y or r.Position.Y
+        else
+            targetY = TrackSettings.TravelHeight
+        end
+        floatLV.LineVelocity = math.clamp((targetY - r.Position.Y) * 10, -80, 80)
+    end)
+end
+
+--------------------------------------FLOAT QUEST-----------------------------------------
+
+local function StopQuestFloat()
+    if questFloatConn then questFloatConn:Disconnect() questFloatConn = nil end
+    if questFloatLV  and questFloatLV.Parent  then questFloatLV:Destroy()  end ; questFloatLV  = nil
+    if questFloatAtt and questFloatAtt.Parent then questFloatAtt:Destroy() end ; questFloatAtt = nil
+end
+
+local function StartQuestFloat(targetY)
+    StopQuestFloat()
+    local root = GetRoot()
+    if not root then return end
+    questFloatAtt        = Instance.new("Attachment")
+    questFloatAtt.Name   = "QFA"
+    questFloatAtt.Parent = root
+    questFloatLV                        = Instance.new("LinearVelocity")
+    questFloatLV.Name                   = "QFLV"
+    questFloatLV.Attachment0            = questFloatAtt
+    questFloatLV.VelocityConstraintMode = Enum.VelocityConstraintMode.Line
+    questFloatLV.LineDirection          = Vector3.new(0, 1, 0)
+    questFloatLV.LineVelocity           = 0
+    questFloatLV.MaxForce               = 1e5
+    questFloatLV.Parent                 = root
+    questFloatConn = RunService.Heartbeat:Connect(function()
+        local r = GetRoot()
+        if not r or not questFloatLV or not questFloatLV.Parent then return end
+        questFloatLV.LineVelocity = math.clamp((targetY - r.Position.Y) * 10, -80, 80)
+    end)
+end
+
+local function StopQuestMove()
+    if questMoveConn then questMoveConn:Disconnect() questMoveConn = nil end
+    local root = GetRoot()
+    if root then root.AssemblyLinearVelocity = Vector3.zero end
+end
+
+--------------------------------------SAFE LADING E O TRACK V3-----------------------------------------
+
+local trackConn = nil
+
+local function StopTrack()
+    if trackConn then trackConn:Disconnect() trackConn = nil end
+    local root = GetRoot()
+    if root then root.AssemblyLinearVelocity = Vector3.zero end
+end
+
+local function StartTrack() end -- forward declaration
+
+local function SafeLanding(wpPos, afterLand)
+    local root = GetRoot()
+    local c    = GetChar()
+    if not root or not c then return end
+    local ray = workspace:Raycast(
+        Vector3.new(wpPos.X, TrackSettings.TravelHeight, wpPos.Z),
+        Vector3.new(0, -TrackSettings.TravelHeight - 500, 0),
+        rayParams
+    )
+    local groundY = ray and ray.Position.Y or wpPos.Y
+    local safePos = CFrame.new(wpPos.X, groundY + TrackSettings.FloatHeight, wpPos.Z)
+    root.Anchored = true
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    StopFloat()
+    PurgePhysics()
+    task.wait(0.1)
+    c:PivotTo(safePos)
+    DashBypass()
+    task.wait(0.1)
+    root.Anchored = false
+    local hum = c:FindFirstChildOfClass("Humanoid")
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
+    task.wait(0.4)
+    if afterLand then afterLand() end
+end
+
+-------------------------------------- MISAO DA VAGABUNDA DA BECK ESTRUPADA-----------------------------------------
+
+local function ReturnToFarm()
+    currentWaypointIndex  = 3
+    waypointsDone         = false
+    isLanding             = false
+    isGroundMode          = not FARM_WAYPOINT.fly
+    TrackSettings.Enabled = true
+    RifleSettings.Enabled = true
+    RifleSettings.ShowESP = true
+    StartNoclip()
+    StartFloat()
+    if trackConn then trackConn:Disconnect() trackConn = nil end
+    trackConn = RunService.Heartbeat:Connect(function()
+        if not TrackSettings.Enabled then return end
+        local root = GetRoot()
+        if not root then return end
+        local now = tick()
+        if now - lastStam > TrackSettings.StamInterval then lastStam = now DashBypass() end
+        local wp        = FARM_WAYPOINT
+        local myPos     = root.Position
+        local horizDist = Vector3.new(myPos.X - wp.pos.X, 0, myPos.Z - wp.pos.Z).Magnitude
+        if horizDist <= TrackSettings.ArrivalDist then
+            root.AssemblyLinearVelocity = Vector3.zero
+            if trackConn then trackConn:Disconnect() trackConn = nil end
+            waypointsDone = true TrackSettings.Enabled = false StopFloat()
+            return
+        end
+        local dir   = Vector3.new(wp.pos.X - myPos.X, 0, wp.pos.Z - myPos.Z).Unit
+        local diffY = wp.pos.Y - myPos.Y
+        root.AssemblyLinearVelocity = Vector3.new(
+            dir.X * TrackSettings.GroundSpeed,
+            math.clamp(diffY * 10, -30, 30),
+            dir.Z * TrackSettings.GroundSpeed
+        )
+    end)
+end
+
+local GoToNPC
+
+local function WatchQuestComplete()
+    if progressConn then progressConn:Disconnect() progressConn = nil end
+    local ok, Progress = pcall(function()
+        return LocalPlayer.PlayerGui
+            :FindFirstChild("Quest"):FindFirstChild("Main")
+            :FindFirstChild("Info"):FindFirstChild("Top")
+            :FindFirstChild("Progress")
+    end)
+    if not ok or not Progress then
+        task.wait(2)
+        if questEnabled then WatchQuestComplete() end
+        return
+    end
+    progressConn = Progress:GetPropertyChangedSignal("Text"):Connect(function()
+        local current = tonumber(Progress.Text:match("^(%d+)")) or 0
+        local total   = tonumber(Progress.Text:match("/ (%d+)")) or 0
+        if current == 0 and total > 0 and not questDone and not questRunning and questEnabled then
+            questDone = true
+            if progressConn then progressConn:Disconnect() progressConn = nil end
+            task.spawn(function()
+                task.wait(0.3)
+                questDone = false
+                if questEnabled then GoToNPC() end
+            end)
+        end
+    end)
+end
+
+local function TakeQuest()
+    pcall(function() QuestRemote:InvokeServer({"npcChat", true}) end)
+    task.wait(0.5)
+    pcall(function() QuestRemote:InvokeServer({"takequest", QuestSettings.QuestName}) end)
+    task.wait(0.5)
+    questRunning = false
+    WatchQuestComplete()
+    ReturnToFarm()
+end
+
+GoToNPC = function()
+    if questRunning then return end
+    questRunning = true
+    TrackSettings.Enabled = false
+    RifleSettings.Enabled = false
+    RifleSettings.ShowESP = false
+    StopTrack() StopFloat() StopNoclip()
+    StartQuestFloat(QuestSettings.NpcPosition.Y)
+    questMoveConn = RunService.Heartbeat:Connect(function()
+        if not questRunning then StopQuestMove() StopQuestFloat() return end
+        local r = GetRoot()
+        if not r then return end
+        local now = tick()
+        if now - questLastStam > TrackSettings.StamInterval then questLastStam = now DashBypass() end
+        local myPos     = r.Position
+        local npcPos    = QuestSettings.NpcPosition
+        local horizDist = Vector3.new(myPos.X - npcPos.X, 0, myPos.Z - npcPos.Z).Magnitude
+        if horizDist <= QuestSettings.ArrivalDist then
+            r.AssemblyLinearVelocity = Vector3.zero
+            StopQuestMove() StopQuestFloat() PurgePhysics()
+            task.spawn(TakeQuest)
+            return
+        end
+        local dir = Vector3.new(npcPos.X - myPos.X, 0, npcPos.Z - myPos.Z).Unit
+        r.AssemblyLinearVelocity = Vector3.new(
+            dir.X * QuestSettings.FlySpeed,
+            r.AssemblyLinearVelocity.Y,
+            dir.Z * QuestSettings.FlySpeed
+        )
+    end)
+end
+
+local function AdvanceToNext(arrivedWp)
+    local d = arrivedWp and (arrivedWp.delay or 0) or 0
+    if d > 0 then
+    StopFloat() StopTrack() PurgePhysics()
+    local elapsed = 0
+    local wp = Waypoints[currentWaypointIndex]
+    while elapsed < d do
+        task.wait(0.5)
+        elapsed = elapsed + 0.5
+        local root = GetRoot()
+        if not root then break end
+        root.CFrame = CFrame.new(wp.pos)
+        DashBypass()
+    end
+end
+    currentWaypointIndex = currentWaypointIndex + 1
+    if currentWaypointIndex > #Waypoints then
+        waypointsDone = true TrackSettings.Enabled = false isLanding = false
+        StopNoclip() PurgePhysics()
+        local lvl = GetCurrentLevel()
+        if lvl and lvl >= QuestSettings.MinLevel then
+            questEnabled = true GoToNPC()
+        else
+            questEnabled = true
+            local levelConn
+            levelConn = RunService.Heartbeat:Connect(function()
+                if not questEnabled then levelConn:Disconnect() return end
+                local l = GetCurrentLevel()
+                if l and l >= QuestSettings.MinLevel then levelConn:Disconnect() GoToNPC() end
+            end)
+        end
+        return
+    end
+    local next = Waypoints[currentWaypointIndex]
+    isGroundMode = not next.fly
+    if next.fly then
+        local root = GetRoot()
+        if root then
+            root.CFrame = CFrame.new(root.Position.X, TrackSettings.TravelHeight, root.Position.Z)
+            DashBypass()
+        end
+        task.wait(0.3)
+    end
+    StartFloat() StartTrack()
+end
+
+StartTrack = function()
+    if trackConn then trackConn:Disconnect() end
+    trackConn = RunService.Heartbeat:Connect(function()
+        if not TrackSettings.Enabled then return end
+        if isLanding then return end
+        local root = GetRoot()
+        if not root then return end
+        local now = tick()
+        if now - lastStam > TrackSettings.StamInterval then lastStam = now DashBypass() end
+        if waypointsDone then root.AssemblyLinearVelocity = Vector3.zero return end
+        local wp = Waypoints[currentWaypointIndex]
+        if not wp then return end
+        local myPos     = root.Position
+        local horizDist = Vector3.new(myPos.X - wp.pos.X, 0, myPos.Z - wp.pos.Z).Magnitude
+        if horizDist <= TrackSettings.ArrivalDist then
+            root.AssemblyLinearVelocity = Vector3.zero
+            StopTrack()
+            local arrivedWp = wp
+            if wp.fly then
+                isLanding = true
+                task.spawn(function()
+                    SafeLanding(wp.pos, function()
+                        isLanding = false
+                        AdvanceToNext(arrivedWp)
+                    end)
+                end)
+            else
+                task.spawn(function() AdvanceToNext(arrivedWp) end)
+            end
+            return
+        end
+        local speed = isGroundMode and TrackSettings.GroundSpeed or TrackSettings.FlySpeed
+        local dir   = Vector3.new(wp.pos.X - myPos.X, 0, wp.pos.Z - myPos.Z).Unit
+        if isGroundMode then
+            local diffY = wp.pos.Y - myPos.Y
+            root.AssemblyLinearVelocity = Vector3.new(
+                dir.X * speed, math.clamp(diffY * 10, -30, 30), dir.Z * speed
+            )
+        else
+            root.AssemblyLinearVelocity = Vector3.new(
+                dir.X * speed, root.AssemblyLinearVelocity.Y, dir.Z * speed
+            )
+        end
+    end)
+end
+
+local function EnableAll()
+    currentWaypointIndex  = 1
+    waypointsDone         = false
+    isLanding             = false
+    questEnabled          = false
+    questRunning          = false
+    questDone             = false
+    local first           = Waypoints[1]
+    isGroundMode          = not first.fly
+    TrackSettings.Enabled = true
+    RifleSettings.Enabled = true
+    RifleSettings.ShowESP = true
+    StartNoclip()
+    if first.fly then
+        local root = GetRoot()
+        if root then
+            root.CFrame = CFrame.new(root.Position.X, TrackSettings.TravelHeight, root.Position.Z)
+            DashBypass()
+        end
+        task.wait(0.3)
+    end
+    StartFloat() StartTrack()
+end
+
+local function DisableAll()
+    TrackSettings.Enabled = false
+    RifleSettings.Enabled = false
+    RifleSettings.ShowESP = false
+    questEnabled          = false
+    questRunning          = false
+    questDone             = false
+    isLanding             = false
+    isGroundMode          = false
+    if progressConn then progressConn:Disconnect() progressConn = nil end
+    StopTrack() StopFloat() StopQuestMove() StopQuestFloat() StopNoclip() PurgePhysics()
+end
+
+--------------------------------------AUTO STATUS-----------------------------------------
+
+local function StartAutoStats()
+    if autoStatsConn then autoStatsConn:Disconnect() autoStatsConn = nil end
+    autoStatsConn = RunService.Heartbeat:Connect(function()
+        if not AutoStatsSettings.Enabled then return end
+        pcall(function() StatsRemote:FireServer(table.unpack({ AutoStatsSettings.Stat, nil, 1 }, 1, 3)) end)
+        task.wait(AutoStatsSettings.Interval)
+    end)
+end
+
+local function StopAutoStats()
+    if autoStatsConn then autoStatsConn:Disconnect() autoStatsConn = nil end
+end
+
+-------------------------------------kill aura mob----------------------------
+
+local KillAuraMobSettings = {
+    Enabled    = false,
+    Speed      = 0.6,
+    WeaponMode = "Melee",
+}
+
+local MeleeCombatState = { ComboCount = {} }
+
+local function KA_GetWeapon()
+    local char = LocalPlayer.Character
+    if not char then return nil, "Melee" end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+
+    if KillAuraMobSettings.WeaponMode == "Sword" then
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:FindFirstChild("SwordEquip") then return tool, "Sword" end
+        end
+        for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if tool:FindFirstChild("SwordEquip") then
+                if hum then pcall(function() hum:EquipTool(tool) end) end
+                return tool, "Sword"
+            end
+        end
+    end
+
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:GetAttribute("MeleeTool") then return tool, "Melee" end
+    end
+    for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
+        if tool:GetAttribute("MeleeTool") then
+            if hum then pcall(function() hum:EquipTool(tool) end) end
+            return tool, "Melee"
+        end
+    end
+
+    return nil, "Melee"
+end
+
+local function KA_GetNearbyTargets()
+    local targets = {}
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return targets end
+
+    for _, npc in pairs(Workspace.NPCs:GetChildren()) do
+        if not npc:IsA("Model") then continue end
+        local npcHum = npc:FindFirstChild("Humanoid")
+        local npcHrp = npc:FindFirstChild("HumanoidRootPart")
+        if npcHum and npcHrp and npcHum.Health > 0 and not npc:FindFirstChildWhichIsA("ForceField") then
+            if (npcHrp.Position - hrp.Position).Magnitude <= 15 then
+                table.insert(targets, npc)
+            end
+        end
+    end
+
+    return targets
+end
+
+local function KA_AttackTargets(targets)
+    if not targets or #targets == 0 then return end
+
+    local char = LocalPlayer.Character
+    local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+    local hum  = char and char:FindFirstChild("Humanoid")
+    if not hrp or not hum or hum.Health <= 0 then return end
+
+    if hrp:FindFirstChild("knockback") then hrp.knockback:Destroy() end
+
+    local weapon, weaponType = KA_GetWeapon()
+    if weapon and weapon.Parent ~= char then
+        pcall(function() hum:EquipTool(weapon) end)
+    end
+
+    local combatRemote = ReplicatedStorage:FindFirstChild("Events")
+    combatRemote = combatRemote and combatRemote:FindFirstChild("CombatRegister")
+    if not combatRemote then return end
+
+    local targetParts = {}
+    for _, target in ipairs(targets) do
+        local tHrp = target:FindFirstChild("HumanoidRootPart")
+        if tHrp then table.insert(targetParts, tHrp) end
+    end
+    if #targetParts == 0 then return end
+
+    local comboKey = targets[1].Name
+    MeleeCombatState.ComboCount[comboKey] = (MeleeCombatState.ComboCount[comboKey] or 0) + 1
+    local comboNum = (MeleeCombatState.ComboCount[comboKey] % 3) + 1
+
+    local fakeCFrame = targetParts[1].CFrame * CFrame.new(0, 0, 1)
+
+    task.spawn(function()
+        pcall(function()
+            combatRemote:InvokeServer({
+                "swingsfx", weaponType, comboNum, "Ground",
+                false, nil, 1.75, 2, fakeCFrame
+            })
+        end)
+    end)
+
+    task.spawn(function()
+        pcall(function()
+            combatRemote:InvokeServer({
+                "damage", targetParts, weaponType,
+                {comboNum, "Ground", weaponType},
+                true, fakeCFrame, aircombo = "Ground"
+            })
+        end)
+    end)
+end
+
+local _kaLastAttack = 0
+RunService.Heartbeat:Connect(function()
+    if not KillAuraMobSettings.Enabled then return end
+    local now = tick()
+    if now - _kaLastAttack < KillAuraMobSettings.Speed then return end
+    _kaLastAttack = now
+
+    local targets = KA_GetNearbyTargets()
+    if #targets > 0 then KA_AttackTargets(targets) end
+end)
+
+local TpBehindSettings = {
+    Enabled      = false,
+    Profundidade = 7,
+    Recuo        = 3,
+}
+
+local _tpLastStam    = 0
+local _tpStamInterval = 0.3
+local _tpMaxRange    = 30
+local _tpLocked      = nil
+
+local function TP_isValid(npc)
+    if not npc then return false end
+    local root = npc:FindFirstChild("HumanoidRootPart")
+    local hum  = npc:FindFirstChildOfClass("Humanoid")
+    return root and hum and hum.Health > 0 and not npc:FindFirstChildWhichIsA("ForceField")
+end
+
+local function TP_getNearest()
+    local nearest, minDist = nil, math.huge
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+    for _, npc in ipairs(Workspace.NPCs:GetChildren()) do
+        if not TP_isValid(npc) then continue end
+        local dist = (npc.HumanoidRootPart.Position - myChar.HumanoidRootPart.Position).Magnitude
+        if dist < minDist and dist <= _tpMaxRange then
+            nearest = npc
+            minDist = dist
+        end
+    end
+    return nearest
+end
+
+task.spawn(function()
+    while true do
+        task.wait()
+        if not TpBehindSettings.Enabled then continue end
+
+        if not TP_isValid(_tpLocked) then
+            _tpLocked = TP_getNearest()
+        end
+        if not _tpLocked then continue end
+
+        local myChar = LocalPlayer.Character
+        if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then continue end
+
+        local targetHRP = _tpLocked:FindFirstChild("HumanoidRootPart")
+        if not targetHRP then continue end
+
+        local now = tick()
+        if now - _tpLastStam > _tpStamInterval then
+            _tpLastStam = now
+            DashBypass()
+        end
+
+        local finalPos = targetHRP.Position
+            + (targetHRP.CFrame.LookVector * -TpBehindSettings.Recuo)
+            + Vector3.new(0, -TpBehindSettings.Profundidade, 0)
+        myChar.HumanoidRootPart.CFrame = CFrame.new(finalPos, targetHRP.Position)
+    end
+end)
+
+
+--------------------------espaço vazio pq talvez eu me lembre oq tava fazendo aqi
+
+
+
+--------------------------------------KILL AURA DE RIFLE SOLTO?-----------------------------------------
+
+local currentAmmo      = RifleSettings.MaxAmmo
+local isReloading      = false
+local lastShot         = 0
+local targetCache      = nil
+local lastTargetUpdate = 0
+
+local function AutoEquipRifle()
+    local char = LocalPlayer.Character
+    if not char then return false end
+    if char:FindFirstChild("Rifle") then return true end
+    local rifle = LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Rifle")
+    if not rifle then return false end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return false end
+    local ok = pcall(function() hum:EquipTool(rifle) end)
+    if ok then task.wait(0.2) end
+    return ok
+end
+
+local function GetRootPart()
+    return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+end
+
+local function IsValidTarget(npc)
+    if not npc or not npc.Parent then return false end
+    if RifleSettings.IgnoreForceField and npc:FindFirstChildWhichIsA("ForceField") then return false end
+    local humanoid = npc:FindFirstChild("Humanoid")
+    local root     = npc:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not root then return false end
+    if humanoid.Health <= 0 then return false end
+    return true
+end
+
+local function GetHeadPosition(npc)
+    local head = npc:FindFirstChild("Head")
+    if head and head:IsA("BasePart") then return head.Position end
+    local root = npc:FindFirstChild("HumanoidRootPart")
+    if root then return root.Position + Vector3.new(0, 1.5, 0) end
+    return nil
+end
+
+local function FindBestTarget()
+    local root = GetRootPart()
+    if not root then return nil end
+    local best, bestDist = nil, math.huge
+    for _, npc in ipairs(Workspace.NPCs:GetChildren()) do
+        if not IsValidTarget(npc) then continue end
+        local npcRoot = npc:FindFirstChild("HumanoidRootPart")
+        if not npcRoot then continue end
+        local d = (root.Position - npcRoot.Position).Magnitude
+        if d < RifleSettings.MinRange or d > RifleSettings.Range then continue end
+        if d < bestDist then bestDist = d best = npc end
+    end
+    return best
+end
+
+local function UpdateTarget()
+    local now = tick()
+    if targetCache and IsValidTarget(targetCache) then
+        if now - lastTargetUpdate < RifleSettings.UpdateRate then return targetCache end
+    end
+    targetCache = FindBestTarget() lastTargetUpdate = now
+    return targetCache
+end
+
+local function ReloadRifle()
+    if isReloading then return end
+    isReloading = true
+    task.spawn(function()
+        local ok = pcall(function() gunFunctions:InvokeServer("reload", { Gun = "Rifle" }) end)
+        if ok then currentAmmo = RifleSettings.MaxAmmo end
+        task.wait(RifleSettings.ReloadTime)
+        isReloading = false
+    end)
+end
+
+local function ShootTarget(target)
+    if not target or isReloading then return false end
+    if not AutoEquipRifle() then return false end
+    if currentAmmo <= 0 then if RifleSettings.AutoReload then ReloadRifle() end return false end
+    local now = tick()
+    if now - lastShot < RifleSettings.FireDelay then return false end
+    local root = GetRootPart()
+    if not root then return false end
+    local targetPos = GetHeadPosition(target)
+    if not targetPos then return false end
+    local npcRoot = target:FindFirstChild("HumanoidRootPart")
+    if not npcRoot then return false end
+    if RifleSettings.UsePrediction then
+        local vel = npcRoot.AssemblyLinearVelocity
+        if vel.Magnitude > 2 then
+            local d = (root.Position - targetPos).Magnitude
+            targetPos = targetPos + vel * (d / RifleSettings.BulletSpeed) * RifleSettings.PredictionMultiplier
+        end
+    end
+    local ok = pcall(function()
+        GunManager:FireServer("fire", {
+            Start = CFrame.lookAt(root.Position, targetPos),
+            Gun = "Rifle", joe = "true", Position = targetPos,
+        })
+        currentAmmo = currentAmmo - 1
+        lastShot    = now
+    end)
+    return ok
+end
+
+task.spawn(function()
+    while true do
+        task.wait(RifleSettings.FireDelay > 0 and RifleSettings.FireDelay or 0.05)
+        if RifleSettings.Enabled then
+            local t = UpdateTarget()
+            if t then ShootTarget(t) end
+        end
+    end
+end)
+
+--------------------------------------ESP DO RIFLE-----------------------------------------
+
+local espCache = {}
+
+local function UpdateESP()
+    if not RifleSettings.ShowESP or not RifleSettings.Enabled then
+        for npc, h in pairs(espCache) do
+            if h and h.Parent then h:Destroy() end espCache[npc] = nil
+        end
+        return
+    end
+    local root = GetRootPart()
+    if not root then return end
+    for _, npc in ipairs(Workspace.NPCs:GetChildren()) do
+        local npcRoot = npc:FindFirstChild("HumanoidRootPart")
+        local inRange = IsValidTarget(npc) and npcRoot
+            and (root.Position - npcRoot.Position).Magnitude >= RifleSettings.MinRange
+            and (root.Position - npcRoot.Position).Magnitude <= RifleSettings.Range
+        if inRange then
+            if not espCache[npc] then
+                local h = Instance.new("Highlight")
+                h.Parent = npc h.FillColor = Color3.fromRGB(255,50,50)
+                h.OutlineColor = Color3.fromRGB(255,255,255)
+                h.FillTransparency = 0.6 h.OutlineTransparency = 0
+                espCache[npc] = h
+            end
+        else
+            if espCache[npc] then espCache[npc]:Destroy() espCache[npc] = nil end
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if RifleSettings.ShowESP and RifleSettings.Enabled then UpdateESP() end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    if not TrackSettings.Enabled then return end
+    StartNoclip()
+    if not isGroundMode and not isLanding then
+        local root = GetRoot()
+        if root then
+            root.CFrame = CFrame.new(root.Position.X, TrackSettings.TravelHeight, root.Position.Z)
+            DashBypass()
+        end
+        task.wait(0.3)
+    end
+    StartFloat()
+end)
+
+--------------------------------------TP DE ILHAS v1 DO SEA 1-----------------------------------------
+
+local slidsRayParams = RaycastParams.new()
+slidsRayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+local slidsCurrentDestination     = nil
+local slidsCurrentDestinationName = nil
+local slidsWaypointsDone          = false
+local slidsIsLanding              = false
+local slidsLastStam               = 0
+local slidsTrackConn              = nil
+local slidsNoclipConn             = nil
+local slidsFloatAtt               = nil
+local slidsFloatLV                = nil
+local slidsFloatConn              = nil
+
+local function SlidsGetRoot()
+    local c = LocalPlayer.Character
+    if c then slidsRayParams.FilterDescendantsInstances = { c } end
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function SlidsGetHum()
+    local c = LocalPlayer.Character
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+local function SlidsDashBypass()
+    pcall(function() TakeStam:FireServer(0.505, "dash") end)
+end
+local function SlidsStartNoclip()
+    if slidsNoclipConn then slidsNoclipConn:Disconnect() end
+    slidsNoclipConn = RunService.Stepped:Connect(function()
+        if not SlidsSettings.NoclipOn then return end
+        local c = LocalPlayer.Character
+        if not c then return end
+        for _, p in ipairs(c:GetDescendants()) do
+            if p:IsA("BasePart") then p.CanCollide = false end
+        end
+    end)
+end
+local function SlidsStopNoclip()
+    if slidsNoclipConn then slidsNoclipConn:Disconnect() slidsNoclipConn = nil end
+    local c = LocalPlayer.Character
+    if not c then return end
+    for _, p in ipairs(c:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = true end
+    end
+end
+local function SlidsStopFloat()
+    if slidsFloatConn then slidsFloatConn:Disconnect() slidsFloatConn = nil end
+    if slidsFloatLV  and slidsFloatLV.Parent  then slidsFloatLV:Destroy()  end ; slidsFloatLV  = nil
+    if slidsFloatAtt and slidsFloatAtt.Parent then slidsFloatAtt:Destroy() end ; slidsFloatAtt = nil
+end
+local function SlidsStartFloat()
+    SlidsStopFloat()
+    local root = SlidsGetRoot()
+    if not root then return end
+    slidsFloatAtt        = Instance.new("Attachment")
+    slidsFloatAtt.Name   = "SlidsFloatAtt"
+    slidsFloatAtt.Parent = root
+    slidsFloatLV                        = Instance.new("LinearVelocity")
+    slidsFloatLV.Name                   = "SlidsFloatLV"
+    slidsFloatLV.Attachment0            = slidsFloatAtt
+    slidsFloatLV.VelocityConstraintMode = Enum.VelocityConstraintMode.Line
+    slidsFloatLV.LineDirection          = Vector3.new(0, 1, 0)
+    slidsFloatLV.LineVelocity           = 0
+    slidsFloatLV.MaxForce               = 1e5
+    slidsFloatLV.Parent                 = root
+    slidsFloatConn = RunService.Heartbeat:Connect(function()
+        if not SlidsSettings.Enabled then return end
+        if slidsIsLanding then return end
+        local r = SlidsGetRoot()
+        if not r or not slidsFloatLV or not slidsFloatLV.Parent then return end
+        local diff = SlidsSettings.TravelHeight - r.Position.Y
+        slidsFloatLV.LineVelocity = math.clamp(diff * 10, -150, 150)
+    end)
+end
+local function SlidsFullCleanup()
+    local root = SlidsGetRoot()
+    local c    = LocalPlayer.Character
+    SlidsStopFloat()
+    SlidsStopNoclip()
+    SlidsSettings.Enabled = false
+    slidsIsLanding        = false
+    slidsWaypointsDone    = false
+    if not root or not c then return end
+    for _, obj in ipairs(root:GetChildren()) do
+        if obj:IsA("BodyMover") or obj:IsA("LinearVelocity")
+        or obj:IsA("AngularVelocity") or obj:IsA("Attachment")
+        or obj.Name == "SlidsFloatAtt" or obj.Name == "SlidsFloatLV" then
+            obj:Destroy()
+        end
+    end
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    for _, p in ipairs(c:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = true p.Anchored = false end
+    end
+    local hum = SlidsGetHum()
+    if hum then
+        hum.PlatformStand = false
+        hum.AutoRotate    = true
+        pcall(function() hum:ChangeState(Enum.HumanoidStateType.Freefall) end)
+    end
+end
+local function SlidsStopTrack()
+    if slidsTrackConn then slidsTrackConn:Disconnect() slidsTrackConn = nil end
+    local root = SlidsGetRoot()
+    if root then root.AssemblyLinearVelocity = Vector3.zero end
+end
+local function SlidsSafeLanding(wpPos, afterLand)
+    local root = SlidsGetRoot()
+    local c    = LocalPlayer.Character
+    if not root or not c then return end
+    local ray = workspace:Raycast(
+        Vector3.new(wpPos.X, SlidsSettings.TravelHeight, wpPos.Z),
+        Vector3.new(0, -SlidsSettings.TravelHeight - 500, 0),
+        slidsRayParams
+    )
+    local groundY = ray and ray.Position.Y or wpPos.Y
+    local safePos = CFrame.new(wpPos.X, groundY + SlidsSettings.FloatHeight, wpPos.Z)
+    root.Anchored = true
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    SlidsStopFloat()
+    task.wait(0.1)
+    c:PivotTo(safePos)
+    SlidsDashBypass()
+    task.wait(0.1)
+    root.Anchored = false
+    local hum = SlidsGetHum()
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
+    task.wait(0.4)
+    if afterLand then afterLand() end
+end
+local function SlidsStartTrack()
+    if slidsTrackConn then slidsTrackConn:Disconnect() end
+    slidsTrackConn = RunService.Heartbeat:Connect(function()
+        if not SlidsSettings.Enabled then return end
+        if slidsIsLanding then return end
+        local root = SlidsGetRoot()
+        if not root then return end
+        local now = tick()
+        if now - slidsLastStam > SlidsSettings.StamInterval then
+            slidsLastStam = now
+            SlidsDashBypass()
+        end
+        if slidsWaypointsDone or not slidsCurrentDestination then
+            root.AssemblyLinearVelocity = Vector3.zero
+            return
+        end
+        local dest      = slidsCurrentDestination
+        local myPos     = root.Position
+        local horizDist = Vector3.new(myPos.X - dest.X, 0, myPos.Z - dest.Z).Magnitude
+        if horizDist <= SlidsSettings.ArrivalDist then
+            root.AssemblyLinearVelocity = Vector3.zero
+            SlidsStopTrack()
+            slidsIsLanding = true
+            task.spawn(function()
+                SlidsSafeLanding(dest, function()
+                    slidsIsLanding     = false
+                    slidsWaypointsDone = true
+                    SlidsFullCleanup()
+                    pcall(function()
+                        BarbiUI:Notify({ Title="🏃 Island Travel", Message="Chegou em: " .. (slidsCurrentDestinationName or "?"), Type="success", Duration=4 })
+                    end)
+                end)
+            end)
+            return
+        end
+        local dir = Vector3.new(dest.X - myPos.X, 0, dest.Z - myPos.Z).Unit
+        root.AssemblyLinearVelocity = Vector3.new(
+            dir.X * SlidsSettings.FlySpeed,
+            root.AssemblyLinearVelocity.Y,
+            dir.Z * SlidsSettings.FlySpeed
+        )
+    end)
+end
+local function TravelTo(islandName)
+    local dest = Islands[islandName]
+    if not dest then warn("[TravelTo] Ilha não encontrada: " .. tostring(islandName)) return end
+    if SlidsSettings.Enabled then SlidsStopTrack() SlidsFullCleanup() task.wait(0.3) end
+    slidsCurrentDestination     = dest
+    slidsCurrentDestinationName = islandName
+    slidsWaypointsDone          = false
+    slidsIsLanding              = false
+    SlidsSettings.Enabled       = true
+    local root = SlidsGetRoot()
+    if root then root.CFrame = CFrame.new(root.Position.X, SlidsSettings.TravelHeight, root.Position.Z) end
+    SlidsDashBypass()
+    SlidsStartNoclip()
+    task.wait(0.2)
+    SlidsStartFloat()
+    SlidsStartTrack()
+    pcall(function()
+        BarbiUI:Notify({ Title="🏃 Island Travel", Message="Indo para: " .. islandName, Type="info", Duration=3 })
+    end)
+end
+local function TravelDisable()
+    SlidsStopTrack()
+    SlidsFullCleanup()
+    pcall(function()
+        BarbiUI:Notify({ Title="🏃 Island Travel", Message="Viagem cancelada.", Type="warning", Duration=2 })
+    end)
+end
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    if SlidsSettings.Enabled then
+        SlidsStartNoclip()
+        SlidsStartFloat()
+        SlidsStartTrack()
+    end
+end)
+
+--------------------------------------ESP DE ILHAS SEA 1-----------------------------------------
+
+local ESPConfig = {
+    Enabled   = false,
+    SizeSteps = {
+        { 200,       200, 42, 14 },
+        { 600,       160, 34, 12 },
+        { 1500,      120, 28, 10 },
+        { math.huge,  90, 22,  8 },
+    },
+}
+
+local IslandsFolder = workspace:WaitForChild("Islands")
+local espMap        = {}
+local espHeartbeat  = nil
+
+local function ESPGetRoot() return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") end
+local function ESPFindPart(island)
+    if island:IsA("BasePart") then return island, false end
+    if island:IsA("Model") and island.PrimaryPart then return island.PrimaryPart, false end
+    local found = island:FindFirstChildWhichIsA("BasePart", true)
+    if found then return found, false end
+    return nil, true
+end
+local function ESPCreateAnchor(island)
+    local pos = Vector3.new(0,0,0)
+    local ok, cf = pcall(function() return island:GetBoundingBox() end)
+    if ok and cf then pos = cf.Position end
+    local a = Instance.new("Part")
+    a.Name = "IslandESP_Anchor" a.Size = Vector3.new(1,1,1) a.Position = pos
+    a.Anchored = true a.CanCollide = false a.Transparency = 1 a.CastShadow = false
+    a.Parent = island
+    return a
+end
+local function ESPFormatDist(d) return d >= 1000 and string.format("%.1f km", d/1000) or string.format("%d m", d) end
+local function ESPGetSizeStep(d)
+    for _, s in ipairs(ESPConfig.SizeSteps) do if d <= s[1] then return s[2], s[3], s[4] end end
+    local s = ESPConfig.SizeSteps[#ESPConfig.SizeSteps] return s[2], s[3], s[4]
+end
+local function ESPCreate(island, part)
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "IslandESP" bb.Adornee = part
+    bb.Size = UDim2.new(0,200,0,42) bb.StudsOffset = Vector3.new(0,8,0)
+    bb.AlwaysOnTop = true bb.LightInfluence = 0 bb.ResetOnSpawn = false bb.Parent = part
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.fromScale(1,1) bg.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    bg.BackgroundTransparency = 0.5 bg.BorderSizePixel = 0 bg.Parent = bb
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(0,6)
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(1,0,0,3) bar.BackgroundColor3 = Color3.fromHex("5f175a")
+    bar.BorderSizePixel = 0 bar.Parent = bg
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(0,4)
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1,-10,0.55,0) nameLabel.Position = UDim2.new(0,5,0.06,0)
+    nameLabel.BackgroundTransparency = 1 nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    nameLabel.TextStrokeTransparency = 0.5 nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 9 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.TextTruncate = Enum.TextTruncate.AtEnd nameLabel.Text = island.Name nameLabel.Parent = bg
+    local distLabel = Instance.new("TextLabel")
+    distLabel.Size = UDim2.new(1,-10,0.38,0) distLabel.Position = UDim2.new(0,5,0.60,0)
+    distLabel.BackgroundTransparency = 1 distLabel.TextColor3 = Color3.fromHex("#e081db")
+    distLabel.TextStrokeTransparency = 0.5 distLabel.Font = Enum.Font.Gotham
+    distLabel.TextSize = 15 distLabel.TextXAlignment = Enum.TextXAlignment.Left
+    distLabel.Text = "..." distLabel.Parent = bg
+    espMap[island] = { billboard=bb, nameLabel=nameLabel, distLabel=distLabel, part=part }
+end
+local function ESPRemove(island)
+    local e = espMap[island]
+    if e then
+        if e.billboard and e.billboard.Parent then e.billboard:Destroy() end
+        if e.anchor    and e.anchor.Parent    then e.anchor:Destroy()    end
+    end
+    espMap[island] = nil
+end
+local function ESPRemoveAll() for island in pairs(espMap) do ESPRemove(island) end end
+local function ESPUpdate()
+    local root = ESPGetRoot()
+    if not root then return end
+    local seen = {}
+    for _, island in ipairs(IslandsFolder:GetChildren()) do
+        seen[island] = true
+        if espMap[island] and not espMap[island].part.Parent then ESPRemove(island) end
+        if not espMap[island] then
+            local part, needsAnchor = ESPFindPart(island)
+            if needsAnchor or not part then
+                local anchor = ESPCreateAnchor(island)
+                ESPCreate(island, anchor) espMap[island].anchor = anchor
+            else ESPCreate(island, part) end
+        end
+        local e = espMap[island]
+        if not e then continue end
+        local dist = (root.Position - e.part.Position).Magnitude
+        local w, h, ts = ESPGetSizeStep(dist)
+        e.billboard.Size = UDim2.new(0,w,0,h)
+        e.nameLabel.TextSize = ts e.distLabel.TextSize = 9
+        e.distLabel.Text = ESPFormatDist(dist)
+    end
+    for island in pairs(espMap) do if not seen[island] then ESPRemove(island) end end
+end
+local function ESPStart()
+    if espHeartbeat then return end
+    espHeartbeat = RunService.Heartbeat:Connect(function() pcall(ESPUpdate) end)
+end
+local function ESPStop()
+    if espHeartbeat then espHeartbeat:Disconnect() espHeartbeat = nil end
+    ESPRemoveAll()
+end
+
+--------------------------------------ANTI AFK PORCO PRA CARALHO-----------------------------------------
+
+local AntiAFKSettings = { Enabled = false }
+local antiAfkLoop     = nil
+
+local function StartAntiAFK()
+    pcall(function()
+        for _, conn in pairs(getconnections(Players.LocalPlayer.Idled)) do conn:Disable() end
+    end)
+    if antiAfkLoop then antiAfkLoop:Disconnect() end
+    antiAfkLoop = RunService.Heartbeat:Connect(function()
+        if not AntiAFKSettings.Enabled then return end
+    end)
+    task.spawn(function()
+        while AntiAFKSettings.Enabled do
+            task.wait(25)
+            if not AntiAFKSettings.Enabled then break end
+            local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root then root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(1), 0) end
+        end
+    end)
+end
+
+local function StopAntiAFK()
+    AntiAFKSettings.Enabled = false
+    pcall(function()
+        for _, conn in pairs(getconnections(Players.LocalPlayer.Idled)) do conn:Enable() end
+    end)
+    if antiAfkLoop then antiAfkLoop:Disconnect() antiAfkLoop = nil end
+end
+
+--------------------------------------QOL PARTE DE MOVIMENTAÇAO-----------------------------------------
+
+local _qolChar     = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local _qolHum      = _qolChar:WaitForChild("Humanoid")
+local _qolRoot     = _qolChar:WaitForChild("HumanoidRootPart")
+local _bodyMoverWL = { "geppo", "rolling" }
+local _infJumpConn = nil
+
+-- Anti-Stun
+local function QOL_SetupAntiStun(char)
+    char.DescendantAdded:Connect(function(obj)
+        if not QOLSettings.AntiStun then return end
+        task.wait()
+        if obj.Name == "Stun" or obj.Name == "StunFolder" then
+            pcall(function() obj:Destroy() end)
+        end
+        if (obj:IsA("BodyPosition") or obj:IsA("BodyVelocity")) and
+           not table.find(_bodyMoverWL, obj.Name) then
+            pcall(function() obj:Destroy() end)
+        end
+    end)
+end
+QOL_SetupAntiStun(_qolChar)
+
+-- Speed Hack
+RunService.Heartbeat:Connect(function()
+    if not QOLSettings.SpeedEnabled then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hum  = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
+    local dir = hum.MoveDirection
+    if dir.Magnitude > 0 then
+        local vel = root.AssemblyLinearVelocity
+        local newV = dir * (hum.WalkSpeed + QOLSettings.SpeedBoost)
+        root.AssemblyLinearVelocity = Vector3.new(newV.X, vel.Y, newV.Z)
+    end
+end)
+
+-- Infinite Jump
+local function QOL_EnableInfJump()
+    if _infJumpConn then _infJumpConn:Disconnect() end
+    getgenv()._LastJump = 0
+    _infJumpConn = UserInputService.JumpRequest:Connect(function()
+        if not QOLSettings.InfiniteJump then return end
+        if tick() - getgenv()._LastJump < 0.1 then return end
+        getgenv()._LastJump = tick()
+        local char = LocalPlayer.Character
+        local hum  = char and char:FindFirstChildOfClass("Humanoid")
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not hum or not root then return end
+        if hum.JumpPower == 0 then
+            root.CFrame = root.CFrame + Vector3.new(0, 7, 0)
+            root.Velocity = Vector3.zero
+        else
+            root.AssemblyLinearVelocity = Vector3.new(
+                root.AssemblyLinearVelocity.X, 50, root.AssemblyLinearVelocity.Z
+            )
+        end
+    end)
+end
+QOL_EnableInfJump()
+
+-- Fake Geppo
+local _geppoStatsFolder = ReplicatedStorage:FindFirstChild("Stats" .. LocalPlayer.Name)
+local _geppoAtivo       = false
+
+local function FakeGeppo()
+    local sf = ReplicatedStorage:FindFirstChild("Stats" .. LocalPlayer.Name)
+    if not sf then return end
+    local cf = CFrame.new(-3065.98, 200.72, -11824.01, 0, 1, 0, 0, 0, -1, -1, 0, 0)
+    if sf.Skills:FindFirstChild("skyWalk") and sf.Skills.skyWalk.Value == true then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Events"):WaitForChild("Skill")
+                :InvokeServer("Sky Walk2", { char = LocalPlayer.Character, cf = cf })
+        end)
+    else
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Events"):WaitForChild("Skill")
+                :InvokeServer("Geppo", { char = LocalPlayer.Character, cf = cf })
+        end)
+    end
+end
+
+local function ToggleFakeGeppo(enable)
+    local sf = ReplicatedStorage:FindFirstChild("Stats" .. LocalPlayer.Name)
+    if not sf then return end
+    local skyWalk = sf.Skills:FindFirstChild("skyWalk")
+    if not skyWalk then return end
+    if enable then
+        if skyWalk.Value ~= true then
+            skyWalk.Value = true
+            _geppoAtivo = true
+        end
+    elseif _geppoAtivo then
+        skyWalk.Value = false
+        _geppoAtivo = false
+    end
+end
+
+task.spawn(function()
+    while true do
+        if QOLSettings.GeppoLoop then
+            pcall(FakeGeppo)
+        end
+        task.wait(1)
+    end
+end)
+
+-- Auto Ads
+local XP_AD_ID   = 3457788725
+local DROP_AD_ID = 3457789187
+
+local AutoAdsSettings = {
+    XpEnabled   = false,
+    DropEnabled = false,
+}
+
+local ADShop = ReplicatedStorage:WaitForChild("Events"):WaitForChild("ADShop")
+
+task.spawn(function()
+    while task.wait(5) do
+        if not AutoAdsSettings.XpEnabled then continue end
+        pcall(function()
+            local boostLabel = LocalPlayer.PlayerGui.HUD.Main.Boosts.Exp
+            if not boostLabel.Visible then
+                ADShop:FireServer(XP_AD_ID)
+                task.wait(10)
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(5) do
+        if not AutoAdsSettings.DropEnabled then continue end
+        pcall(function()
+            local boostLabel = LocalPlayer.PlayerGui.HUD.Main.Boosts.Drop
+            if not boostLabel.Visible then
+                ADShop:FireServer(DROP_AD_ID)
+                task.wait(10)
+            end
+        end)
+    end
+end)
+
+-- Streamer Mod
+local _sm_player = game:GetService("Players").LocalPlayer
+
+local _sm_Config = {
+    Enabled = false,
+    FakeName = "MENTIROSO DA KYOTAKI ABAIXO",
+    NameColor = Color3.fromRGB(255, 255, 255),
+    RainbowMode = true,
+    RainbowSpeed = 2,
+}
+
+getgenv().StreamerMode = false
+
+local function _sm_GetRainbowColor()
+    local hue = (tick() * _sm_Config.RainbowSpeed * 0.1) % 1
+    return Color3.fromHSV(hue, 1, 1)
+end
+
+local function _sm_StartLoops()
+    task.spawn(function()
+        while getgenv().StreamerMode and task.wait(0.03) do
+            if not _sm_Config.RainbowMode then continue end
+            pcall(function()
+                local healthBar = _sm_player.PlayerGui.HealthBars:FindFirstChild(_sm_player.Name)
+                if healthBar then
+                    healthBar.NameT.Text = _sm_Config.FakeName
+                    healthBar.NameT.TextColor3 = _sm_GetRainbowColor()
+                end
+            end)
+        end
+    end)
+    task.spawn(function()
+        while getgenv().StreamerMode and task.wait(1) do
+            pcall(function()
+                if _sm_player.PlayerGui.Playerlist and _sm_player.PlayerGui.Playerlist.Enabled then
+                    _sm_player.PlayerGui.Playerlist.Enabled = false
+                end
+                local healthBar = _sm_player.PlayerGui.HealthBars:FindFirstChild(_sm_player.Name)
+                if healthBar and not _sm_Config.RainbowMode then
+                    healthBar.NameT.Text = _sm_Config.FakeName
+                    healthBar.NameT.TextColor3 = _sm_Config.NameColor
+                end
+                local entry = _sm_player.PlayerGui.Playerlist.Main.ScrollingFrame.Pirate.Container:FindFirstChild(_sm_player.Name)
+                if entry then entry.Visible = false end
+                if _sm_player.PlayerGui.Display.Enabled then
+                    _sm_player.PlayerGui.Display.Enabled = false
+                end
+            end)
+        end
+    end)
+end
+
+_G.StreamerMode = {
+    Config = _sm_Config,
+    Toggle = function()
+        getgenv().StreamerMode = not getgenv().StreamerMode
+        _sm_Config.Enabled = getgenv().StreamerMode
+        if getgenv().StreamerMode then
+            _sm_StartLoops()
+        else
+            pcall(function()
+                local entry = _sm_player.PlayerGui.Playerlist.Main.ScrollingFrame.Pirate.Container:FindFirstChild(_sm_player.Name)
+                if entry then entry.Visible = true end
+                _sm_player.PlayerGui.Display.Enabled = true
+                _sm_player.PlayerGui.Playerlist.Enabled = true
+            end)
+        end
+    end,
+}
+
+-- Optimize Game------------------------------------- uma grande merda. remover isso antes do lançamento
+local function OptimizeGame()
+    local Lighting    = game:GetService("Lighting")
+    local SoundService = game:GetService("SoundService")
+    local Terrain     = Workspace:FindFirstChildOfClass("Terrain")
+    local sethidden   = sethiddenproperty or set_hidden_property or set_hidden_prop
+
+    Lighting.GlobalShadows            = false
+    Lighting.FogEnd                   = 9e9
+    Lighting.FogStart                 = 9e9
+    Lighting.Brightness               = 2
+    Lighting.ClockTime                = 14
+    Lighting.GeographicLatitude       = 0
+    Lighting.EnvironmentDiffuseScale  = 0
+    Lighting.EnvironmentSpecularScale = 0
+    Lighting.ShadowSoftness           = 0
+    Lighting.ExposureCompensation     = 0
+    Lighting.Ambient                  = Color3.fromRGB(178, 178, 178)
+    Lighting.OutdoorAmbient           = Color3.fromRGB(178, 178, 178)
+
+    pcall(function() sethidden(Lighting, "Technology",         2) end)
+    pcall(function() sethidden(Lighting, "GlobalIllumination", 0) end)
+    pcall(function() sethidden(Lighting, "LegacyOutlines",  false) end)
+    pcall(function() sethidden(Lighting, "Outlines",        false) end)
+
+    for _, fx in Lighting:GetChildren() do
+        if fx:IsA("BlurEffect") or fx:IsA("BloomEffect") or fx:IsA("SunRaysEffect")
+        or fx:IsA("ColorCorrectionEffect") or fx:IsA("DepthOfFieldEffect")
+        or fx:IsA("Atmosphere") or fx:IsA("Clouds") or fx:IsA("Sky") then
+            fx.Parent = nil
+        end
+    end
+
+    if Terrain then
+        Terrain.WaterWaveSize     = 0
+        Terrain.WaterWaveSpeed    = 0
+        Terrain.WaterReflectance  = 0
+        Terrain.WaterTransparency = 1
+        Terrain.WaterColor        = Color3.new(0.3, 0.3, 0.3)
+        pcall(function() sethidden(Terrain, "Decoration", false) end)
+        pcall(function() sethidden(Terrain, "GrassLength", 0)   end)
+    end
+
+    pcall(function() sethidden(Workspace, "InterpolationThrottling",         0) end)
+    pcall(function() sethidden(Workspace, "PhysicsSteppingMethod",           0) end)
+    pcall(function() sethidden(Workspace, "HumanoidOnlySetCollisionsOnStateChange", 2) end)
+    pcall(function() sethidden(Workspace, "MeshPartHeadsAndAccessories",     1) end)
+    pcall(function() sethidden(Workspace, "ClientAnimatorThrottling",        0) end)
+    if Workspace.StreamingEnabled then
+        pcall(function() sethidden(Workspace, "StreamingMinRadius",    16) end)
+        pcall(function() sethidden(Workspace, "StreamingTargetRadius", 64) end)
+    end
+
+    pcall(function()
+        SoundService.AmbientReverb   = Enum.ReverbType.NoReverb
+        SoundService.DopplerScale    = 0
+        SoundService.RolloffScale    = 0
+        SoundService.VolumetricAudio = Enum.VolumetricAudio.Disabled
+    end)
+
+    local whitelist = { fallingParticle = true, Lines = true, Lines2 = true }
+    local function inWhitelist(obj)
+        if not obj then return true end
+        if whitelist[obj.Name] then return true end
+        local p = obj.Parent
+        while p do
+            if whitelist[p.Name] then return true end
+            p = p.Parent
+        end
+        return false
+    end
+
+    for _, obj in Workspace:GetDescendants() do
+        if not obj or not obj.Parent then continue end
+        if inWhitelist(obj) then continue end
+        local cn = obj.ClassName
+        pcall(function()
+            if cn == "ParticleEmitter" then
+                obj.Enabled = false obj.Rate = 0 obj.Texture = ""
+                obj.Lifetime = NumberRange.new(0) obj.Speed = NumberRange.new(0)
+                obj.Size = NumberSequence.new(0) obj.Transparency = NumberSequence.new(1)
+                obj.LightEmission = 0 obj.LightInfluence = 0 obj.Drag = 9999
+                obj.Parent = nil
+            elseif cn == "Trail" then
+                obj.Enabled = false obj.Lifetime = 0 obj.Texture = ""
+                obj.LightEmission = 0 obj.LightInfluence = 0
+                obj.Transparency = NumberSequence.new(1) obj.MinLength = 9e9
+                obj.Parent = nil
+            elseif cn == "Beam" then
+                obj.Enabled = false obj.Texture = "" obj.LightEmission = 0
+                obj.LightInfluence = 0 obj.Transparency = NumberSequence.new(1)
+                obj.Width0 = 0 obj.Width1 = 0 obj.Segments = 1
+                obj.Parent = nil
+            elseif cn == "Fire" or cn == "Smoke" or cn == "Sparkles" then
+                obj.Enabled = false
+                if cn == "Fire"  then obj.Size = 0 obj.Heat = 0 end
+                if cn == "Smoke" then obj.Size = 0 obj.Opacity = 0 end
+                obj.Parent = nil
+            elseif cn == "Highlight" then
+                obj.Enabled = false obj.FillTransparency = 1 obj.OutlineTransparency = 1
+                obj.Parent = nil
+            elseif cn == "Texture" or cn == "Decal" then
+                obj.Texture = "" obj.Transparency = 1
+                obj.Parent = nil
+            elseif cn == "SurfaceAppearance" then
+                obj.ColorMap = "" obj.MetalnessMap = "" obj.NormalMap = ""
+                obj.RoughnessMap = "" obj.TexturePack = ""
+                obj.Parent = nil
+            elseif cn == "MeshPart" then
+                obj.RenderFidelity = Enum.RenderFidelity.Performance
+                obj.CastShadow = false obj.DoubleSided = false obj.Reflectance = 0
+                obj.TextureID = ""
+                if obj.Material == Enum.Material.Glass or obj.Material == Enum.Material.Neon
+                or obj.Material == Enum.Material.ForceField or obj.Material == Enum.Material.Water then
+                    obj.Material = Enum.Material.SmoothPlastic
+                end
+                pcall(function() sethidden(obj, "CollisionFidelity", 2) end)
+                pcall(function() sethidden(obj, "FluidFidelity",     0) end)
+            elseif obj:IsA("BasePart") and not obj:IsA("Terrain") then
+                obj.CastShadow = false obj.Reflectance = 0
+                if obj.Material == Enum.Material.Glass or obj.Material == Enum.Material.Neon
+                or obj.Material == Enum.Material.ForceField or obj.Material == Enum.Material.Water then
+                    obj.Material = Enum.Material.SmoothPlastic
+                end
+            elseif obj:IsA("Sound") and not obj:IsDescendantOf(LocalPlayer) then
+                obj.RollOffMaxDistance = 30 obj.RollOffMinDistance = 5
+                obj.EmitterSize = 5 obj.Volume = math.min(obj.Volume, 0.3)
+            elseif obj:IsA("SoundEffect") then
+                obj.Enabled = false
+            end
+        end)
+    end
+end
+
+--------------------------------------DASH SEM GASTAR STAM-----------------------------------------
+if _bypassSupported and not getgenv().NamecallHooked then
+    getgenv().NamecallHooked = true
+    pcall(function()
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            if method == "FireServer" and self.Name == "takestam" and QOLSettings.NoDash then
+                local args = { ... }
+                -- Deixa passar APENAS o nosso DashBypass (0.505, "dash")
+                -- Bloqueia qualquer outra chamada de stamina do jogo
+                if not (args[1] == 0.505 and args[2] == "dash") then
+                    return
+                end
+            end
+            return oldNamecall(self, ...)
+        end)
+        
+    end)
+end
+
+-- Reaplica ao respawnar
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    _qolChar = newChar
+    _qolHum  = newChar:WaitForChild("Humanoid")
+    _qolRoot = newChar:WaitForChild("HumanoidRootPart")
+    QOL_SetupAntiStun(newChar)
+    if QOLSettings.InfiniteJump then QOL_EnableInfJump() end
+end)
+
+--------------------------------------KYOTAKI HUB-----------------------------------------
+--------------------------------
+repeat task.wait() until game:IsLoaded()
+task.wait(0.3) 
+------------------------------------------
+
+local BarbiUI = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/evilkyotaki1"
+))()
+
+local Window = BarbiUI:CreateWindow({
+    Title      = "Kyotaki HUB",
+    Key        = Enum.KeyCode.RightControl,
+    Background = "rbxassetid://130874230796103",
+    Logo       = "rbxassetid://109800798500886",  -- coloca aqui
+})
+
+--------------------------------------ABA DE AUTO FARM -----------------------------------------
+
+local TabFarm = Window:AddTab({ Name = "斬農 Auto Farm" })
+local SecMain = TabFarm:AddSection("操作 Configs")
+
+SecMain:AddToggle({ Name="Enable Auto Farm", Default=false, Callback=function(v)
+    if v then EnableAll() BarbiUI:Notify({ Title="Auto Farm", Message="Auto Farm Enabled", Type="success", Duration=3 })
+    else DisableAll() BarbiUI:Notify({ Title="Auto Farm", Message="Auto Farm Disabled.", Type="warning", Duration=3 }) end
+end })
+SecMain:AddBind({ Name="Keybind (Toggle)", Default=Enum.KeyCode.G, Callback=function()
+    if TrackSettings.Enabled or questEnabled or questRunning then
+        DisableAll() BarbiUI:Notify({ Title="Farm", Message="Disabled using keybind.", Type="warning", Duration=2 })
+    else
+        EnableAll() BarbiUI:Notify({ Title="Farm", Message="Enabled using keybind.", Type="success", Duration=2 })
+    end
+end })
+SecMain:AddSeparator("迅速 Configs")
+SecMain:AddSlider({ Name="FLY",           Min=50,  Max=135, Default=TrackSettings.FlySpeed,    Suffix=" studs/s", Integer=true,  Callback=function(v) TrackSettings.FlySpeed    = v end })
+SecMain:AddSlider({ Name="Ground Fly",          Min=10,  Max=150, Default=TrackSettings.GroundSpeed, Suffix=" studs/s", Integer=true,  Callback=function(v) TrackSettings.GroundSpeed = v end })
+SecMain:AddSlider({ Name="Auto Quest (Becky)", Min=25,  Max=120, Default=QuestSettings.FlySpeed,    Suffix=" studs/s", Integer=true,  Callback=function(v) QuestSettings.FlySpeed    = v end })
+SecMain:AddSeparator("飛行 FLY")
+SecMain:AddSlider({ Name="Air Height",        Min=200, Max=2000, Default=TrackSettings.TravelHeight, Suffix=" Y",     Integer=true,  Callback=function(v) TrackSettings.TravelHeight = v end })
+SecMain:AddSlider({ Name="Safe landing", Min=1,   Max=10,   Default=TrackSettings.FloatHeight,  Suffix=" studs", Integer=false, Callback=function(v) TrackSettings.FloatHeight  = v end })
+SecMain:AddSlider({ Name="Arrival Distance", Min=1, Max=15, Default=TrackSettings.ArrivalDist, Suffix=" studs", Integer=false,
+    Callback=function(v) TrackSettings.ArrivalDist = v QuestSettings.ArrivalDist = v end })
+SecMain:AddToggle({ Name="Noclip", Default=TrackSettings.NoclipOn, Callback=function(v) TrackSettings.NoclipOn = v if not v then StopNoclip() end end })
+SecMain:AddSeparator("依頼 QUEST (BECKY)")
+SecMain:AddSlider({ Name="Min level", Min=1, Max=190, Default=QuestSettings.MinLevel, Suffix=" lvl", Integer=true, Callback=function(v) QuestSettings.MinLevel = v end })
+SecMain:AddSeparator("不動 ANTI-AFK")
+SecMain:AddToggle({ Name="不動 Anti-AFK", Default=false, Callback=function(v)
+    AntiAFKSettings.Enabled = v
+    if v then StartAntiAFK() BarbiUI:Notify({ Title="不動 Anti-AFK", Message="Anti-AFK Enabled", Type="success", Duration=3 })
+    else StopAntiAFK() BarbiUI:Notify({ Title="不動 Anti-AFK", Message="Anti-AFK Disabled", Type="warning", Duration=3 }) end
+end })
+
+--------------------------------------ABA DE KILL AURA RIFLEEEE-----------------------------------------
+
+local TabRifle = Window:AddTab({ Name = "銃殺 Kill Aura" })
+local SecRifle = TabRifle:AddSection("操作 Configs")
+
+SecRifle:AddToggle({ Name="Enable Kill Aura", Default=false, Callback=function(v)
+    RifleSettings.Enabled = v
+    if not v then RifleSettings.ShowESP = false end
+    BarbiUI:Notify({ Title="Kill Aura", Message=v and "Kill Aura enabled" or "Kill Aura Disabled.", Type=v and "success" or "warning", Duration=2 })
+end })
+SecRifle:AddToggle({ Name="Target ESP", Default=false, Callback=function(v)
+    RifleSettings.ShowESP = v
+    if not v then for npc, h in pairs(espCache) do if h and h.Parent then h:Destroy() end espCache[npc]=nil end end
+end })
+SecRifle:AddSeparator("射程 Range")
+SecRifle:AddSlider({ Name="Máx",              Min=50,  Max=2000, Default=RifleSettings.Range,    Suffix=" studs", Integer=true,  Callback=function(v) RifleSettings.Range    = v end })
+SecRifle:AddSlider({ Name="Mín", Min=1,   Max=30,   Default=RifleSettings.MinRange, Suffix=" studs", Integer=true,  Callback=function(v) RifleSettings.MinRange = v end })
+SecRifle:AddSeparator("発射 SHOOT")
+SecRifle:AddSlider({ Name="Shot Delay", Min=0, Max=1, Default=RifleSettings.FireDelay, Suffix="s", Integer=false, Callback=function(v) RifleSettings.FireDelay = v end })
+SecRifle:AddToggle({ Name="Auto Reload",        Default=RifleSettings.AutoReload,       Callback=function(v) RifleSettings.AutoReload      = v end })
+SecRifle:AddToggle({ Name="Ignore NPCs ( Always keep enabled )", Default=RifleSettings.IgnoreForceField, Callback=function(v) RifleSettings.IgnoreForceField = v end })
+SecRifle:AddSeparator("予測 Prediction")
+SecRifle:AddToggle({ Name="Use Prediction",      Default=RifleSettings.UsePrediction,    Callback=function(v) RifleSettings.UsePrediction   = v end })
+SecRifle:AddSlider({ Name="Bullet Speed", Min=50,  Max=1000, Default=RifleSettings.BulletSpeed,          Suffix=" studs/s", Integer=true,  Callback=function(v) RifleSettings.BulletSpeed          = v end })
+SecRifle:AddSlider({ Name="Velocity Multiplier",      Min=0.1, Max=3.0,  Default=RifleSettings.PredictionMultiplier, Suffix="x",        Integer=false, Callback=function(v) RifleSettings.PredictionMultiplier = v end })
+local SecMelee = TabRifle:AddSection("近戦 Kill Aura Mob")
+
+SecMelee:AddToggle({ Name="Kill Aura Mob", Default=false, Callback=function(v)
+    KillAuraMobSettings.Enabled = v
+    BarbiUI:Notify({ Title="Kill Aura Mob", Message=v and "Enabled." or "Disabled.", Type=v and "success" or "warning", Duration=2 })
+end })
+
+SecMelee:AddBind({ Name="Keybind (Toggle)", Default=Enum.KeyCode.H, Callback=function()
+    KillAuraMobSettings.Enabled = not KillAuraMobSettings.Enabled
+    BarbiUI:Notify({ Title="Kill Aura Mob", Message=KillAuraMobSettings.Enabled and "Enabled." or "Disabled.", Type=KillAuraMobSettings.Enabled and "success" or "warning", Duration=2 })
+end })
+
+SecMelee:AddDropdown({ Name="Arma", Options={"Melee", "Sword"}, Default="Melee", Callback=function(v)
+    KillAuraMobSettings.WeaponMode = v
+    BarbiUI:Notify({ Title="Kill Aura Mob", Message="Arma: " .. v, Type="info", Duration=2 })
+end })
+
+SecMelee:AddSeparator("TP Behind Mob")
+
+SecMelee:AddToggle({ Name="Enabled TP Behind", Default=false, Callback=function(v)
+    TpBehindSettings.Enabled = v
+    if not v then _tpLocked = nil end
+    BarbiUI:Notify({ Title="TP Behind", Message=v and "Enabled" or "Disabled", Type=v and "success" or "warning", Duration=2 })
+end })
+------------------------------voltar aqi dps------------ 
+SecMelee:AddBind({ Name="Keybind TP Behind", Default=Enum.KeyCode.H, Callback=function()
+    TpBehindSettings.Enabled = not TpBehindSettings.Enabled
+    if not TpBehindSettings.Enabled then _tpLocked = nil end
+    BarbiUI:Notify({ Title="TP Behind", Message=TpBehindSettings.Enabled and "Enabled" or "Disabled.", Type=TpBehindSettings.Enabled and "success" or "warning", Duration=2 })
+end })
+
+SecMelee:AddSlider({ Name="Behind Distance", Min=0, Max=20, Default=7, Suffix=" studs", Integer=true, Callback=function(v)
+    TpBehindSettings.Profundidade = v
+end })
+
+SecMelee:AddSlider({ Name="Retreat Distance", Min=0, Max=20, Default=3, Suffix=" studs", Integer=true, Callback=function(v)
+    TpBehindSettings.Recuo = v
+end })
+
+--------------------------------------------------------------auto status---------------------------- GUN APENAS--------
+
+local TabStats = Window:AddTab({ Name = "強化 Auto Stats" })
+local SecStats = TabStats:AddSection("極限 Gun Mastery")
+
+SecStats:AddToggle({ Name="Auto Stats", Default=false, Callback=function(v)
+    AutoStatsSettings.Enabled = v
+    if v then StartAutoStats() BarbiUI:Notify({ Title="Auto Stats", Message="ok.."..AutoStatsSettings.Stat.."...", Type="success", Duration=3 })
+    else StopAutoStats() BarbiUI:Notify({ Title="Auto Stats", Message="Auto Stats Disabled.", Type="warning", Duration=2 }) end
+end })
+SecStats:AddSlider({ Name="Delay", Min=0.05, Max=1.0, Default=AutoStatsSettings.Interval, Suffix="s", Integer=false, Callback=function(v) AutoStatsSettings.Interval = v end })
+SecStats:AddSeparator("情報")
+SecStats:AddLabel("hellow")
+
+-----------------------------TP DE ILHAS -----------------------------------
+
+
+--------------------------------------TP DE ILHAS SEA 2-----------------------------------------
+
+local Islands_Sea2_New = {
+    ["Colosseum of Arc"]  = Vector3.new(2043.2,   24.7,    6288.6),
+    ["Desert Kingdom"]    = Vector3.new(-1318.2,  382.1,   -630.1),
+    ["Dokkan Island"]     = Vector3.new(9303.6,   30.2,    -11833.7),
+    ["Foro Island"]       = Vector3.new(8271.4,   -3.2,    4333.2),
+    ["Impel Base"]        = Vector3.new(5912.3,   44.7,    -10210.0),
+    ["Rose Kingdom"]      = Vector3.new(8262.9,   230.0,   10191.8),
+    ["Rovo Island"]       = Vector3.new(-6227.5,  52.9,    353.4),
+    ["Sakura Stronghold"] = Vector3.new(5915.3,   50.5,    -190.7),
+    ["Sashi Island"]      = Vector3.new(-1553.3,  8.5,     -6160.4),
+    ["Sett's Arena"]      = Vector3.new(-7740.7,  81.7,    -9222.1),
+    ["Spirit Island"]     = Vector3.new(-1389.3,  -152.5,  9937.9),
+    ["Thriller Bark"]     = Vector3.new(10809.6,  1396.9,  -7022.9),
+    ["Turtleback Cave"]   = Vector3.new(1756.0,   132.7,   -10893.1),
+    ["Umi Island"]        = Vector3.new(12786.5,  -18.5,   2761.8),
+    ["Whole Cake Island"] = Vector3.new(-8114.8,  636.4,   9528.2),
+}
+
+local Sea2IslandNames = {}
+for name in pairs(Islands_Sea2_New) do table.insert(Sea2IslandNames, name) end
+table.sort(Sea2IslandNames)
+
+local Sea2Settings = {
+    Enabled      = false,
+    FlySpeed     = 135,
+    TravelHeight = 900,
+    FloatHeight  = 5,
+    ArrivalDist  = 8,
+    NoclipOn     = true,
+    StamInterval = 0.3,
+}
+
+local sea2CurrentDestination     = nil
+local sea2CurrentDestinationName = nil
+local sea2WaypointsDone          = false
+local sea2IsLanding              = false
+local sea2LastStam               = 0
+local sea2TrackConn              = nil
+local sea2NoclipConn             = nil
+local sea2FloatAtt               = nil
+local sea2FloatLV                = nil
+local sea2FloatConn              = nil
+
+local function Sea2GetRoot()
+    local c = LocalPlayer.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function Sea2GetHum()
+    local c = LocalPlayer.Character
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+local function Sea2DashBypass()
+    pcall(function() TakeStam:FireServer(0.505, "dash") end)
+end
+
+local function Sea2StartNoclip()
+    if sea2NoclipConn then sea2NoclipConn:Disconnect() end
+    sea2NoclipConn = RunService.Stepped:Connect(function()
+        if not Sea2Settings.NoclipOn then return end
+        local c = LocalPlayer.Character
+        if not c then return end
+        for _, p in ipairs(c:GetDescendants()) do
+            if p:IsA("BasePart") then p.CanCollide = false end
+        end
+    end)
+end
+
+local function Sea2StopNoclip()
+    if sea2NoclipConn then sea2NoclipConn:Disconnect() sea2NoclipConn = nil end
+    local c = LocalPlayer.Character
+    if not c then return end
+    for _, p in ipairs(c:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = true end
+    end
+end
+
+local function Sea2StopFloat()
+    if sea2FloatConn then sea2FloatConn:Disconnect() sea2FloatConn = nil end
+    if sea2FloatLV  and sea2FloatLV.Parent  then sea2FloatLV:Destroy()  end ; sea2FloatLV  = nil
+    if sea2FloatAtt and sea2FloatAtt.Parent then sea2FloatAtt:Destroy() end ; sea2FloatAtt = nil
+end
+
+local function Sea2StartFloat()
+    Sea2StopFloat()
+    local root = Sea2GetRoot()
+    if not root then return end
+    sea2FloatAtt        = Instance.new("Attachment")
+    sea2FloatAtt.Name   = "Sea2FloatAtt"
+    sea2FloatAtt.Parent = root
+    sea2FloatLV                        = Instance.new("LinearVelocity")
+    sea2FloatLV.Name                   = "Sea2FloatLV"
+    sea2FloatLV.Attachment0            = sea2FloatAtt
+    sea2FloatLV.VelocityConstraintMode = Enum.VelocityConstraintMode.Line
+    sea2FloatLV.LineDirection          = Vector3.new(0, 1, 0)
+    sea2FloatLV.LineVelocity           = 0
+    sea2FloatLV.MaxForce               = 1e5
+    sea2FloatLV.Parent                 = root
+    sea2FloatConn = RunService.Heartbeat:Connect(function()
+        if not Sea2Settings.Enabled then return end
+        if sea2IsLanding then return end
+        local r = Sea2GetRoot()
+        if not r or not sea2FloatLV or not sea2FloatLV.Parent then return end
+        sea2FloatLV.LineVelocity = math.clamp((Sea2Settings.TravelHeight - r.Position.Y) * 10, -150, 150)
+    end)
+end
+
+local function Sea2FullCleanup()
+    local root = Sea2GetRoot()
+    local c    = LocalPlayer.Character
+    Sea2StopFloat()
+    Sea2StopNoclip()
+    Sea2Settings.Enabled = false
+    sea2IsLanding        = false
+    sea2WaypointsDone    = false
+    if not root or not c then return end
+    for _, obj in ipairs(root:GetChildren()) do
+        if obj:IsA("BodyMover") or obj:IsA("LinearVelocity")
+        or obj:IsA("AngularVelocity") or obj:IsA("Attachment")
+        or obj.Name == "Sea2FloatAtt" or obj.Name == "Sea2FloatLV" then
+            obj:Destroy()
+        end
+    end
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    for _, p in ipairs(c:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = true p.Anchored = false end
+    end
+    local hum = Sea2GetHum()
+    if hum then
+        hum.PlatformStand = false
+        hum.AutoRotate    = true
+        pcall(function() hum:ChangeState(Enum.HumanoidStateType.Freefall) end)
+    end
+end
+
+local sea2RayParams = RaycastParams.new()
+sea2RayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+local function Sea2SafeLanding(wpPos, afterLand)
+    local root = Sea2GetRoot()
+    local c    = LocalPlayer.Character
+    if not root or not c then return end
+    sea2RayParams.FilterDescendantsInstances = { c }
+    local ray = workspace:Raycast(
+        Vector3.new(wpPos.X, Sea2Settings.TravelHeight, wpPos.Z),
+        Vector3.new(0, -Sea2Settings.TravelHeight - 500, 0),
+        sea2RayParams
+    )
+    local groundY = ray and ray.Position.Y or wpPos.Y
+    local safePos = CFrame.new(wpPos.X, groundY + Sea2Settings.FloatHeight, wpPos.Z)
+    root.Anchored = true
+    root.AssemblyLinearVelocity  = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    Sea2StopFloat()
+    task.wait(0.1)
+    c:PivotTo(safePos)
+    Sea2DashBypass()
+    task.wait(0.1)
+    root.Anchored = false
+    local hum = Sea2GetHum()
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
+    task.wait(0.4)
+    if afterLand then afterLand() end
+end
+
+local function Sea2StopTrack()
+    if sea2TrackConn then sea2TrackConn:Disconnect() sea2TrackConn = nil end
+    local root = Sea2GetRoot()
+    if root then root.AssemblyLinearVelocity = Vector3.zero end
+end
+
+local function Sea2StartTrack()
+    if sea2TrackConn then sea2TrackConn:Disconnect() end
+    sea2TrackConn = RunService.Heartbeat:Connect(function()
+        if not Sea2Settings.Enabled then return end
+        if sea2IsLanding then return end
+        local root = Sea2GetRoot()
+        if not root then return end
+        local now = tick()
+        if now - sea2LastStam > Sea2Settings.StamInterval then
+            sea2LastStam = now
+            Sea2DashBypass()
+        end
+        if sea2WaypointsDone or not sea2CurrentDestination then
+            root.AssemblyLinearVelocity = Vector3.zero
+            return
+        end
+        local dest      = sea2CurrentDestination
+        local myPos     = root.Position
+        local horizDist = Vector3.new(myPos.X - dest.X, 0, myPos.Z - dest.Z).Magnitude
+        if horizDist <= Sea2Settings.ArrivalDist then
+            root.AssemblyLinearVelocity = Vector3.zero
+            Sea2StopTrack()
+            sea2IsLanding = true
+            task.spawn(function()
+                Sea2SafeLanding(dest, function()
+                    sea2IsLanding     = false
+                    sea2WaypointsDone = true
+                    Sea2FullCleanup()
+                    pcall(function()
+                        BarbiUI:Notify({ Title="🏃 Sea 2 Travel", Message="Chegou em: " .. (sea2CurrentDestinationName or "?"), Type="success", Duration=4 })
+                    end)
+                end)
+            end)
+            return
+        end
+        local dir = Vector3.new(dest.X - myPos.X, 0, dest.Z - myPos.Z).Unit
+        root.AssemblyLinearVelocity = Vector3.new(
+            dir.X * Sea2Settings.FlySpeed,
+            root.AssemblyLinearVelocity.Y,
+            dir.Z * Sea2Settings.FlySpeed
+        )
+    end)
+end
+
+local function Sea2TravelTo(islandName)
+    local dest = Islands_Sea2_New[islandName]
+    if not dest then return end
+    if Sea2Settings.Enabled then Sea2StopTrack() Sea2FullCleanup() task.wait(0.3) end
+    sea2CurrentDestination     = dest
+    sea2CurrentDestinationName = islandName
+    sea2WaypointsDone          = false
+    sea2IsLanding              = false
+    Sea2Settings.Enabled       = true
+    local root = Sea2GetRoot()
+    if root then
+        root.CFrame = CFrame.new(root.Position.X, Sea2Settings.TravelHeight, root.Position.Z)
+    end
+    Sea2DashBypass()
+    Sea2StartNoclip()
+    task.wait(0.2)
+    Sea2StartFloat()
+    Sea2StartTrack()
+    pcall(function()
+        BarbiUI:Notify({ Title="🏃 Sea 2 Travel", Message="Indo para: " .. islandName, Type="info", Duration=3 })
+    end)
+end
+
+local function Sea2TravelDisable()
+    Sea2StopTrack()
+    Sea2FullCleanup()
+    pcall(function()
+        BarbiUI:Notify({ Title="🏃 Sea 2 Travel", Message="Viagem cancelada.", Type="warning", Duration=2 })
+    end)
+end
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    if Sea2Settings.Enabled then
+        Sea2StartNoclip()
+        Sea2StartFloat()
+        Sea2StartTrack()
+    end
+end)
+
+
+
+local TabIslands = Window:AddTab({ Name = "島旅 Islands" })
+local SecTravel  = TabIslands:AddSection(" 報 TP — Island Travel")
+
+local selectedIsland = IslandNames_Sea1[1]
+
+SecTravel:AddDropdown({ Name="Part 1", Options=IslandNames_Sea1, Default=IslandNames_Sea1[1], Callback=function(v) selectedIsland = v end })
+SecTravel:AddDropdown({ Name="Part 2", Options=IslandNames_Sea2, Default=IslandNames_Sea2[1], Callback=function(v) selectedIsland = v end })
+SecTravel:AddButton({ Name="TP / Viajar",  Description="Fly to the selected island", Callback=function() TravelTo(selectedIsland) end })
+SecTravel:AddButton({ Name="Cancelar TP",  Description="Stop Flight",            Callback=function() TravelDisable() end })
+SecTravel:AddSeparator("迅速 configs")
+SecTravel:AddSlider({ Name="SPEED FLY", Min=50,  Max=135,  Default=SlidsSettings.FlySpeed,     Suffix=" studs/s", Integer=true,  Callback=function(v) SlidsSettings.FlySpeed     = v end })
+SecTravel:AddSlider({ Name="Air Height",          Min=200, Max=2000, Default=SlidsSettings.TravelHeight, Suffix=" Y",       Integer=true,  Callback=function(v) SlidsSettings.TravelHeight = v end })
+SecTravel:AddSlider({ Name="Safe landing",   Min=1,   Max=20,   Default=SlidsSettings.FloatHeight,  Suffix=" studs",   Integer=false, Callback=function(v) SlidsSettings.FloatHeight  = v end })
+SecTravel:AddToggle({ Name="Noclip", Default=SlidsSettings.NoclipOn, Callback=function(v) SlidsSettings.NoclipOn = v if not v then SlidsStopNoclip() end end })
+
+local SecESP = TabIslands:AddSection("島見 Island ESP")
+SecESP:AddToggle({ Name="Island ESP", Default=false, Callback=function(v)
+    ESPConfig.Enabled = v
+    if v then ESPStart() BarbiUI:Notify({ Title="島見 ESP", Message="Island ESP Enabled", Type="success", Duration=2 })
+    else ESPStop() BarbiUI:Notify({ Title="島見 ESP", Message="Island ESP Disabled.", Type="warning", Duration=2 }) end
+end })
+SecESP:AddLabel("????.")
+
+--------------------------------------ABA ISLANDS SEA 2-----------------------------------------
+
+local SecTravel2  = TabIslands:AddSection("島旅 TP — Sea 2")
+local selectedSea2Island = Sea2IslandNames[1]
+
+SecTravel2:AddDropdown({ Name="Sea 2 Islands", Options=Sea2IslandNames, Default=Sea2IslandNames[1], Callback=function(v) selectedSea2Island = v end })
+SecTravel2:AddButton({ Name="TP / Viajar",  Description="Fly to the selected Sea 2 island", Callback=function() Sea2TravelTo(selectedSea2Island) end })
+SecTravel2:AddButton({ Name="Cancelar TP",  Description="Stop Flight",                       Callback=function() Sea2TravelDisable() end })
+SecTravel2:AddSeparator("迅速 configs")
+SecTravel2:AddSlider({ Name="SPEED FLY",    Min=50,  Max=135,  Default=Sea2Settings.FlySpeed,     Suffix=" studs/s", Integer=true,  Callback=function(v) Sea2Settings.FlySpeed     = v end })
+SecTravel2:AddSlider({ Name="Air Height",   Min=200, Max=2000, Default=Sea2Settings.TravelHeight, Suffix=" Y",       Integer=true,  Callback=function(v) Sea2Settings.TravelHeight = v end })
+SecTravel2:AddSlider({ Name="Safe landing", Min=1,   Max=20,   Default=Sea2Settings.FloatHeight,  Suffix=" studs",   Integer=false, Callback=function(v) Sea2Settings.FloatHeight  = v end })
+SecTravel2:AddToggle({ Name="Noclip",       Default=Sea2Settings.NoclipOn, Callback=function(v) Sea2Settings.NoclipOn = v if not v then Sea2StopNoclip() end end })
+
+-- 
+------------------------------------------ PVP AQI _______________________
+-- 
+
+local TabPVP      = Window:AddTab({ Name = "PVP" })
+local SecAnimLock = TabPVP:AddSection("Anim Lock")
+
+-- Anim Lock setup
+getgenv().AnimLockOn = false
+
+local _animConn1 = nil
+local _animConn2 = nil
+
+local function SetupAnimLock(char)
+    if _animConn1 then _animConn1:Disconnect() _animConn1 = nil end
+    if _animConn2 then _animConn2:Disconnect() _animConn2 = nil end
+
+    local hum  = char:WaitForChild("Humanoid")
+    local anim = hum:WaitForChild("Animator")
+
+    _animConn1 = RunService.Heartbeat:Connect(function()
+        if not getgenv().AnimLockOn then return end
+        for _, track in ipairs(anim:GetPlayingAnimationTracks()) do
+            track:AdjustSpeed(0)
+            track:AdjustWeight(0)
+        end
+    end)
+
+    _animConn2 = anim.AnimationPlayed:Connect(function(track)
+        if not getgenv().AnimLockOn then return end
+        track:AdjustSpeed(0)
+        track:AdjustWeight(0)
+    end)
+end
+
+SetupAnimLock(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    task.wait(0.5)
+    SetupAnimLock(newChar)
+end)
+
+SecAnimLock:AddToggle({ Name="Anim Lock", Default=false, Callback=function(v)
+    getgenv().AnimLockOn = v
+    BarbiUI:Notify({ Title="Anim Lock", Message=v and "Anim Lock Enabled" or "Anim Lock Disabled.", Type=v and "success" or "warning", Duration=2 })
+end })
+
+-- FOV Changer
+local _fovCamera = workspace.CurrentCamera
+local _fovConfig = {
+    Enabled = false,
+    FOV     = 70,
+    MinFOV  = 30,
+    MaxFOV  = 130,
+}
+
+getgenv().FOVChanger = false
+
+_G.FOVChanger = {
+    Config = _fovConfig,
+    Set = function(value)
+        _fovConfig.FOV = math.clamp(value, _fovConfig.MinFOV, _fovConfig.MaxFOV)
+        if getgenv().FOVChanger then
+            _fovCamera.FieldOfView = _fovConfig.FOV
+        end
+    end,
+    Toggle = function()
+        getgenv().FOVChanger = not getgenv().FOVChanger
+        _fovConfig.Enabled = getgenv().FOVChanger
+        if getgenv().FOVChanger then
+            task.spawn(function()
+                while getgenv().FOVChanger and task.wait(0.1) do
+                    if _fovCamera.FieldOfView ~= _fovConfig.FOV then
+                        _fovCamera.FieldOfView = _fovConfig.FOV
+                    end
+                end
+            end)
+        else
+            _fovCamera.FieldOfView = 70
+        end
+    end,
+}
+
+SecAnimLock:AddToggle({ Name="FOV Changer", Default=false, Callback=function(v)
+    getgenv().FOVChanger = v
+    _fovConfig.Enabled = v
+    if v then
+        task.spawn(function()
+            while getgenv().FOVChanger and task.wait(0.1) do
+                if _fovCamera.FieldOfView ~= _fovConfig.FOV then
+                    _fovCamera.FieldOfView = _fovConfig.FOV
+                end
+            end
+        end)
+    else
+        _fovCamera.FieldOfView = 70
+    end
+    BarbiUI:Notify({ Title="FOV Changer", Message=v and "FOV Changer Enabled" or "FOV Disabled ( NOT WORKING ).", Type=v and "success" or "warning", Duration=2 })
+end })
+
+SecAnimLock:AddSlider({ Name="FOV", Min=30, Max=120, Default=70, Integer=true, Callback=function(v)
+    _G.FOVChanger.Set(v)
+end })
+
+----------------------------------------------------------------- ABA QOL ------------
+
+local TabQOL  = Window:AddTab({ Name = "生活 QOL" })
+local SecMove = TabQOL:AddSection("MOVE")
+
+SecMove:AddToggle({ Name="Anti-Stun", Default=false, Callback=function(v)
+    QOLSettings.AntiStun = v
+    BarbiUI:Notify({ Title="Anti-Stun", Message=v and "Anti-Stun Enabled" or "Anti-Stun Disabled.", Type=v and "success" or "warning", Duration=2 })
+end })
+SecMove:AddToggle({ Name="Infinite Jump", Default=false, Callback=function(v)
+    QOLSettings.InfiniteJump = v
+    if v then QOL_EnableInfJump() end
+    BarbiUI:Notify({ Title="Infinite Jump", Message=v and "Infinite Jump Enabled" or "Infinite Jump Disabled.", Type=v and "success" or "warning", Duration=2 })
+end })
+SecMove:AddToggle({ Name="Speed Hack", Default=false, Callback=function(v)
+    QOLSettings.SpeedEnabled = v
+    BarbiUI:Notify({ Title="Speed Hack", Message=v and ("Speed ON (+"..(QOLSettings.SpeedBoost)..")") or "Speed off.", Type=v and "success" or "warning", Duration=2 })
+end })
+SecMove:AddSlider({ Name="Speed Boost", Min=5, Max=100, Default=QOLSettings.SpeedBoost, Suffix=" studs", Integer=true, Callback=function(v) QOLSettings.SpeedBoost = v end })
+SecMove:AddLabel("USE 50-70")
+SecMove:AddSeparator("Geppo")
+SecMove:AddToggle({ Name="Fake Geppo", Default=false, Callback=function(v)
+    QOLSettings.GeppoLoop = v
+    ToggleFakeGeppo(v)
+    BarbiUI:Notify({ Title="Fake Geppo", Message=v and "Fake Geppo ON" or "Fake Geppo OFF.", Type=v and "success" or "warning", Duration=2 })
+end })
+
+local SecAds = TabQOL:AddSection("Auto Ads")
+SecAds:AddToggle({ Name="Auto XP Ad", Default=false, Callback=function(v)
+    AutoAdsSettings.XpEnabled = v
+    BarbiUI:Notify({ Title="Auto XP Ad", Message=v and "ON 😭" or "OFF", Type=v and "success" or "warning", Duration=2 })
+end })
+SecAds:AddToggle({ Name="Auto Drop Ad", Default=false, Callback=function(v)
+    AutoAdsSettings.DropEnabled = v
+    BarbiUI:Notify({ Title="Auto Drop Ad", Message=v and "ON" or "OFF.", Type=v and "success" or "warning", Duration=2 })
+end })
+SecAds:AddLabel("vai se fuder reizinho viado")
+
+local SecScroll = TabQOL:AddSection("World Scroll (Sea 2)")
+
+SecScroll:AddToggle({ Name="Auto World Scroll", Default=false, Callback=function(v)
+    if v then
+        -- pega statsFolder e inventoryValue do player atual
+        local sf  = ReplicatedStorage:FindFirstChild("Stats" .. LocalPlayer.Name)
+        local inv = sf and sf:FindFirstChild("Inventory") and sf.Inventory:FindFirstChild("Inventory")
+        if not sf or not inv then
+            BarbiUI:Notify({ Title="World Scroll", Message="Collects only when spawned.", Type="error", Duration=3 })
+            return
+        end
+
+        local function getInventoryTool(name)
+            local ok, parsed = pcall(function()
+                return game:GetService("HttpService"):JSONDecode(inv.Value)
+            end)
+            return ok and parsed and parsed[name] ~= nil
+        end
+
+        local function findTool(name)
+            for _, t in next, LocalPlayer.Backpack:GetChildren() do
+                if t.Name == name then return t end
+            end
+            for _, t in next, LocalPlayer.Character:GetChildren() do
+                if t.Name == name then return t end
+            end
+            return nil
+        end
+
+        getgenv().SS2 = true
+
+        -- Geppo loop
+        task.spawn(function()
+            while getgenv().SS2 and task.wait(1) do
+                pcall(FakeGeppo)
+            end
+        end)
+
+        -- Voa até o scroll e coleta
+        task.spawn(function()
+            local root = GetRoot()
+            if not root then return end
+
+            local scrollPos = Vector3.new(-7350.17, 4.76, -14949.49)
+
+            StartNoclip()
+            root.CFrame = CFrame.new(root.Position.X, TrackSettings.TravelHeight, root.Position.Z)
+            DashBypass()
+            task.wait(0.2)
+            StartFloat()
+
+            -- reutiliza o FlyTo do hub
+            local flyConn
+            flyConn = RunService.Heartbeat:Connect(function()
+                if not getgenv().SS2 then flyConn:Disconnect() return end
+                local r = GetRoot()
+                if not r then return end
+                local now = tick()
+                if now - lastStam > TrackSettings.StamInterval then lastStam = now DashBypass() end
+                local horizDist = Vector3.new(r.Position.X - scrollPos.X, 0, r.Position.Z - scrollPos.Z).Magnitude
+                if horizDist <= TrackSettings.ArrivalDist then
+                    r.AssemblyLinearVelocity = Vector3.zero
+                    flyConn:Disconnect()
+                    -- safe landing e coleta
+                    task.spawn(function()
+                        SafeLanding(scrollPos, function()
+                            StopNoclip()
+                            local scroll = workspace.Effects:FindFirstChild("World Scroll")
+                            if scroll then
+                                repeat
+                                    task.wait()
+                                    local r2 = GetRoot()
+                                    if r2 then r2.CFrame = CFrame.new(scrollPos) r2.AssemblyLinearVelocity = Vector3.zero end
+                                    local prompt = scroll:FindFirstChildWhichIsA("ProximityPrompt")
+                                    if prompt then
+                                        prompt:InputHoldBegin()
+                                        task.wait(prompt.HoldDuration)
+                                        prompt:InputHoldEnd()
+                                    end
+                                until not getgenv().SS2
+                                      or not scroll.Parent
+                                      or getInventoryTool("World Scroll")
+                                      or findTool("World Scroll")
+                            end
+                            getgenv().SS2 = false
+                            StopFloat() StopNoclip() PurgePhysics()
+                            BarbiUI:Notify({ Title="World Scroll", Message="ok", Type="success", Duration=4 })
+                        end)
+                    end)
+                    return
+                end
+                local dir = Vector3.new(scrollPos.X - r.Position.X, 0, scrollPos.Z - r.Position.Z).Unit
+                r.AssemblyLinearVelocity = Vector3.new(dir.X * TrackSettings.FlySpeed, r.AssemblyLinearVelocity.Y, dir.Z * TrackSettings.FlySpeed)
+            end)
+
+            BarbiUI:Notify({ Title="World Scroll", Message="ok...", Type="info", Duration=3 })
+        end)
+
+    else
+        getgenv().SS2 = false
+        StopFloat() StopNoclip() PurgePhysics()
+        BarbiUI:Notify({ Title="World Scroll", Message="?.", Type="warning", Duration=2 })
+    end
+end })
+
+SecScroll:AddLabel("It won’t grab this shit unless it’s spawned.")
+SecScroll:AddLabel("Disable the toggle to cancel at any time.")
+
+
+
+local SecOptimize = TabQOL:AddSection("DONT USE")
+SecOptimize:AddButton({ Name="FUCK", Description="This shit is trash and will bug your game. Don’t use it..", Callback=function()
+    task.spawn(OptimizeGame)
+    BarbiUI:Notify({ Title="why?", Message="nice...", Type="success", Duration=3 })
+end })
+
+local SecBypass = TabQOL:AddSection("Bypass / Anti-Cheat")
+
+SecBypass:AddToggle({ Name="no stam Dash", Default=false, Callback=function(v)
+    QOLSettings.NoDash = v
+    BarbiUI:Notify({ Title="No Dash", Message=v and "No Dash ON" or "No Dash OFF", Type=v and "success" or "warning", Duration=2 })
+end })
+SecBypass:AddButton({ Name="antcheatbypass", Description="antcheatbypass", Callback=function()
+    if getgenv()._KyotakiDestroyAdonis then
+        local n = getgenv()._KyotakiDestroyAdonis()
+        BarbiUI:Notify({ Title="antcheatbypass", Message=n.."antcheatbypass", Type="success", Duration=3 })
+    else
+        BarbiUI:Notify({ Title="antcheatbypass", Message="lol.", Type="error", Duration=3 })
+    end
+end })
+SecBypass:AddLabel("Bypass Status: " .. (getgenv().AntiCheatBypassLoaded and " OK" or " note ok"))
+SecBypass:AddLabel("Executor: " .. (_bypassSupported and "ok" or "ok?"))
+
+local SecStreamer = TabQOL:AddSection("Streamer Mode")
+SecStreamer:AddToggle({ Name="Streamer Mode", Default=false, Callback=function()
+    _G.StreamerMode.Toggle()
+end })
+
+------------------------------------------------ INFO ABA---------------------------------------------
+
+local TabInfo  = Window:AddTab({ Name = "情報 Info", Badge = "v9" })
+local SecAbout = TabInfo:AddSection("概要 Sobre")
+SecAbout:AddLabel("Kyotaki HUB — GPO Farm Suite v9")
+SecAbout:AddLabel("Track · Kill Aura · Auto Quest · Auto Stats · Islands · QOL")
+SecAbout:AddLabel("QOL: Bypass · Anti-Stun · Speed · InfJump · Geppo · No Dash")
+
+local SecDanger = TabInfo:AddSection("停止 Emergência")
+SecDanger:AddButton({ Name="PARAR TUDO", Description="Para todos os módulos e restaura física", Callback=function()
+    DisableAll() StopAutoStats() TravelDisable() Sea2TravelDisable() ESPStop()
+    QOLSettings.SpeedEnabled  = false
+    QOLSettings.InfiniteJump  = false
+    QOLSettings.GeppoLoop     = false
+    QOLSettings.NoDash        = false
+    AutoStatsSettings.Enabled = false
+    ESPConfig.Enabled         = false
+    BarbiUI:Notify({ Title="STOP", Message="Todos os módulos foram parados.", Type="error", Duration=4 })
+end })
+
+local SecNotifs = TabInfo:AddSection("通知 Notificações")
+SecNotifs:AddButton({ Name="Info",    Callback=function() BarbiUI:Notify({ Title="Info",    Message="Sistema funcionando normalmente.", Type="info",    Duration=4 }) end })
+SecNotifs:AddButton({ Name="Sucesso", Callback=function() BarbiUI:Notify({ Title="Sucesso", Message="Operação concluída!",              Type="success", Duration=4 }) end })
+SecNotifs:AddButton({ Name="Aviso",   Callback=function() BarbiUI:Notify({ Title="Atenção", Message="Verifique suas configurações.",    Type="warning", Duration=4 }) end })
+SecNotifs:AddButton({ Name="Erro",    Callback=function() BarbiUI:Notify({ Title="Erro",    Message="Algo deu errado.",                 Type="error",   Duration=4 }) end })
+
+---------------------------------------------------- lollllll -----------------------------------
+
+StartAutoStats()
