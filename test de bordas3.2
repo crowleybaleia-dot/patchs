@@ -532,15 +532,7 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = sidebar,
     })
 
-    local indicator = U.New("Frame", {
-        BackgroundColor3 = T.Red,
-        Size             = UDim2.new(0, 2, 0, 22),
-        AnchorPoint      = Vector2.new(1, 0.5),
-        Position         = UDim2.new(1, 0, 0, 60),
-        ZIndex           = 20,
-        Parent           = sidebar,
-    })
-    U.Corner(indicator, 4)
+    
 
     -- Borda direita da sidebar
     U.New("Frame", {
@@ -579,6 +571,16 @@ function BarbiUI:CreateWindow(cfg)
             Parent                 = sidebar,
         })
         U.Corner(btn, 6)
+
+        local acBarLeft = U.New("Frame", {
+            BackgroundColor3       = T.Red,
+            Size                   = UDim2.new(0, 2, 0.5, 0),
+            AnchorPoint            = Vector2.new(0, 0.5),
+            Position               = UDim2.new(0, 0, 0.5, 0),
+            BackgroundTransparency = 1,
+            Parent                 = btn,
+        })
+        U.Corner(acBarLeft, 2)
 
         local acBar = U.New("Frame", {
             BackgroundColor3       = T.Red,
@@ -670,19 +672,19 @@ function BarbiUI:CreateWindow(cfg)
                 U.Tw(it.btn, {BackgroundTransparency=1}, 0.18)
                 U.Tw(it.lbl, {TextColor3=T.TxtSec}, 0.18)
                 if it.bar then U.Tw(it.bar, {BackgroundTransparency=1}, 0.18) end
+                if it.barL then U.Tw(it.barL, {BackgroundTransparency=1}, 0.18) end
             end
             for _, pg in ipairs(Win._tabs) do pg.Visible=false end
             U.Tw(btn, {BackgroundTransparency=0.85, BackgroundColor3=T.Elem}, 0.18)
             U.Tw(nameLbl, {TextColor3=T.RedLight}, 0.18)
             U.Tw(acBar, {BackgroundTransparency=0}, 0.18)
+            U.Tw(acBarLeft, {BackgroundTransparency=0}, 0.18)
             local yp = btn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y + btn.AbsoluteSize.Y/2
-            if instant then indicator.Position=UDim2.new(1,0,0,yp-11)
-            else U.Tw(indicator, {Position=UDim2.new(1,0,0,yp-11)}, 0.28, Enum.EasingStyle.Quart) end
             page.Visible=true; Win._active=page
         end
 
         table.insert(Win._tabs, page)
-        table.insert(Win._btns, {btn=btn, lbl=nameLbl, bar=acBar})
+        table.insert(Win._btns, {btn=btn, lbl=nameLbl, bar=acBar, barL=acBarLeft})
         btn.MouseEnter:Connect(function()
             if Win._active~=page then U.Tw(btn,{BackgroundTransparency=0.88,BackgroundColor3=T.Elem},0.15) end
         end)
