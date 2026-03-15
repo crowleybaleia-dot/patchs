@@ -582,16 +582,17 @@ function BarbiUI:CreateWindow(cfg)
 
         local acBar = U.New("Frame", {
             BackgroundColor3       = T.Red,
-            Size                   = UDim2.new(0, 2, 0.45, 0),
-            Position               = UDim2.new(0, 4, 0.275, 0),
-            BackgroundTransparency = 0.6,
+            Size                   = UDim2.new(1, -8, 0, 1),
+            AnchorPoint            = Vector2.new(0.5, 1),
+            Position               = UDim2.new(0.5, 0, 1, -2),
+            BackgroundTransparency = 1,
             Parent                 = btn,
         })
-        U.Corner(acBar, 2)
+        U.Corner(acBar, 1)
 
         local nameLbl = U.New("TextLabel", {
             BackgroundTransparency = 1,
-            Position               = UDim2.new(0, 14, 0.5, -7),
+            Position               = UDim2.new(0, 10, 0.5, -7),
             Size                   = UDim2.new(1, -36, 0, 14),
             Text                   = name,
             TextColor3             = T.TxtSec,
@@ -668,10 +669,10 @@ function BarbiUI:CreateWindow(cfg)
             for _, it in ipairs(Win._btns) do
                 U.Tw(it.btn, {BackgroundTransparency=1}, 0.18)
                 U.Tw(it.lbl, {TextColor3=T.TxtSec}, 0.18)
-                if it.bar then U.Tw(it.bar, {BackgroundTransparency=0.6}, 0.18) end
+                if it.bar then U.Tw(it.bar, {BackgroundTransparency=1}, 0.18) end
             end
             for _, pg in ipairs(Win._tabs) do pg.Visible=false end
-            U.Tw(btn, {BackgroundTransparency=0.78, BackgroundColor3=T.Elem}, 0.18)
+            U.Tw(btn, {BackgroundTransparency=0.85, BackgroundColor3=T.Elem}, 0.18)
             U.Tw(nameLbl, {TextColor3=T.RedLight}, 0.18)
             U.Tw(acBar, {BackgroundTransparency=0}, 0.18)
             local yp = btn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y + btn.AbsoluteSize.Y/2
