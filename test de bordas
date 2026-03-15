@@ -63,6 +63,9 @@ end
 function U.New(cls, props)
     local ok, obj = pcall(Instance.new, cls)
     if not ok then return nil end
+    pcall(function()
+        if obj:IsA("GuiObject") then obj.BorderSizePixel = 0 end
+    end)
     for k, v in pairs(props or {}) do
         if k ~= "Parent" then pcall(function() obj[k] = v end) end
     end
@@ -239,14 +242,14 @@ function BarbiUI:CreateWindow(cfg)
             ScaleType              = Enum.ScaleType.Crop,
             Size                   = UDim2.new(1, 0, 1, 0),
             ZIndex                 = 0,
-            Parent                 = win,
+            Parent                 = clipFrame,
         })
         U.New("Frame", {
             BackgroundColor3       = Color3.fromRGB(5, 3, 10),
             BackgroundTransparency = 0.55,
             Size                   = UDim2.new(1, 0, 1, 0),
             ZIndex                 = 1,
-            Parent                 = win,
+            Parent                 = clipFrame,
         })
     end
 
