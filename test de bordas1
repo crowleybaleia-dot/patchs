@@ -495,9 +495,9 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = body,
     })
     U.New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,1), Parent=sidebar})
-    U.Pad(sidebar, 10, 8, 12, 8)
+    U.Pad(sidebar, 48, 8, 12, 8)
 
-    U.New("TextLabel", {
+    local navLbl = U.New("TextLabel", {
         BackgroundTransparency = 1,
         Size                   = UDim2.new(1, 0, 0, 16),
         Text                   = "  NAVIGATION",
@@ -508,6 +508,14 @@ function BarbiUI:CreateWindow(cfg)
         LayoutOrder            = 0,
         Parent                 = sidebar,
     })
+    task.spawn(function()
+        while navLbl and navLbl.Parent do
+            U.Tw(navLbl, {TextColor3=T.RedMute}, 1.2)
+            task.wait(1.2)
+            U.Tw(navLbl, {TextColor3=T.TxtMute}, 1.2)
+            task.wait(1.2)
+        end
+    end)
     U.New("Frame", {
         BackgroundColor3       = T.BrdWin,
         BackgroundTransparency = 0,
