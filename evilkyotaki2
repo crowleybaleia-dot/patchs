@@ -15,13 +15,13 @@ local Mouse       = LocalPlayer:GetMouse()
 -- TEMA
 -- ══════════════════════════════════════════════════════════════════
 local T = {
-    GlassWin    = Color3.fromRGB( 8,  6,  5),
-    GlassSide   = Color3.fromRGB( 5,  4,  3),
+    GlassWin    = Color3.fromRGB( 0,  0,  0),
+    GlassSide   = Color3.fromRGB( 0,  0,  0),
     GlassCard   = Color3.fromRGB(14, 11,  9),
     GlassElem   = Color3.fromRGB(22, 18, 15),
     GlassInput  = Color3.fromRGB(10,  8,  6),
-    TWin        = 0.55,
-    TSide       = 0.45,
+    TWin        = 0,
+    TSide       = 0,
     TCard       = 0.55,
     TElem       = 0.58,
     TInput      = 0.60,
