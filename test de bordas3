@@ -223,7 +223,6 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = sg,
     })
     U.Corner(win, 12)
-    U.Stroke(win, T.BrdWin, 1, T.BrdTWin)
 
     local clipFrame = U.New("Frame", {
         BackgroundTransparency = 1,
@@ -233,6 +232,7 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = win,
     })
     U.Corner(clipFrame, 12)
+    U.Stroke(clipFrame, T.BrdWin, 1, T.BrdTWin)
 
     U.New("Frame", {
         BackgroundColor3       = T.WinBg,
@@ -505,13 +505,6 @@ function BarbiUI:CreateWindow(cfg)
     U.New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,1), Parent=sidebar})
     U.Pad(sidebar, 10, 8, 12, 8)
 
-    U.New("Frame", {
-        BackgroundTransparency = 1,
-        Size                   = UDim2.new(1, 0, 0, 32),
-        LayoutOrder            = 0,
-        Parent                 = sidebar,
-    })
-
     local navLbl = U.New("TextLabel", {
         BackgroundTransparency = 1,
         Size                   = UDim2.new(1, 0, 0, 16),
@@ -520,7 +513,7 @@ function BarbiUI:CreateWindow(cfg)
         Font                   = T.FntMono,
         TextSize               = 8,
         TextXAlignment         = Enum.TextXAlignment.Left,
-        LayoutOrder            = 1,
+        LayoutOrder            = 0,
         Parent                 = sidebar,
     })
     task.spawn(function()
@@ -535,7 +528,7 @@ function BarbiUI:CreateWindow(cfg)
         BackgroundColor3       = T.BrdWin,
         BackgroundTransparency = 0,
         Size                   = UDim2.new(1, 0, 0, 1),
-        LayoutOrder            = 2,
+        LayoutOrder            = 1,
         Parent                 = sidebar,
     })
 
