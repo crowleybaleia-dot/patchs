@@ -216,14 +216,13 @@ function BarbiUI:CreateWindow(cfg)
     local win = U.New("Frame", {
         Name                   = "Window",
         BackgroundColor3       = T.WinBg,
-        BackgroundTransparency = T.TWin,
+        BackgroundTransparency = 1,
         Size                   = UDim2.new(0, winW, 0, 0),
         Position               = UDim2.new(0.5, -winW/2, 0.5, -winH/2),
         ClipsDescendants       = false,
         Parent                 = sg,
     })
     U.Corner(win, 12)
-    U.Stroke(win, T.BrdWin, 1, T.BrdTWin)
 
     local clipFrame = U.New("Frame", {
         BackgroundTransparency = 1,
@@ -233,6 +232,15 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = win,
     })
     U.Corner(clipFrame, 12)
+    U.Stroke(clipFrame, T.BrdWin, 1, T.BrdTWin)
+
+    U.New("Frame", {
+        BackgroundColor3       = T.WinBg,
+        BackgroundTransparency = T.TWin,
+        Size                   = UDim2.new(1, 0, 1, 0),
+        ZIndex                 = 0,
+        Parent                 = clipFrame,
+    })
 
     if bgImg ~= "" then
         U.New("ImageLabel", {
@@ -242,14 +250,14 @@ function BarbiUI:CreateWindow(cfg)
             ScaleType              = Enum.ScaleType.Crop,
             Size                   = UDim2.new(1, 0, 1, 0),
             ZIndex                 = 0,
-            Parent                 = win,
+            Parent                 = clipFrame,
         })
         U.New("Frame", {
             BackgroundColor3       = Color3.fromRGB(5, 3, 10),
             BackgroundTransparency = 0.55,
             Size                   = UDim2.new(1, 0, 1, 0),
             ZIndex                 = 1,
-            Parent                 = win,
+            Parent                 = clipFrame,
         })
     end
 
@@ -497,7 +505,7 @@ function BarbiUI:CreateWindow(cfg)
     U.New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,1), Parent=sidebar})
     U.Pad(sidebar, 10, 8, 12, 8)
 
-    U.New("TextLabel", {
+    local navLbl = U.New("TextLabel", {
         BackgroundTransparency = 1,
         Size                   = UDim2.new(1, 0, 0, 16),
         Text                   = "  NAVIGATION",
@@ -508,6 +516,14 @@ function BarbiUI:CreateWindow(cfg)
         LayoutOrder            = 0,
         Parent                 = sidebar,
     })
+    task.spawn(function()
+        while navLbl and navLbl.Parent do
+            U.Tw(navLbl, {TextColor3=T.RedMute}, 1.2)
+            task.wait(1.2)
+            U.Tw(navLbl, {TextColor3=T.TxtMute}, 1.2)
+            task.wait(1.2)
+        end
+    end)
     U.New("Frame", {
         BackgroundColor3       = T.BrdWin,
         BackgroundTransparency = 0,
@@ -516,15 +532,7 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = sidebar,
     })
 
-    local indicator = U.New("Frame", {
-        BackgroundColor3 = T.Red,
-        Size             = UDim2.new(0, 2, 0, 22),
-        AnchorPoint      = Vector2.new(1, 0.5),
-        Position         = UDim2.new(1, 0, 0, 60),
-        ZIndex           = 20,
-        Parent           = sidebar,
-    })
-    U.Corner(indicator, 4)
+    
 
     -- Borda direita da sidebar
     U.New("Frame", {
@@ -564,18 +572,29 @@ function BarbiUI:CreateWindow(cfg)
         })
         U.Corner(btn, 6)
 
-        local acBar = U.New("Frame", {
+        local acBarLeft = U.New("Frame", {
             BackgroundColor3       = T.Red,
-            Size                   = UDim2.new(0, 2, 0.45, 0),
-            Position               = UDim2.new(0, 4, 0.275, 0),
-            BackgroundTransparency = 0.6,
+            Size                   = UDim2.new(0, 2, 0.5, 0),
+            AnchorPoint            = Vector2.new(0, 0.5),
+            Position               = UDim2.new(0, 0, 0.5, 0),
+            BackgroundTransparency = 1,
             Parent                 = btn,
         })
-        U.Corner(acBar, 2)
+        U.Corner(acBarLeft, 2)
+
+        local acBar = U.New("Frame", {
+            BackgroundColor3       = T.Red,
+            Size                   = UDim2.new(1, -8, 0, 1),
+            AnchorPoint            = Vector2.new(0.5, 1),
+            Position               = UDim2.new(0.5, 0, 1, -2),
+            BackgroundTransparency = 1,
+            Parent                 = btn,
+        })
+        U.Corner(acBar, 1)
 
         local nameLbl = U.New("TextLabel", {
             BackgroundTransparency = 1,
-            Position               = UDim2.new(0, 14, 0.5, -7),
+            Position               = UDim2.new(0, 10, 0.5, -7),
             Size                   = UDim2.new(1, -36, 0, 14),
             Text                   = name,
             TextColor3             = T.TxtSec,
@@ -652,20 +671,20 @@ function BarbiUI:CreateWindow(cfg)
             for _, it in ipairs(Win._btns) do
                 U.Tw(it.btn, {BackgroundTransparency=1}, 0.18)
                 U.Tw(it.lbl, {TextColor3=T.TxtSec}, 0.18)
-                if it.bar then U.Tw(it.bar, {BackgroundTransparency=0.6}, 0.18) end
+                if it.bar then U.Tw(it.bar, {BackgroundTransparency=1}, 0.18) end
+                if it.barL then U.Tw(it.barL, {BackgroundTransparency=1}, 0.18) end
             end
             for _, pg in ipairs(Win._tabs) do pg.Visible=false end
-            U.Tw(btn, {BackgroundTransparency=0.78, BackgroundColor3=T.Elem}, 0.18)
+            U.Tw(btn, {BackgroundTransparency=0.85, BackgroundColor3=T.Elem}, 0.18)
             U.Tw(nameLbl, {TextColor3=T.RedLight}, 0.18)
             U.Tw(acBar, {BackgroundTransparency=0}, 0.18)
+            U.Tw(acBarLeft, {BackgroundTransparency=0}, 0.18)
             local yp = btn.AbsolutePosition.Y - sidebar.AbsolutePosition.Y + btn.AbsoluteSize.Y/2
-            if instant then indicator.Position=UDim2.new(1,0,0,yp-11)
-            else U.Tw(indicator, {Position=UDim2.new(1,0,0,yp-11)}, 0.28, Enum.EasingStyle.Quart) end
             page.Visible=true; Win._active=page
         end
 
         table.insert(Win._tabs, page)
-        table.insert(Win._btns, {btn=btn, lbl=nameLbl, bar=acBar})
+        table.insert(Win._btns, {btn=btn, lbl=nameLbl, bar=acBar, barL=acBarLeft})
         btn.MouseEnter:Connect(function()
             if Win._active~=page then U.Tw(btn,{BackgroundTransparency=0.88,BackgroundColor3=T.Elem},0.15) end
         end)
