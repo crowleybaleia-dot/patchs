@@ -216,7 +216,7 @@ function BarbiUI:CreateWindow(cfg)
     local win = U.New("Frame", {
         Name                   = "Window",
         BackgroundColor3       = T.WinBg,
-        BackgroundTransparency = T.TWin,
+        BackgroundTransparency = 1,
         Size                   = UDim2.new(0, winW, 0, 0),
         Position               = UDim2.new(0.5, -winW/2, 0.5, -winH/2),
         ClipsDescendants       = false,
@@ -233,6 +233,14 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = win,
     })
     U.Corner(clipFrame, 12)
+
+    U.New("Frame", {
+        BackgroundColor3       = T.WinBg,
+        BackgroundTransparency = T.TWin,
+        Size                   = UDim2.new(1, 0, 1, 0),
+        ZIndex                 = 0,
+        Parent                 = clipFrame,
+    })
 
     if bgImg ~= "" then
         U.New("ImageLabel", {
@@ -495,7 +503,14 @@ function BarbiUI:CreateWindow(cfg)
         Parent                 = body,
     })
     U.New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,1), Parent=sidebar})
-    U.Pad(sidebar, 48, 8, 12, 8)
+    U.Pad(sidebar, 10, 8, 12, 8)
+
+    U.New("Frame", {
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 32),
+        LayoutOrder            = 0,
+        Parent                 = sidebar,
+    })
 
     local navLbl = U.New("TextLabel", {
         BackgroundTransparency = 1,
@@ -505,7 +520,7 @@ function BarbiUI:CreateWindow(cfg)
         Font                   = T.FntMono,
         TextSize               = 8,
         TextXAlignment         = Enum.TextXAlignment.Left,
-        LayoutOrder            = 0,
+        LayoutOrder            = 1,
         Parent                 = sidebar,
     })
     task.spawn(function()
@@ -520,7 +535,7 @@ function BarbiUI:CreateWindow(cfg)
         BackgroundColor3       = T.BrdWin,
         BackgroundTransparency = 0,
         Size                   = UDim2.new(1, 0, 0, 1),
-        LayoutOrder            = 1,
+        LayoutOrder            = 2,
         Parent                 = sidebar,
     })
 
