@@ -227,14 +227,16 @@ function BarbiUI:CreateWindow(cfg)
     UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then local d=i.Position-dStart win.Position=UDim2.new(dSPos.X.Scale,dSPos.X.Offset+d.X,dSPos.Y.Scale,dSPos.Y.Offset+d.Y) end end)
     UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
     local vis=true
+    local currentKey=key
     UserInputService.InputBegan:Connect(function(i,gp)
         if gp then return end
-        if i.KeyCode==key then
+        if i.KeyCode==currentKey then
             vis=not vis
             if vis then win.Visible=true win.Size=UDim2.new(0,winW,0,20) U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.4,Enum.EasingStyle.Back) TwBlur(8,0.3)
             else TwBlur(0,0.3) U.Tw(win,{Size=UDim2.new(0,winW,0,20)},0.3,Enum.EasingStyle.Quart,Enum.EasingDirection.In) task.wait(0.38) win.Visible=false end
         end
     end)
+    local function SetUIKey(k) currentKey=k end
     local body=U.New("Frame",{BackgroundTransparency=1,Position=UDim2.new(0,0,0,titleH),Size=UDim2.new(1,0,1,-titleH),ClipsDescendants=false,Parent=clipFrame})
     local sidebar=U.New("ScrollingFrame",{BackgroundColor3=T.Side,BackgroundTransparency=0,BorderSizePixel=0,Size=UDim2.new(0,sideW,1,0),ScrollBarThickness=2,ScrollBarImageColor3=T.RedMute,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ClipsDescendants=true,Parent=body})
     U.New("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,1),Parent=sidebar})
