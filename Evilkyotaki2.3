@@ -381,34 +381,6 @@ function BarbiUI:CreateWindow(cfg)
         local chipsFrame=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=4,Parent=cfgMainCard})
         U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,Wraps=true,Padding=UDim.new(0,4),Parent=chipsFrame})
         U.Pad(chipsFrame,4,4,4,4)
-
-        -- keybind da UI
-        local sep2=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=5,Parent=cfgMainCard})
-        U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep2})
-        local sepLb2=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep2})
-        U.Pad(sepLb2,0,5,0,5)
-        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="UI key",TextColor3=T.RedMute,Font=T.FntMono,TextSize=8,Parent=sepLb2})
-
-        local keyWrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=6,Parent=cfgMainCard})
-        U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,2,0.5,-7),Size=UDim2.new(0.55,-4,0,14),Text="Open / Close",TextColor3=T.TxtPri,Font=T.FntBody,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=keyWrap})
-        local keyLst=false
-        local keyChip=U.New("TextButton",{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput,Position=UDim2.new(1,-76,0.5,-11),Size=UDim2.new(0,72,0,22),Text=key.Name,TextColor3=T.RedLight,Font=T.FntMono,TextSize=9,ClipsDescendants=true,Parent=keyWrap})
-        U.Corner(keyChip,5) U.Stroke(keyChip,T.BrdElem,1,T.BrdTElem)
-        keyChip.MouseButton1Click:Connect(function()
-            if keyLst then return end keyLst=true keyChip.Text="..." keyChip.TextColor3=T.Red
-            local con; con=UserInputService.InputBegan:Connect(function(i,gp)
-                if gp then return end
-                if i.UserInputType==Enum.UserInputType.Keyboard then
-                    if i.KeyCode~=Enum.KeyCode.Escape then
-                        SetUIKey(i.KeyCode) keyChip.Text=i.KeyCode.Name keyChip.TextColor3=T.RedLight
-                    else
-                        keyChip.Text=currentKey.Name keyChip.TextColor3=T.RedLight
-                    end
-                    keyLst=false con:Disconnect()
-                end
-            end)
-        end)
-
         local function RefreshChips()
             for _,c in ipairs(chipsFrame:GetChildren()) do if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end end
             local cfgs=ConfigSystem:List()
@@ -438,6 +410,35 @@ function BarbiUI:CreateWindow(cfg)
                     RefreshChips()
                 end)
             end
+
+        -- keybind da UI
+        local sep2=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=5,Parent=cfgMainCard})
+        U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep2})
+        local sepLb2=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep2})
+        U.Pad(sepLb2,0,5,0,5)
+        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="UI key",TextColor3=T.RedMute,Font=T.FntMono,TextSize=8,Parent=sepLb2})
+
+        local keyWrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=6,Parent=cfgMainCard})
+        U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,2,0.5,-7),Size=UDim2.new(0.55,-4,0,14),Text="Open / Close",TextColor3=T.TxtPri,Font=T.FntBody,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=keyWrap})
+        local keyLst=false
+        local keyChip=U.New("TextButton",{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput,Position=UDim2.new(1,-76,0.5,-11),Size=UDim2.new(0,72,0,22),Text=key.Name,TextColor3=T.RedLight,Font=T.FntMono,TextSize=9,ClipsDescendants=true,Parent=keyWrap})
+        U.Corner(keyChip,5) U.Stroke(keyChip,T.BrdElem,1,T.BrdTElem)
+        keyChip.MouseButton1Click:Connect(function()
+            if keyLst then return end keyLst=true keyChip.Text="..." keyChip.TextColor3=T.Red
+            local con; con=UserInputService.InputBegan:Connect(function(i,gp)
+                if gp then return end
+                if i.UserInputType==Enum.UserInputType.Keyboard then
+                    if i.KeyCode~=Enum.KeyCode.Escape then
+                        SetUIKey(i.KeyCode) keyChip.Text=i.KeyCode.Name keyChip.TextColor3=T.RedLight
+                    else
+                        keyChip.Text=currentKey.Name keyChip.TextColor3=T.RedLight
+                    end
+                    keyLst=false con:Disconnect()
+                end
+            end)
+        end)
+
+
         end
 
         table.insert(Win._tabs,page)
