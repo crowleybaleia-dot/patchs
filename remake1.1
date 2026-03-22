@@ -334,24 +334,80 @@ function BarbiUI:CreateWindow(cfg)
             b.MouseButton1Click:Connect(function() U.Ripple(b,Mouse.X,Mouse.Y) U.Tw(b,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(b,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3) if cb then cb() end end)
         end
 
-        local saveCard=MakeSectionCard("Save Config",colL,1)
-        local saveInput=CfgInput(saveCard,"nome da config...",1)
-        CfgBtn(saveCard,"Salvar",2,function()
+        -- ── Card unico de config ──────────────────────────────────────────
+        local cfgMainCard=MakeSectionCard("Config",colL,1)
+
+        -- input + salvar
+        local saveInput=CfgInput(cfgMainCard,"nome da config...",1)
+        local btnRow=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=2,Parent=cfgMainCard})
+        -- botao salvar
+        local bSave=U.New("TextButton",{BackgroundColor3=T.Elem,BackgroundTransparency=0.42,Position=UDim2.new(0,2,0,5),Size=UDim2.new(0.49,-4,0,24),Text="",ClipsDescendants=true,Parent=btnRow})
+        U.Corner(bSave,6) U.Stroke(bSave,T.BrdCard,1,T.BrdTCard)
+        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text="Salvar",TextColor3=T.RedLight,Font=T.FntSemi,TextSize=10,Parent=bSave})
+        bSave.MouseEnter:Connect(function() U.Tw(bSave,{BackgroundColor3=T.RedDark,BackgroundTransparency=0.22},0.15) end)
+        bSave.MouseLeave:Connect(function() U.Tw(bSave,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.15) end)
+        -- botao resetar (reescreve a config com estado atual)
+        local bReset=U.New("TextButton",{BackgroundColor3=T.Elem,BackgroundTransparency=0.42,Position=UDim2.new(0.51,2,0,5),Size=UDim2.new(0.49,-4,0,24),Text="",ClipsDescendants=true,Parent=btnRow})
+        U.Corner(bReset,6) U.Stroke(bReset,T.BrdCard,1,T.BrdTCard)
+        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text="Resetar",TextColor3=T.TxtMute,Font=T.FntSemi,TextSize=10,Parent=bReset})
+        bReset.MouseEnter:Connect(function() U.Tw(bReset,{BackgroundColor3=T.RedDark,BackgroundTransparency=0.22},0.15) end)
+        bReset.MouseLeave:Connect(function() U.Tw(bReset,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.15) end)
+
+        bSave.MouseButton1Click:Connect(function()
+            U.Ripple(bSave,Mouse.X,Mouse.Y) U.Tw(bSave,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(bSave,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3)
             local n=saveInput.Text local ok=ConfigSystem:Save(n)
             Notifs:Send({Title="Config",Message=ok and ('Config "'..n..'" salva!') or "Erro ao salvar.",Type=ok and "success" or "error",Duration=3})
+            RefreshChips()
+        end)
+        bReset.MouseButton1Click:Connect(function()
+            U.Ripple(bReset,Mouse.X,Mouse.Y) U.Tw(bReset,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(bReset,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3)
+            local n=saveInput.Text
+            if n=="" then Notifs:Send({Title="Config",Message="Digite o nome da config primeiro.",Type="warning",Duration=3}) return end
+            -- deleta e resalva do zero com estado atual
+            pcall(function() delfile("BarbiUI_"..n..".json") end)
+            local ok=ConfigSystem:Save(n)
+            Notifs:Send({Title="Config",Message=ok and ('Config "'..n..'" resetada!') or "Erro ao resetar.",Type=ok and "success" or "error",Duration=3})
+            RefreshChips()
         end)
 
-        local loadCard=MakeSectionCard("Load Config",colR,1)
-        local loadInput=CfgInput(loadCard,"nome da config...",1)
-        CfgBtn(loadCard,"Carregar",2,function()
-            local n=loadInput.Text local ok=ConfigSystem:Load(n)
-            Notifs:Send({Title="Config",Message=ok and ('Config "'..n..'" carregada!') or 'Config "'..n..'" não encontrada.',Type=ok and "success" or "error",Duration=3})
-        end)
+        -- separador
+        local sep=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=3,Parent=cfgMainCard})
+        U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep})
+        local sepLb=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep})
+        U.Pad(sepLb,0,5,0,5)
+        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="configs salvas",TextColor3=T.RedMute,Font=T.FntMono,TextSize=8,Parent=sepLb})
 
-        local savedCard=MakeSectionCard("Configs Salvas",colR,2)
-        local chipsFrame=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=1,Parent=savedCard})
+        -- chips de configs salvas
+        local chipsFrame=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=4,Parent=cfgMainCard})
         U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,Wraps=true,Padding=UDim.new(0,4),Parent=chipsFrame})
         U.Pad(chipsFrame,4,4,4,4)
+
+        -- keybind da UI
+        local sep2=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=5,Parent=cfgMainCard})
+        U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep2})
+        local sepLb2=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep2})
+        U.Pad(sepLb2,0,5,0,5)
+        U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="tecla da UI",TextColor3=T.RedMute,Font=T.FntMono,TextSize=8,Parent=sepLb2})
+
+        local keyWrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=6,Parent=cfgMainCard})
+        U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,2,0.5,-7),Size=UDim2.new(0.55,-4,0,14),Text="Abrir / Fechar",TextColor3=T.TxtPri,Font=T.FntBody,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=keyWrap})
+        local keyLst=false
+        local keyChip=U.New("TextButton",{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput,Position=UDim2.new(1,-76,0.5,-11),Size=UDim2.new(0,72,0,22),Text=key.Name,TextColor3=T.RedLight,Font=T.FntMono,TextSize=9,ClipsDescendants=true,Parent=keyWrap})
+        U.Corner(keyChip,5) U.Stroke(keyChip,T.BrdElem,1,T.BrdTElem)
+        keyChip.MouseButton1Click:Connect(function()
+            if keyLst then return end keyLst=true keyChip.Text="..." keyChip.TextColor3=T.Red
+            local con; con=UserInputService.InputBegan:Connect(function(i,gp)
+                if gp then return end
+                if i.UserInputType==Enum.UserInputType.Keyboard then
+                    if i.KeyCode~=Enum.KeyCode.Escape then
+                        SetUIKey(i.KeyCode) keyChip.Text=i.KeyCode.Name keyChip.TextColor3=T.RedLight
+                    else
+                        keyChip.Text=currentKey.Name keyChip.TextColor3=T.RedLight
+                    end
+                    keyLst=false con:Disconnect()
+                end
+            end)
+        end)
 
         local function RefreshChips()
             for _,c in ipairs(chipsFrame:GetChildren()) do if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end end
@@ -360,12 +416,26 @@ function BarbiUI:CreateWindow(cfg)
                 U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),Text="Nenhuma config salva.",TextColor3=T.TxtMute,Font=T.FntMono,TextSize=8,Parent=chipsFrame}) return
             end
             for _,name in ipairs(cfgs) do
-                local chip=U.New("TextButton",{BackgroundColor3=T.RedDark,BackgroundTransparency=0.55,Size=UDim2.new(0,0,0,20),AutomaticSize=Enum.AutomaticSize.X,Text="",ClipsDescendants=true,Parent=chipsFrame})
-                U.Corner(chip,5) U.Stroke(chip,T.BrdCard,1,T.BrdTCard) U.Pad(chip,0,8,0,8)
-                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text=name,TextColor3=T.RedLight,Font=T.FntMono,TextSize=8,Parent=chip})
-                chip.MouseButton1Click:Connect(function()
-                    loadInput.Text=name local ok=ConfigSystem:Load(name)
+                -- chip container
+                local chipWrap=U.New("Frame",{BackgroundColor3=T.RedDark,BackgroundTransparency=0.55,Size=UDim2.new(0,0,0,20),AutomaticSize=Enum.AutomaticSize.X,Parent=chipsFrame})
+                U.Corner(chipWrap,5) U.Stroke(chipWrap,T.BrdCard,1,T.BrdTCard)
+                U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Parent=chipWrap})
+                -- nome (clica pra carregar)
+                local chipBtn=U.New("TextButton",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="",Parent=chipWrap})
+                U.Pad(chipBtn,0,6,0,8)
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text=name,TextColor3=T.RedLight,Font=T.FntMono,TextSize=8,Parent=chipBtn})
+                chipBtn.MouseButton1Click:Connect(function()
+                    local ok=ConfigSystem:Load(name)
                     Notifs:Send({Title="Config",Message=ok and ('Config "'..name..'" carregada!') or "Erro ao carregar.",Type=ok and "success" or "error",Duration=3})
+                end)
+                -- x pra deletar
+                local delBtn=U.New("TextButton",{BackgroundTransparency=1,Size=UDim2.new(0,16,1,0),Text="x",TextColor3=T.TxtMute,Font=T.FntBold,TextSize=9,Parent=chipWrap})
+                delBtn.MouseEnter:Connect(function() delBtn.TextColor3=T.Error end)
+                delBtn.MouseLeave:Connect(function() delBtn.TextColor3=T.TxtMute end)
+                delBtn.MouseButton1Click:Connect(function()
+                    pcall(function() delfile("BarbiUI_"..name..".json") end)
+                    Notifs:Send({Title="Config",Message='Config "'..name..'" deletada.',Type="warning",Duration=2})
+                    RefreshChips()
                 end)
             end
         end
