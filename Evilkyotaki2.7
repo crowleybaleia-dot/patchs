@@ -145,33 +145,36 @@ local Notifs={holder=nil,sg=nil,count=0}
 function Notifs:Init()
     if self.sg and self.sg.Parent then return end
     self.sg=U.New("ScreenGui",{Name="BarbiUI_Notifs",ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Global,IgnoreGuiInset=true,Parent=CoreGui})
-    self.holder=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(0,310,1,0),Position=UDim2.new(1,-325,0,0),Parent=self.sg})
-    U.New("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,VerticalAlignment=Enum.VerticalAlignment.Bottom,Padding=UDim.new(0,6),Parent=self.holder})
-    U.Pad(self.holder,12,0,12,0)
+    self.holder=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(0,260,1,0),Position=UDim2.new(1,-270,0,0),Parent=self.sg})
+    U.New("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,VerticalAlignment=Enum.VerticalAlignment.Bottom,HorizontalAlignment=Enum.HorizontalAlignment.Right,Padding=UDim.new(0,5),Parent=self.holder})
+    U.Pad(self.holder,0,0,14,0)
 end
 function Notifs:Send(cfg)
     self:Init() cfg=cfg or {}
     local title=cfg.Title or "Notify" local msg=cfg.Message or "" local ntype=cfg.Type or "info" local dur=cfg.Duration or 4
     local cols={info=T.Info,success=T.Success,warning=T.Warning,error=T.Error}
-    local icons={info="i",success="+",warning="!",error="x"}
-    local col=cols[ntype] or T.Info local icn=icons[ntype] or "i"
+    local col=cols[ntype] or T.Info
     self.count=self.count+1
-    local card=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=0.18,Size=UDim2.new(1,0,0,70),LayoutOrder=self.count,ClipsDescendants=true,Parent=self.holder})
-    U.Corner(card,10) U.Stroke(card,col,1,0.55)
-    U.New("Frame",{BackgroundColor3=col,Size=UDim2.new(0,2,1,0),Parent=card})
-    local ib=U.New("Frame",{BackgroundColor3=col,BackgroundTransparency=0.75,Size=UDim2.new(0,26,0,26),Position=UDim2.new(0,12,0.5,-13),Parent=card}) U.Corner(ib,999)
-    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text=icn,TextColor3=col,Font=T.FntBold,TextSize=12,Parent=ib})
-    U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,48,0,8),Size=UDim2.new(1,-64,0,16),Text=title,TextColor3=T.TxtPri,Font=T.FntSemi,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=card})
-    U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,48,0,26),Size=UDim2.new(1,-64,0,30),Text=msg,TextColor3=T.TxtSec,Font=T.FntBody,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true,Parent=card})
-    local pgBg=U.New("Frame",{BackgroundColor3=T.Elem,BackgroundTransparency=0.3,Size=UDim2.new(1,0,0,2),Position=UDim2.new(0,0,1,-2),Parent=card})
-    local pgFill=U.New("Frame",{BackgroundColor3=col,Size=UDim2.new(1,0,1,0),Parent=pgBg})
-    local closeBt=U.New("TextButton",{BackgroundTransparency=1,Position=UDim2.new(1,-20,0,5),Size=UDim2.new(0,14,0,14),Text="x",TextColor3=T.TxtMute,Font=T.FntBold,TextSize=13,ZIndex=5,Parent=card})
-    card.Position=UDim2.new(1,15,0,0) card.BackgroundTransparency=0.6
-    U.Tw(card,{Position=UDim2.new(0,0,0,0),BackgroundTransparency=0.18},0.35,Enum.EasingStyle.Back)
-    U.Tw(pgFill,{Size=UDim2.new(0,0,1,0)},dur,Enum.EasingStyle.Linear)
-    local gone=false
-    local function Dismiss() if gone then return end gone=true U.Tw(card,{Position=UDim2.new(1,15,0,0),BackgroundTransparency=1},0.25) task.delay(0.3,function() if card and card.Parent then card:Destroy() end end) end
-    task.delay(dur,Dismiss) closeBt.MouseButton1Click:Connect(Dismiss)
+    -- pill container
+    local pill=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=0.12,Size=UDim2.new(0,0,0,26),AutomaticSize=Enum.AutomaticSize.X,LayoutOrder=self.count,ClipsDescendants=true,Parent=self.holder})
+    U.Corner(pill,999) U.Stroke(pill,T.BrdCard,1,0.5)
+    local layout=U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,6),Parent=pill})
+    U.Pad(pill,0,10,0,8)
+    -- dot
+    local dot=U.New("Frame",{BackgroundColor3=col,Size=UDim2.new(0,6,0,6),Parent=pill})
+    U.Corner(dot,999)
+    -- title
+    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text=title,TextColor3=T.TxtPri,Font=T.FntSemi,TextSize=10,Parent=pill})
+    -- msg
+    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text=msg,TextColor3=T.TxtMute,Font=T.FntBody,TextSize=9,Parent=pill})
+    -- animacao: entra da direita, some depois
+    pill.Position=UDim2.new(1,10,0,0)
+    U.Tw(pill,{Position=UDim2.new(0,0,0,0)},0.3,Enum.EasingStyle.Back)
+    task.delay(dur,function()
+        if not pill or not pill.Parent then return end
+        U.Tw(pill,{Position=UDim2.new(1,10,0,0),BackgroundTransparency=1},0.2)
+        task.delay(0.25,function() if pill and pill.Parent then pill:Destroy() end end)
+    end)
 end
 
 -- ── BarbiUI ───────────────────────────────────────────────────────────────────
