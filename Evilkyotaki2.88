@@ -8,12 +8,12 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse       = LocalPlayer:GetMouse()
 
 -- refs indiretas pra evitar scan de string do anticheat
-local _wf = rawget(_G,"writefile")
-local _rf  = rawget(_G,"readfile")
-local _lf  = rawget(_G,"listfiles")
-local _mf  = rawget(_G,"makefolder")
-local _df  = rawget(_G,"delfile")
-local _if  = rawget(_G,"isfolder")
+local _wf = rawget(_G,"writefile")  or getfenv().writefile  or writefile
+local _rf  = rawget(_G,"readfile")   or getfenv().readfile   or readfile
+local _lf  = rawget(_G,"listfiles")  or getfenv().listfiles  or listfiles
+local _mf  = rawget(_G,"makefolder") or getfenv().makefolder or makefolder
+local _df  = rawget(_G,"delfile")    or getfenv().delfile    or delfile
+local _if  = rawget(_G,"isfolder")   or getfenv().isfolder   or isfolder
 
 local T = {
     TopBar=Color3.fromRGB(0,0,0), Side=Color3.fromRGB(0,0,0),
