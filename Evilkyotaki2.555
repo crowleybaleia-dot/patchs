@@ -67,20 +67,26 @@ function ConfigSystem:Save(cfgName)
     if not cfgName or cfgName=="" then return false end
     local data={}
     for name,obj in pairs(self._toggles) do pcall(function() data[name]=obj:Get() end) end
-    local ok=pcall(function() writefile("BarbiUI_"..cfgName..".json", HttpService:JSONEncode(data)) end)
+    local ok=pcall(function() if not isfolder("BarbiUI") then makefolder("BarbiUI") end writefile("BarbiUI/"..cfgName..".json", HttpService:JSONEncode(data)) end)
     return ok
 end
 function ConfigSystem:Load(cfgName)
     if not cfgName or cfgName=="" then return false end
     local ok=pcall(function()
-        local data=HttpService:JSONDecode(readfile("BarbiUI_"..cfgName..".json"))
+        local data=HttpService:JSONDecode(readfile("BarbiUI/"..cfgName..".json"))
         for name,val in pairs(data) do if self._toggles[name] then self._toggles[name]:Set(val,false) end end
     end)
     return ok
 end
 function ConfigSystem:List()
     local list={}
-    pcall(function() for _,f in ipairs(listfiles(".")) do local n=f:match("BarbiUI_(.+)%.json$") if n then table.insert(list,n) end end end)
+    pcall(function()
+        if not isfolder("BarbiUI") then makefolder("BarbiUI") return end
+        for _,f in ipairs(listfiles("BarbiUI")) do
+            local n=f:match("([^/\\]+)%.json$")
+            if n then table.insert(list,n) end
+        end
+    end)
     return list
 end
 
@@ -364,7 +370,7 @@ function BarbiUI:CreateWindow(cfg)
                 delBtn.MouseEnter:Connect(function() delBtn.TextColor3=T.Error end)
                 delBtn.MouseLeave:Connect(function() delBtn.TextColor3=T.TxtMute end)
                 delBtn.MouseButton1Click:Connect(function()
-                    pcall(function() delfile("BarbiUI_"..name..".json") end)
+                    pcall(function() delfile("BarbiUI/"..name..".json") end)
                     Notifs:Send({Title="Config",Message='Config "'..name..'" deleted.',Type="warning",Duration=2})
                     RefreshChips()
                 end)
@@ -395,7 +401,7 @@ function BarbiUI:CreateWindow(cfg)
             U.Ripple(bReset,Mouse.X,Mouse.Y) U.Tw(bReset,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(bReset,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3)
             local n=saveInput.Text
             if n=="" then Notifs:Send({Title="Config",Message="Type the config name first.",Type="warning",Duration=3}) return end
-            pcall(function() delfile("BarbiUI_"..n..".json") end)
+            pcall(function() delfile("BarbiUI/"..n..".json") end)
             local ok=ConfigSystem:Save(n)
             Notifs:Send({Title="Config",Message=ok and ('Config "'..n..'" reset!') or "Error resetting.",Type=ok and "success" or "error",Duration=3})
             RefreshChips()
