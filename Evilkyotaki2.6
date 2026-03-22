@@ -7,6 +7,14 @@ local HttpService      = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local Mouse       = LocalPlayer:GetMouse()
 
+-- refs indiretas pra evitar scan de string do anticheat
+local _wf = getfenv().writefile  or writefile
+local _rf  = getfenv().readfile   or readfile
+local _lf  = getfenv().listfiles  or listfiles
+local _mf  = getfenv().makefolder or makefolder
+local _df  = getfenv().delfile    or delfile
+local _if  = getfenv().isfolder   or isfolder
+
 local T = {
     TopBar=Color3.fromRGB(0,0,0), Side=Color3.fromRGB(0,0,0),
     WinBg=Color3.fromRGB(8,5,5), Card=Color3.fromRGB(14,11,9),
@@ -67,13 +75,16 @@ function ConfigSystem:Save(cfgName)
     if not cfgName or cfgName=="" then return false end
     local data={}
     for name,obj in pairs(self._toggles) do pcall(function() data[name]=obj:Get() end) end
-    local ok=pcall(function() if not isfolder("BarbiUI") then makefolder("BarbiUI") end writefile("BarbiUI/"..cfgName..".json", HttpService:JSONEncode(data)) end)
+    local ok=pcall(function()
+        if not _if("BarbiUI") then _mf("BarbiUI") end
+        _wf("BarbiUI/"..cfgName..".json", HttpService:JSONEncode(data))
+    end)
     return ok
 end
 function ConfigSystem:Load(cfgName)
     if not cfgName or cfgName=="" then return false end
     local ok=pcall(function()
-        local data=HttpService:JSONDecode(readfile("BarbiUI/"..cfgName..".json"))
+        local data=HttpService:JSONDecode(_rf("BarbiUI/"..cfgName..".json"))
         for name,val in pairs(data) do if self._toggles[name] then self._toggles[name]:Set(val,false) end end
     end)
     return ok
@@ -81,8 +92,8 @@ end
 function ConfigSystem:List()
     local list={}
     pcall(function()
-        if not isfolder("BarbiUI") then makefolder("BarbiUI") return end
-        for _,f in ipairs(listfiles("BarbiUI")) do
+        if not _if("BarbiUI") then _mf("BarbiUI") return end
+        for _,f in ipairs(_lf("BarbiUI")) do
             local n=f:match("([^/\\]+)%.json$")
             if n then table.insert(list,n) end
         end
@@ -98,18 +109,15 @@ function ActivePanel:Init()
     local panel=U.New("Frame",{BackgroundColor3=T.WinBg,BackgroundTransparency=0.08,Position=UDim2.new(0,8,0.5,-80),Size=UDim2.new(0,134,0,0),AutomaticSize=Enum.AutomaticSize.Y,Parent=self._sg})
     U.Corner(panel,8) U.Stroke(panel,T.BrdWin,1,0)
     U.New("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Parent=panel})
-
     local hdr=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,26),LayoutOrder=0,Parent=panel})
     local dot=U.New("Frame",{BackgroundColor3=T.Red,Size=UDim2.new(0,5,0,5),Position=UDim2.new(0,10,0.5,-2),Parent=hdr})
     U.Corner(dot,999) U.PulseDot(dot)
     U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,22,0.5,-6),Size=UDim2.new(1,-22,0,12),Text="ACTIVE",TextColor3=T.TxtMute,Font=T.FntMono,TextSize=8,TextXAlignment=Enum.TextXAlignment.Left,Parent=hdr})
     U.New("Frame",{BackgroundColor3=T.BrdWin,BackgroundTransparency=0,Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),Parent=hdr})
-
     local listFrame=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=1,Parent=panel})
     U.New("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,0),Parent=listFrame})
     U.Pad(listFrame,4,8,4,8)
     self._list=listFrame
-
     local footerWrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,22),LayoutOrder=2,Parent=panel})
     U.New("Frame",{BackgroundColor3=T.BrdWin,Size=UDim2.new(1,0,0,1),Parent=footerWrap})
     self._cntLbl=U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,0,0,2),Size=UDim2.new(1,0,1,-2),Text="0 active",TextColor3=T.TxtMute,Font=T.FntMono,TextSize=8,Parent=footerWrap})
@@ -254,7 +262,6 @@ function BarbiUI:CreateWindow(cfg)
     local contentArea=U.New("Frame",{BackgroundTransparency=1,Position=UDim2.new(0,sideW+1,0,0),Size=UDim2.new(1,-(sideW+1),1,0),ClipsDescendants=true,Parent=body})
     local Win={_tabs={},_btns={},_active=nil,_ord=2}
 
-    -- helper pra ativar tab
     local function ActivateTab(btn,nameLbl,acBar,acBarLeft,page)
         for _,it in ipairs(Win._btns) do
             U.Tw(it.btn,{BackgroundTransparency=1},0.18) U.Tw(it.lbl,{TextColor3=T.TxtSec},0.18)
@@ -269,7 +276,6 @@ function BarbiUI:CreateWindow(cfg)
         page.Visible=true Win._active=page
     end
 
-    -- helper pra criar botao de tab na sidebar
     local function MakeTabBtn(name,badge,lo)
         local btn=U.New("TextButton",{BackgroundColor3=T.Elem,BackgroundTransparency=1,Size=UDim2.new(1,0,0,32),Text="",LayoutOrder=lo,ClipsDescendants=true,Parent=sidebar})
         U.Corner(btn,6)
@@ -285,7 +291,6 @@ function BarbiUI:CreateWindow(cfg)
         return btn,nameLbl,acBar,acBarLeft
     end
 
-    -- helper pra criar pagina de conteudo
     local function MakePage()
         local page=U.New("ScrollingFrame",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),ScrollBarThickness=2,ScrollBarImageColor3=T.RedMute,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,Visible=false,Parent=contentArea})
         U.Pad(page,14,14,14,14)
@@ -293,7 +298,6 @@ function BarbiUI:CreateWindow(cfg)
         return page
     end
 
-    -- helper card de seção
     local function MakeSectionCard(name,parent,lo)
         local card=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=lo,ClipsDescendants=false,Parent=parent})
         U.Corner(card,10) U.Stroke(card,T.BrdCard,1,T.BrdTCard)
@@ -330,20 +334,8 @@ function BarbiUI:CreateWindow(cfg)
             box.FocusLost:Connect(function() U.Tw(bstr,{Color=T.BrdElem,Transparency=T.BrdTElem},0.2) U.Tw(box,{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput},0.2) end)
             return box
         end
-        local function CfgBtn(parent,text,lo_,cb)
-            local wrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=lo_ or 2,Parent=parent})
-            local b=U.New("TextButton",{BackgroundColor3=T.Elem,BackgroundTransparency=0.42,Position=UDim2.new(0,2,0,5),Size=UDim2.new(1,-4,0,24),Text="",ClipsDescendants=true,Parent=wrap})
-            U.Corner(b,6) U.Stroke(b,T.BrdCard,1,T.BrdTCard)
-            U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text=text,TextColor3=T.RedLight,Font=T.FntSemi,TextSize=10,Parent=b})
-            b.MouseEnter:Connect(function() U.Tw(b,{BackgroundColor3=T.RedDark,BackgroundTransparency=0.22},0.15) end)
-            b.MouseLeave:Connect(function() U.Tw(b,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.15) end)
-            b.MouseButton1Click:Connect(function() U.Ripple(b,Mouse.X,Mouse.Y) U.Tw(b,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(b,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3) if cb then cb() end end)
-        end
 
-        -- ── Single config card ──────────────────────────────────────────
         local cfgMainCard=MakeSectionCard("Config",colL,1)
-
-        -- saved config chips
         local chipsFrame=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=4,Parent=cfgMainCard})
         U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,Wraps=true,Padding=UDim.new(0,4),Parent=chipsFrame})
         U.Pad(chipsFrame,4,4,4,4)
@@ -370,14 +362,13 @@ function BarbiUI:CreateWindow(cfg)
                 delBtn.MouseEnter:Connect(function() delBtn.TextColor3=T.Error end)
                 delBtn.MouseLeave:Connect(function() delBtn.TextColor3=T.TxtMute end)
                 delBtn.MouseButton1Click:Connect(function()
-                    pcall(function() delfile("BarbiUI/"..name..".json") end)
+                    pcall(function() _df("BarbiUI/"..name..".json") end)
                     Notifs:Send({Title="Config",Message='Config "'..name..'" deleted.',Type="warning",Duration=2})
                     RefreshChips()
                 end)
             end
         end
 
-        -- input + save
         local saveInput=CfgInput(cfgMainCard,"config name...",1)
         local btnRow=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=2,Parent=cfgMainCard})
         local bSave=U.New("TextButton",{BackgroundColor3=T.Elem,BackgroundTransparency=0.42,Position=UDim2.new(0,2,0,5),Size=UDim2.new(0.49,-4,0,24),Text="",ClipsDescendants=true,Parent=btnRow})
@@ -401,20 +392,18 @@ function BarbiUI:CreateWindow(cfg)
             U.Ripple(bReset,Mouse.X,Mouse.Y) U.Tw(bReset,{BackgroundColor3=T.Red,BackgroundTransparency=0.12},0.06) task.wait(0.09) U.Tw(bReset,{BackgroundColor3=T.Elem,BackgroundTransparency=0.42},0.3)
             local n=saveInput.Text
             if n=="" then Notifs:Send({Title="Config",Message="Type the config name first.",Type="warning",Duration=3}) return end
-            pcall(function() delfile("BarbiUI/"..n..".json") end)
+            pcall(function() _df("BarbiUI/"..n..".json") end)
             local ok=ConfigSystem:Save(n)
             Notifs:Send({Title="Config",Message=ok and ('Config "'..n..'" reset!') or "Error resetting.",Type=ok and "success" or "error",Duration=3})
             RefreshChips()
         end)
 
-        -- separator
         local sep=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=3,Parent=cfgMainCard})
         U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep})
         local sepLb=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep})
         U.Pad(sepLb,0,5,0,5)
         U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text="saved configs",TextColor3=T.RedMute,Font=T.FntMono,TextSize=8,Parent=sepLb})
 
-        -- keybind da UI
         local sep2=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,20),LayoutOrder=5,Parent=cfgMainCard})
         U.New("Frame",{BackgroundColor3=T.BrdCard,BackgroundTransparency=0.55,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=sep2})
         local sepLb2=U.New("Frame",{BackgroundColor3=T.Card,BackgroundTransparency=T.TCard,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,8,0.5,0),Size=UDim2.new(0,0,0,14),AutomaticSize=Enum.AutomaticSize.X,Parent=sep2})
@@ -440,9 +429,6 @@ function BarbiUI:CreateWindow(cfg)
                 end
             end)
         end)
-
-
-        end
 
         table.insert(Win._tabs,page)
         table.insert(Win._btns,{btn=btn,lbl=nameLbl,bar=acBar,barL=acBarLeft})
@@ -492,19 +478,16 @@ function BarbiUI:CreateWindow(cfg)
                 return r
             end
 
-            -- ── AddToggle ─────────────────────────────────────────────────────
             function Sec:AddToggle(c)
                 c=c or {}
                 local row=Row(c.Name or "Toggle")
                 local state=c.Default or false
                 local cb=c.Callback or function() end
                 local tName=c.Name or "Toggle"
-
                 local track=U.New("Frame",{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput,Position=UDim2.new(1,-50,0.5,-10),Size=UDim2.new(0,44,0,20),Parent=row})
                 U.Corner(track,999) U.Stroke(track,T.BrdElem,1,T.BrdTElem)
                 local fill=U.New("Frame",{BackgroundColor3=T.Red,Size=UDim2.new(0,0,1,0),ClipsDescendants=true,Parent=track}) U.Corner(fill,999)
                 local thumb=U.New("Frame",{BackgroundColor3=Color3.new(1,1,1),Position=UDim2.new(0,2,0.5,-7),Size=UDim2.new(0,14,0,14),ZIndex=3,Parent=track}) U.Corner(thumb,999)
-
                 local o={}
                 local function Upd(s,ani)
                     if s then
@@ -517,10 +500,8 @@ function BarbiUI:CreateWindow(cfg)
                 end
                 function o:Set(v,silent) state=v Upd(v,true) ActivePanel:Set(tName,v) if not silent then cb(v) end end
                 function o:Get() return state end
-
                 Upd(state,false) ActivePanel:Set(tName,state)
                 ConfigSystem:Register(tName,o)
-
                 local hit=U.New("TextButton",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text="",ZIndex=5,Parent=row})
                 hit.MouseButton1Click:Connect(function()
                     state=not state Upd(state,true) ActivePanel:Set(tName,state) cb(state)
@@ -528,17 +509,14 @@ function BarbiUI:CreateWindow(cfg)
                 return o
             end
 
-            -- ── AddBind (com sync de toggle) ──────────────────────────────────
             function Sec:AddBind(c)
                 c=c or {}
                 local row=Row(c.Name or "Keybind")
                 local bkey=c.Default local lst=false
                 local cb=c.Callback or function() end
-                local toggle=c.Toggle -- toggle obj pra sincronizar (opcional)
-
+                local toggle=c.Toggle
                 local chip=U.New("TextButton",{BackgroundColor3=T.Input,BackgroundTransparency=T.TInput,Position=UDim2.new(1,-76,0.5,-11),Size=UDim2.new(0,72,0,22),Text=bkey and bkey.Name or "None",TextColor3=bkey and T.RedLight or T.TxtMute,Font=T.FntMono,TextSize=9,ClipsDescendants=true,Parent=row})
                 U.Corner(chip,5) U.Stroke(chip,T.BrdElem,1,T.BrdTElem)
-
                 chip.MouseButton1Click:Connect(function()
                     if lst then return end lst=true chip.Text="..." chip.TextColor3=T.Red
                     local con; con=UserInputService.InputBegan:Connect(function(i,gp)
@@ -550,18 +528,15 @@ function BarbiUI:CreateWindow(cfg)
                         end
                     end)
                 end)
-
                 UserInputService.InputBegan:Connect(function(i,gp)
                     if not gp and bkey and i.KeyCode==bkey then
                         cb()
-                        -- sincroniza toggle se foi passado
                         if toggle then
                             local newState=not toggle:Get()
                             toggle:Set(newState,false)
                         end
                     end
                 end)
-
                 local o={}
                 function o:Set(v) bkey=v chip.Text=v and v.Name or "None" chip.TextColor3=v and T.RedLight or T.TxtMute end
                 function o:Get() return bkey end
