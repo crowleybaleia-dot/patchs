@@ -561,6 +561,7 @@ function BarbiUI:CreateWindow(cfg)
                 local o={}
                 function o:Set(v) bkey=v chip.Text=v and v.Name or "None" chip.TextColor3=v and T.RedLight or T.TxtMute end
                 function o:Get() return bkey end
+                if c.Name then ConfigSystem:Register(c.Name,{Get=function() return bkey and bkey.Name or "None" end,Set=function(_,v,silent) local kc=v~="None" and Enum.KeyCode[v] or nil o:Set(kc) end}) end
                 return o
             end
 
@@ -587,7 +588,9 @@ function BarbiUI:CreateWindow(cfg)
                 local mv=UserInputService.InputChanged:Connect(function(i) if drag and i.UserInputType==Enum.UserInputType.MouseMovement then local p=math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1) UpdSlider(mn+(mx-mn)*p) end end)
                 local ed=UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
                 card.AncestryChanged:Connect(function() if not card.Parent then mv:Disconnect() ed:Disconnect() end end)
-                local o={} function o:Set(v) UpdSlider(v) end function o:Get() return val end return o
+                local o={} function o:Set(v) UpdSlider(v) end function o:Get() return val end
+                if c.Name then ConfigSystem:Register(c.Name,o) end
+                return o
             end
 
             function Sec:AddButton(c)
@@ -626,7 +629,9 @@ function BarbiUI:CreateWindow(cfg)
                     if open then dl.Visible=true dl.Size=UDim2.new(1,0,0,0) U.Tw(dl,{Size=UDim2.new(1,0,0,th)},0.28,Enum.EasingStyle.Back) U.Tw(chev,{Rotation=180},0.2)
                     else U.Tw(chev,{Rotation=0},0.2) U.Tw(dl,{Size=UDim2.new(1,0,0,0)},0.2) task.wait(0.22) dl.Visible=false end
                 end)
-                local o={} function o:Set(v) sel=v selLbl.Text=tostring(v) end function o:Get() return sel end return o
+                local o={} function o:Set(v) sel=v selLbl.Text=tostring(v) end function o:Get() return sel end
+                if c.Name then ConfigSystem:Register(c.Name,o) end
+                return o
             end
 
             function Sec:AddTextBox(c)
