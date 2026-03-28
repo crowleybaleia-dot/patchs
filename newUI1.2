@@ -602,7 +602,7 @@ function BarbiUI:CreateWindow(cfg)
         local idx = #tabs
 
         btn.MouseButton1Click:Connect(function() ActivateTab(idx) end)
-        if #tabs == 1 then ActivateTab(1) end
+        if active == nil then ActivateTab(idx) end
 
         local colIdx = 0
         local Tab = {}
