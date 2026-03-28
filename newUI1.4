@@ -517,7 +517,7 @@ function BarbiUI:CreateWindow(cfg)
                 U.Stroke(b,T.BrdCard,1,0)
                 b.MouseEnter:Connect(function() U.Tw(b,{BackgroundColor3=Color3.fromRGB(30,32,52)},0.12) end)
                 b.MouseLeave:Connect(function() U.Tw(b,{BackgroundColor3=T.Elem},0.12) end)
-                b.MouseButton1Click:Connect(function() ;(c.Callback or function()end)() end)
+                b.MouseButton1Click:Connect(function() local f=c.Callback or function()end f() end)
             end
 
             -- ── Dropdown ──────────────────────────────────────────────────────
