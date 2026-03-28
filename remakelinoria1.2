@@ -29,11 +29,11 @@ local Library = {
 
     HudRegistry = {};
 
-    FontColor = Color3.fromRGB(220, 210, 215);
+    FontColor = Color3.fromRGB(220, 215, 200);
     MainColor = Color3.fromRGB(15, 15, 15);
     BackgroundColor = Color3.fromRGB(5, 5, 5);
-    AccentColor = Color3.fromRGB(255, 80, 160);
-    OutlineColor = Color3.fromRGB(50, 30, 42);
+    AccentColor = Color3.fromRGB(255, 200, 50);
+    OutlineColor = Color3.fromRGB(45, 42, 30);
     RiskColor = Color3.fromRGB(255, 70, 70),
 
     Black = Color3.new(0, 0, 0);
@@ -2996,6 +2996,18 @@ function Library:CreateWindow(...)
     Library:ApplyCorner(Outer, 10);
     Library:MakeDraggable(Outer, 25);
 
+    local OuterStroke = Library:Create('UIStroke', {
+        Color = Library.AccentColor;
+        Thickness = 2;
+        LineJoinMode = Enum.LineJoinMode.Round;
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
+        Parent = Outer;
+    });
+
+    Library:AddToRegistry(OuterStroke, {
+        Color = 'AccentColor';
+    });
+
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.AccentColor;
@@ -3015,16 +3027,25 @@ function Library:CreateWindow(...)
 
     local WindowLabel = Library:CreateLabel({
         Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(0, 0, 0, 23);
+        Size = UDim2.new(1, -14, 0, 23);
         Text = Config.Title or '';
         TextSize = 13;
-        TextColor3 = Library.AccentColor;
+        TextColor3 = Color3.new(1, 1, 1);
         TextXAlignment = Enum.TextXAlignment.Left;
         ZIndex = 1;
         Parent = Inner;
     });
 
-    Library:AddToRegistry(WindowLabel, { TextColor3 = 'AccentColor' });
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Library.AccentColor);
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 240, 180));
+        });
+        Rotation = 0;
+        Parent = WindowLabel;
+    });
+
+    Library:AddToRegistry(WindowLabel, { TextColor3 = 'FontColor' });
 
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
