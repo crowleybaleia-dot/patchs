@@ -168,7 +168,7 @@ function BarbiUI:CreateWindow(cfg)
 
     -- janela principal
     local win=U.New("Frame",{Name="Window",BackgroundColor3=T.WinBg,BackgroundTransparency=0,
-        Size=UDim2.new(0,winW,0,0),Position=UDim2.new(0.5,-winW/2,0.5,-winH/2),ClipsDescendants=true,Parent=sg})
+        Size=UDim2.new(0,winW,0,0),Position=UDim2.new(0.5,-winW/2,0.5,-winH/2),ClipsDescendants=false,Parent=sg})
     U.Stroke(win,T.BrdWin,1,0)
 
     -- ── Titlebar ──────────────────────────────────────────────────────────────
@@ -222,11 +222,12 @@ function BarbiUI:CreateWindow(cfg)
     end)
 
     -- ── Tab bar ───────────────────────────────────────────────────────────────
-    local tabBar=U.New("Frame",{BackgroundColor3=T.TopBar,Size=UDim2.new(1,0,0,tabH),
-        Position=UDim2.new(0,0,0,titleH),ZIndex=9,Parent=win})
+    local tabBar=U.New("ScrollingFrame",{BackgroundColor3=T.TopBar,Size=UDim2.new(1,0,0,tabH),
+        Position=UDim2.new(0,0,0,titleH),ZIndex=9,ScrollBarThickness=0,
+        CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.X,
+        ClipsDescendants=true,Parent=win})
     U.New("Frame",{BackgroundColor3=T.BrdWin,Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),ZIndex=10,Parent=tabBar})
     U.New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,SortOrder=Enum.SortOrder.LayoutOrder,Parent=tabBar})
-    U.Pad(tabBar,0,0,0,4)
 
     -- ── Content area ──────────────────────────────────────────────────────────
     local contentArea=U.New("Frame",{BackgroundTransparency=1,
