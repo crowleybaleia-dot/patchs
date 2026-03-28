@@ -29,11 +29,11 @@ local Library = {
 
     HudRegistry = {};
 
-    FontColor = Color3.fromRGB(210, 205, 220);
-    MainColor = Color3.fromRGB(22, 20, 30);
-    BackgroundColor = Color3.fromRGB(14, 12, 20);
-    AccentColor = Color3.fromRGB(120, 80, 220);
-    OutlineColor = Color3.fromRGB(50, 45, 68);
+    FontColor = Color3.fromRGB(220, 215, 200);
+    MainColor = Color3.fromRGB(15, 15, 15);
+    BackgroundColor = Color3.fromRGB(5, 5, 5);
+    AccentColor = Color3.fromRGB(255, 200, 50);
+    OutlineColor = Color3.fromRGB(45, 42, 30);
     RiskColor = Color3.fromRGB(255, 70, 70),
 
     Black = Color3.new(0, 0, 0);
@@ -1618,27 +1618,32 @@ do
 
         Groupbox:AddBlank(2);
         local DividerOuter = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
-            BorderSizePixel = 0;
-            Size = UDim2.new(1, -4, 0, 1);
+            BackgroundColor3 = Color3.new(0, 0, 0);
+            BorderColor3 = Color3.new(0, 0, 0);
+            Size = UDim2.new(1, -4, 0, 5);
             ZIndex = 5;
             Parent = Container;
         });
 
         local DividerInner = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Size = UDim2.new(0, 0, 0, 0);
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 6;
             Parent = DividerOuter;
         });
 
         Library:AddToRegistry(DividerOuter, {
-            BackgroundColor3 = 'AccentColor';
+            BorderColor3 = 'Black';
         });
 
-        Library:AddToRegistry(DividerInner, {});
+        Library:AddToRegistry(DividerInner, {
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
+        });
 
-        Groupbox:AddBlank(5);
+        Groupbox:AddBlank(9);
         Groupbox:Resize();
     end
 
@@ -2220,8 +2225,8 @@ do
         });
 
         local DropdownInner = Library:Create('Frame', {
-            BackgroundColor3 = Library.BackgroundColor;
-            BorderColor3 = Library.AccentColor;
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
             BorderMode = Enum.BorderMode.Inset;
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 6;
@@ -2231,8 +2236,8 @@ do
         Library:ApplyCorner(DropdownInner, 5);
 
         Library:AddToRegistry(DropdownInner, {
-            BackgroundColor3 = 'BackgroundColor';
-            BorderColor3 = 'AccentColor';
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
         });
 
         local DropdownArrow = Library:Create('ImageLabel', {
@@ -3227,7 +3232,7 @@ function Library:CreateWindow(...)
 
             local BoxOuter = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Library.AccentColor;
+                BorderColor3 = Library.OutlineColor;
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
@@ -3238,7 +3243,7 @@ function Library:CreateWindow(...)
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
-                BorderColor3 = 'AccentColor';
+                BorderColor3 = 'OutlineColor';
             });
 
             local BoxInner = Library:Create('Frame', {
@@ -3331,7 +3336,7 @@ function Library:CreateWindow(...)
 
             local BoxOuter = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Library.AccentColor;
+                BorderColor3 = Library.OutlineColor;
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 0);
                 ZIndex = 2;
@@ -3342,7 +3347,7 @@ function Library:CreateWindow(...)
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
-                BorderColor3 = 'AccentColor';
+                BorderColor3 = 'OutlineColor';
             });
 
             local BoxInner = Library:Create('Frame', {
