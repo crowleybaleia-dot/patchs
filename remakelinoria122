@@ -29,11 +29,11 @@ local Library = {
 
     HudRegistry = {};
 
-    FontColor = Color3.fromRGB(220, 215, 200);
-    MainColor = Color3.fromRGB(15, 15, 15);
-    BackgroundColor = Color3.fromRGB(5, 5, 5);
-    AccentColor = Color3.fromRGB(138, 43, 226);
-    OutlineColor = Color3.fromRGB(40, 30, 55);
+    FontColor = Color3.fromRGB(200, 195, 210);
+    MainColor = Color3.fromRGB(10, 10, 12);
+    BackgroundColor = Color3.fromRGB(4, 4, 6);
+    AccentColor = Color3.fromRGB(100, 65, 180);
+    OutlineColor = Color3.fromRGB(38, 33, 52);
     RiskColor = Color3.fromRGB(255, 70, 70),
 
     Black = Color3.new(0, 0, 0);
@@ -2995,6 +2995,16 @@ function Library:CreateWindow(...)
 
     Library:ApplyCorner(Outer, 10);
     Library:MakeDraggable(Outer, 25);
+
+    local OuterStroke = Library:Create('UIStroke', {
+        Color = Library.AccentColor;
+        Thickness = 1;
+        LineJoinMode = Enum.LineJoinMode.Round;
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
+        Parent = Outer;
+    });
+
+    Library:AddToRegistry(OuterStroke, { Color = 'AccentColor' });
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
