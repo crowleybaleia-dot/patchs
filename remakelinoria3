@@ -209,6 +209,7 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         Visible = false,
     })
 
+    Library:ApplyCorner(Tooltip, 5);
 
     local Label = Library:CreateLabel({
         Position = UDim2.fromOffset(3, 1),
@@ -450,6 +451,7 @@ do
             Parent = ToggleLabel;
         });
 
+        Library:ApplyCorner(DisplayFrame, 4);
 
         -- Transparency image taken from https://github.com/matas3535/SplixPrivateDrawingLibrary/blob/main/Library.lua cus i'm lazy
         local CheckerFrame = Library:Create('ImageLabel', {
@@ -477,6 +479,7 @@ do
             Parent = ScreenGui,
         });
 
+        Library:ApplyCorner(PickerFrameOuter, 7);
 
         DisplayFrame:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
             PickerFrameOuter.Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X, DisplayFrame.AbsolutePosition.Y + 18);
@@ -491,6 +494,7 @@ do
             Parent = PickerFrameOuter;
         });
 
+        Library:ApplyCorner(PickerFrameInner, 7);
 
         local Highlight = Library:Create('Frame', {
             BackgroundColor3 = Library.AccentColor;
@@ -1042,6 +1046,7 @@ do
             Parent = ToggleLabel;
         });
 
+        Library:ApplyCorner(PickOuter, 4);
 
         local PickInner = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
@@ -1052,6 +1057,7 @@ do
             Parent = PickOuter;
         });
 
+        Library:ApplyCorner(PickInner, 4);
 
         Library:AddToRegistry(PickInner, {
             BackgroundColor3 = 'BackgroundColor';
@@ -1076,6 +1082,7 @@ do
             Parent = ScreenGui;
         });
 
+        Library:ApplyCorner(ModeSelectOuter, 6);
 
         ToggleLabel:GetPropertyChangedSignal('AbsolutePosition'):Connect(function()
             ModeSelectOuter.Position = UDim2.fromOffset(ToggleLabel.AbsolutePosition.X + ToggleLabel.AbsoluteSize.X + 4, ToggleLabel.AbsolutePosition.Y + 1);
@@ -1090,6 +1097,7 @@ do
             Parent = ModeSelectOuter;
         });
 
+        Library:ApplyCorner(ModeSelectInner, 6);
 
         Library:AddToRegistry(ModeSelectInner, {
             BackgroundColor3 = 'BackgroundColor';
@@ -1449,6 +1457,7 @@ do
                 ZIndex = 5;
             });
 
+            Library:ApplyCorner(Outer, 5);
 
             local Inner = Library:Create('Frame', {
                 BackgroundColor3 = Library.MainColor;
@@ -1459,6 +1468,7 @@ do
                 Parent = Outer;
             });
 
+            Library:ApplyCorner(Inner, 5);
 
             local Label = Library:CreateLabel({
                 Size = UDim2.new(1, 0, 1, 0);
@@ -1608,32 +1618,27 @@ do
 
         Groupbox:AddBlank(2);
         local DividerOuter = Library:Create('Frame', {
-            BackgroundColor3 = Color3.new(0, 0, 0);
-            BorderColor3 = Color3.new(0, 0, 0);
-            Size = UDim2.new(1, -4, 0, 5);
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, -4, 0, 1);
             ZIndex = 5;
             Parent = Container;
         });
 
         local DividerInner = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderColor3 = Library.OutlineColor;
-            BorderMode = Enum.BorderMode.Inset;
-            Size = UDim2.new(1, 0, 1, 0);
+            BackgroundTransparency = 1;
+            Size = UDim2.new(0, 0, 0, 0);
             ZIndex = 6;
             Parent = DividerOuter;
         });
 
         Library:AddToRegistry(DividerOuter, {
-            BorderColor3 = 'Black';
+            BackgroundColor3 = 'AccentColor';
         });
 
-        Library:AddToRegistry(DividerInner, {
-            BackgroundColor3 = 'MainColor';
-            BorderColor3 = 'OutlineColor';
-        });
+        Library:AddToRegistry(DividerInner, {});
 
-        Groupbox:AddBlank(9);
+        Groupbox:AddBlank(5);
         Groupbox:Resize();
     end
 
@@ -1679,6 +1684,7 @@ do
             Parent = TextBoxOuter;
         });
 
+        Library:ApplyCorner(TextBoxInner, 5);
 
         Library:AddToRegistry(TextBoxInner, {
             BackgroundColor3 = 'MainColor';
@@ -1828,6 +1834,7 @@ do
             Parent = Container;
         });
 
+        Library:ApplyCorner(ToggleOuter, 3);
 
         Library:AddToRegistry(ToggleOuter, {
             BorderColor3 = 'Black';
@@ -1842,6 +1849,7 @@ do
             Parent = ToggleOuter;
         });
 
+        Library:ApplyCorner(ToggleInner, 3);
 
         Library:AddToRegistry(ToggleInner, {
             BackgroundColor3 = 'MainColor';
@@ -1853,7 +1861,6 @@ do
             Position = UDim2.new(1, 6, 0, 0);
             TextSize = 13;
             Text = Info.Text;
-            TextTruncate = Enum.TextTruncate.AtEnd;
             TextXAlignment = Enum.TextXAlignment.Left;
             ZIndex = 6;
             Parent = ToggleInner;
@@ -1988,6 +1995,7 @@ do
             Parent = Container;
         });
 
+        Library:ApplyCorner(SliderOuter, 4);
 
         Library:AddToRegistry(SliderOuter, {
             BorderColor3 = 'Black';
@@ -2002,6 +2010,7 @@ do
             Parent = SliderOuter;
         });
 
+        Library:ApplyCorner(SliderInner, 4);
 
         Library:AddToRegistry(SliderInner, {
             BackgroundColor3 = 'MainColor';
@@ -2016,6 +2025,7 @@ do
             Parent = SliderInner;
         });
 
+        Library:ApplyCorner(Fill, 4);
 
         Library:AddToRegistry(Fill, {
             BackgroundColor3 = 'AccentColor';
@@ -2203,24 +2213,26 @@ do
             Parent = Container;
         });
 
+        Library:ApplyCorner(DropdownOuter, 5);
 
         Library:AddToRegistry(DropdownOuter, {
             BorderColor3 = 'Black';
         });
 
         local DropdownInner = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderColor3 = Library.OutlineColor;
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderColor3 = Library.AccentColor;
             BorderMode = Enum.BorderMode.Inset;
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 6;
             Parent = DropdownOuter;
         });
 
+        Library:ApplyCorner(DropdownInner, 5);
 
         Library:AddToRegistry(DropdownInner, {
-            BackgroundColor3 = 'MainColor';
-            BorderColor3 = 'OutlineColor';
+            BackgroundColor3 = 'BackgroundColor';
+            BorderColor3 = 'AccentColor';
         });
 
         local DropdownArrow = Library:Create('ImageLabel', {
@@ -2263,6 +2275,7 @@ do
             Parent = ScreenGui;
         });
 
+        Library:ApplyCorner(ListOuter, 6);
 
         local function RecalculateListPosition()
             ListOuter.Position = UDim2.fromOffset(DropdownOuter.AbsolutePosition.X, DropdownOuter.AbsolutePosition.Y + DropdownOuter.Size.Y.Offset + 1);
@@ -2287,6 +2300,7 @@ do
             Parent = ListOuter;
         });
 
+        Library:ApplyCorner(ListInner, 6);
 
         Library:AddToRegistry(ListInner, {
             BackgroundColor3 = 'MainColor';
@@ -2696,6 +2710,7 @@ do
         Parent = ScreenGui;
     });
 
+    Library:ApplyCorner(WatermarkOuter, 6);
 
     local WatermarkInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -2706,6 +2721,7 @@ do
         Parent = WatermarkOuter;
     });
 
+    Library:ApplyCorner(WatermarkInner, 6);
 
     Library:AddToRegistry(WatermarkInner, {
         BorderColor3 = 'AccentColor';
@@ -2763,6 +2779,7 @@ do
         Parent = ScreenGui;
     });
 
+    Library:ApplyCorner(KeybindOuter, 7);
 
     local KeybindInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -2773,6 +2790,7 @@ do
         Parent = KeybindOuter;
     });
 
+    Library:ApplyCorner(KeybindInner, 7);
 
     Library:AddToRegistry(KeybindInner, {
         BackgroundColor3 = 'MainColor';
@@ -2851,6 +2869,7 @@ function Library:Notify(Text, Time)
         Parent = Library.NotificationArea;
     });
 
+    Library:ApplyCorner(NotifyOuter, 7);
 
     local NotifyInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -2861,6 +2880,7 @@ function Library:Notify(Text, Time)
         Parent = NotifyOuter;
     });
 
+    Library:ApplyCorner(NotifyInner, 7);
 
     Library:AddToRegistry(NotifyInner, {
         BackgroundColor3 = 'MainColor';
@@ -2895,8 +2915,8 @@ function Library:Notify(Text, Time)
     });
 
     local NotifyLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 8, 0, 0);
-        Size = UDim2.new(1, -8, 1, 0);
+        Position = UDim2.new(0, 4, 0, 0);
+        Size = UDim2.new(1, -4, 1, 0);
         Text = Text;
         TextXAlignment = Enum.TextXAlignment.Left;
         TextSize = 14;
@@ -2968,6 +2988,7 @@ function Library:CreateWindow(...)
         Parent = ScreenGui;
     });
 
+    Library:ApplyCorner(Outer, 10);
     Library:MakeDraggable(Outer, 25);
 
     local Inner = Library:Create('Frame', {
@@ -2980,6 +3001,7 @@ function Library:CreateWindow(...)
         Parent = Outer;
     });
 
+    Library:ApplyCorner(Inner, 9);
 
     Library:AddToRegistry(Inner, {
         BackgroundColor3 = 'MainColor';
@@ -3008,6 +3030,7 @@ function Library:CreateWindow(...)
         Parent = Inner;
     });
 
+    Library:ApplyCorner(MainSectionOuter, 7);
 
     Library:AddToRegistry(MainSectionOuter, {
         BackgroundColor3 = 'BackgroundColor';
@@ -3024,6 +3047,7 @@ function Library:CreateWindow(...)
         Parent = MainSectionOuter;
     });
 
+    Library:ApplyCorner(MainSectionInner, 7);
 
     Library:AddToRegistry(MainSectionInner, {
         BackgroundColor3 = 'BackgroundColor';
@@ -3053,6 +3077,7 @@ function Library:CreateWindow(...)
         Parent = MainSectionInner;
     });
 
+    Library:ApplyCorner(TabContainer, 6);
 
     Library:AddToRegistry(TabContainer, {
         BackgroundColor3 = 'MainColor';
@@ -3079,6 +3104,7 @@ function Library:CreateWindow(...)
             Parent = TabArea;
         });
 
+        Library:ApplyCorner(TabButton, 6);
 
         Library:AddToRegistry(TabButton, {
             BackgroundColor3 = 'BackgroundColor';
@@ -3201,18 +3227,18 @@ function Library:CreateWindow(...)
 
             local BoxOuter = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Library.OutlineColor;
+                BorderColor3 = Library.AccentColor;
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
-            Library:ApplyCorner(BoxOuter, 4);
+            Library:ApplyCorner(BoxOuter, 8);
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
-                BorderColor3 = 'OutlineColor';
+                BorderColor3 = 'AccentColor';
             });
 
             local BoxInner = Library:Create('Frame', {
@@ -3225,7 +3251,7 @@ function Library:CreateWindow(...)
                 Parent = BoxOuter;
             });
 
-            Library:ApplyCorner(BoxInner, 4);
+            Library:ApplyCorner(BoxInner, 7);
 
             Library:AddToRegistry(BoxInner, {
                 BackgroundColor3 = 'BackgroundColor';
@@ -3244,7 +3270,7 @@ function Library:CreateWindow(...)
             });
 
             local GroupboxLabel = Library:CreateLabel({
-                Size = UDim2.new(1, 0, 0, 20);
+                Size = UDim2.new(1, 0, 0, 16);
                 Position = UDim2.new(0, 4, 0, 2);
                 TextSize = 13;
                 Text = Info.Name;
@@ -3305,18 +3331,18 @@ function Library:CreateWindow(...)
 
             local BoxOuter = Library:Create('Frame', {
                 BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Library.OutlineColor;
+                BorderColor3 = Library.AccentColor;
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 0);
                 ZIndex = 2;
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
-            Library:ApplyCorner(BoxOuter, 4);
+            Library:ApplyCorner(BoxOuter, 8);
 
             Library:AddToRegistry(BoxOuter, {
                 BackgroundColor3 = 'BackgroundColor';
-                BorderColor3 = 'OutlineColor';
+                BorderColor3 = 'AccentColor';
             });
 
             local BoxInner = Library:Create('Frame', {
@@ -3329,7 +3355,7 @@ function Library:CreateWindow(...)
                 Parent = BoxOuter;
             });
 
-            Library:ApplyCorner(BoxInner, 4);
+            Library:ApplyCorner(BoxInner, 7);
 
             Library:AddToRegistry(BoxInner, {
                 BackgroundColor3 = 'BackgroundColor';
