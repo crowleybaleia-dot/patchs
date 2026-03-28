@@ -450,7 +450,7 @@ function BarbiUI:CreateWindow(cfg)
     end)
 
     -- ── Win object ────────────────────────────────────────────────────────────
-    local Win = {_btns={}, _active=nil, _ord=0}
+    local Win = {_btns={}, _active=nil, _ord=0, _activated=false}
 
     local function ActivateTab(data)
         for _, it in ipairs(Win._btns) do
@@ -650,6 +650,14 @@ function BarbiUI:CreateWindow(cfg)
         local tabData = {btn=btn, lbl=lbl, ul=ul, page=page}
         table.insert(Win._btns, tabData)
         btn.MouseButton1Click:Connect(function() ActivateTab(tabData) RefreshChips() end)
+
+        -- ── FIX: ativa o Config tab por padrão se nenhuma aba foi ativada ainda
+        task.defer(function()
+            if not Win._activated then
+                Win._activated = true
+                ActivateTab(tabData)
+            end
+        end)
     end
 
     -- ── AddTab ────────────────────────────────────────────────────────────────
@@ -668,7 +676,10 @@ function BarbiUI:CreateWindow(cfg)
 
         btn.MouseButton1Click:Connect(function() ActivateTab(tabData) end)
 
-        if #Win._btns == 1 then
+        -- ── FIX: usa flag _activated em vez de checar #Win._btns == 1
+        -- (que nunca era verdadeiro porque o Config tab já ocupava o índice 1)
+        if not Win._activated then
+            Win._activated = true
             task.defer(function() ActivateTab(tabData) end)
         end
 
@@ -837,7 +848,6 @@ function BarbiUI:CreateWindow(cfg)
                 local function OpenDD() open=true dl.Visible=true dl.Size=UDim2.new(1,0,0,0) U.Tw(dl,{Size=UDim2.new(1,0,0,th)},0.2,Enum.EasingStyle.Quart) U.Tw(chev,{Rotation=180},0.1) end
                 local function CloseDD() open=false U.Tw(chev,{Rotation=0},0.1) U.Tw(dl,{Size=UDim2.new(1,0,0,0)},0.15) task.wait(0.18) if dl and dl.Parent then dl.Visible=false end end
                 db.MouseButton1Click:Connect(function() if open then task.spawn(CloseDD) else OpenDD() end end)
-                -- FIX: fecha fora
                 UserInputService.InputBegan:Connect(function(i)
                     if not open or i.UserInputType~=Enum.UserInputType.MouseButton1 then return end
                     local mp=i.Position
