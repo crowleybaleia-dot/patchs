@@ -3045,50 +3045,95 @@ function Library:CreateWindow(...)
 
     Library:AddToRegistry(WindowLabel, { TextColor3 = 'FontColor' });
 
-    -- Kanji shimmer subliminar sobre o titulo
-    local KanjiLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(1, -14, 0, 23);
-        Text = '';
-        TextSize = 13;
-        TextColor3 = Library.AccentColor;
-        TextXAlignment = Enum.TextXAlignment.Left;
-        TextTransparency = 0.6;
-        ZIndex = 3;
-        Parent = Inner;
-    });
-
-    Library:AddToRegistry(KanjiLabel, { TextColor3 = 'AccentColor' });
-
+    -- Partículas de encantamento em volta do painel
     do
-        local Kanjis = {
-            '龍','剣','炎','闇','光','魂','幻','鬼','神','武',
-            '影','嵐','刃','霊','天','滅','罪','夢','狂','獄',
-            '絶','崩','壊','死','命','星','邪','鎖','牙','爪',
-        };
-        local RealTitle = Config.Title or '';
-        local Length = utf8.len(RealTitle) or #RealTitle;
-        local Timer = 0;
-        local Interval = 0.18; -- devagar / subliminar
+        local PARTICLE_COUNT = 7;
+        local Particles = {};
+
+        for i = 1, PARTICLE_COUNT do
+            local Size = math.random(2, 4);
+            local P = Library:Create('Frame', {
+                BackgroundColor3 = Library.AccentColor;
+                BorderSizePixel = 0;
+                Size = UDim2.fromOffset(Size, Size);
+                ZIndex = 0;
+                BackgroundTransparency = 1;
+                Parent = Outer;
+            });
+
+            Library:Create('UICorner', {
+                CornerRadius = UDim.new(1, 0);
+                Parent = P;
+            });
+
+            Library:AddToRegistry(P, { BackgroundColor3 = 'AccentColor' });
+
+            -- Estado inicial aleatório ao longo da borda
+            local Edge   = math.random(1, 4); -- 1=top 2=bottom 3=left 4=right
+            local Phase  = math.random() * math.pi * 2;
+            local Speed  = 0.018 + math.random() * 0.022; -- devagar
+            local Drift  = (math.random() - 0.5) * 0.4;
+            local Life   = math.random();   -- fase atual no ciclo 0..1
+            local PSize  = Size;
+
+            Particles[i] = {
+                Frame = P;
+                Edge  = Edge;
+                Phase = Phase;
+                Speed = Speed;
+                Drift = Drift;
+                Life  = Life;
+                PSize = PSize;
+            };
+        end;
 
         Library:GiveSignal(RenderStepped:Connect(function(Delta)
-            if not Inner.Parent then return end;
+            if not Outer.Parent then return end;
 
-            Timer = Timer + Delta;
-            if Timer < Interval then return end;
-            Timer = 0;
+            local W = Outer.AbsoluteSize.X;
+            local H = Outer.AbsoluteSize.Y;
+            if W == 0 then return end;
 
-            local Result = {};
-            for i = 1, Length do
-                if math.random() < 0.15 then
-                    -- ~15% das letras viram kanji num dado frame
-                    table.insert(Result, Kanjis[math.random(#Kanjis)]);
-                else
-                    table.insert(Result, ' ');
+            for _, pt in next, Particles do
+                pt.Life = pt.Life + pt.Speed;
+                if pt.Life > 1 then
+                    pt.Life = 0;
+                    pt.Edge  = math.random(1, 4);
+                    pt.Speed = 0.018 + math.random() * 0.022;
+                    pt.Drift = (math.random() - 0.5) * 0.4;
+                    pt.PSize = math.random(2, 4);
+                    pt.Frame.Size = UDim2.fromOffset(pt.PSize, pt.PSize);
                 end;
-            end;
 
-            KanjiLabel.Text = table.concat(Result);
+                -- Transparência: aparece e some suavemente
+                local t = pt.Life;
+                local alpha = math.sin(t * math.pi); -- 0→1→0
+                pt.Frame.BackgroundTransparency = 1 - (alpha * 0.85);
+
+                -- Posição ao longo da borda + drift perpendicular flutuante
+                local along = t;
+                local perp  = math.sin(pt.Phase + t * math.pi * 3) * 6 * alpha;
+
+                local px, py;
+                if pt.Edge == 1 then      -- topo
+                    px = along * W;
+                    py = -perp;
+                elseif pt.Edge == 2 then  -- baixo
+                    px = (1 - along) * W;
+                    py = H + perp;
+                elseif pt.Edge == 3 then  -- esquerda
+                    px = -perp;
+                    py = along * H;
+                else                       -- direita
+                    px = W + perp;
+                    py = (1 - along) * H;
+                end;
+
+                pt.Frame.Position = UDim2.fromOffset(
+                    px - pt.PSize / 2,
+                    py - pt.PSize / 2
+                );
+            end;
         end));
     end;
 
