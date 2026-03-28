@@ -32,8 +32,8 @@ local Library = {
     FontColor = Color3.fromRGB(220, 215, 200);
     MainColor = Color3.fromRGB(15, 15, 15);
     BackgroundColor = Color3.fromRGB(5, 5, 5);
-    AccentColor = Color3.fromRGB(255, 200, 50);
-    OutlineColor = Color3.fromRGB(45, 42, 30);
+    AccentColor = Color3.fromRGB(138, 43, 226);
+    OutlineColor = Color3.fromRGB(40, 30, 55);
     RiskColor = Color3.fromRGB(255, 70, 70),
 
     Black = Color3.new(0, 0, 0);
@@ -2996,16 +2996,6 @@ function Library:CreateWindow(...)
     Library:ApplyCorner(Outer, 10);
     Library:MakeDraggable(Outer, 25);
 
-    local OuterStroke = Library:Create('UIStroke', {
-        Color = Library.AccentColor;
-        Thickness = 1;
-        LineJoinMode = Enum.LineJoinMode.Round;
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
-        Parent = Outer;
-    });
-
-    Library:AddToRegistry(OuterStroke, { Color = 'AccentColor' });
-
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.AccentColor;
@@ -3025,117 +3015,16 @@ function Library:CreateWindow(...)
 
     local WindowLabel = Library:CreateLabel({
         Position = UDim2.new(0, 7, 0, 0);
-        Size = UDim2.new(1, -14, 0, 23);
+        Size = UDim2.new(0, 0, 0, 23);
         Text = Config.Title or '';
         TextSize = 13;
-        TextColor3 = Color3.new(1, 1, 1);
+        TextColor3 = Library.AccentColor;
         TextXAlignment = Enum.TextXAlignment.Left;
-        ZIndex = 2;
+        ZIndex = 1;
         Parent = Inner;
     });
 
-    Library:Create('UIGradient', {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Library.AccentColor);
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 240, 180));
-        });
-        Rotation = 0;
-        Parent = WindowLabel;
-    });
-
-    Library:AddToRegistry(WindowLabel, { TextColor3 = 'FontColor' });
-
-    -- Partículas de encantamento em volta do painel
-    do
-        local PARTICLE_COUNT = 7;
-        local Particles = {};
-
-        for i = 1, PARTICLE_COUNT do
-            local Size = math.random(2, 4);
-            local P = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
-                BorderSizePixel = 0;
-                Size = UDim2.fromOffset(Size, Size);
-                ZIndex = 0;
-                BackgroundTransparency = 1;
-                Parent = Outer;
-            });
-
-            Library:Create('UICorner', {
-                CornerRadius = UDim.new(1, 0);
-                Parent = P;
-            });
-
-            Library:AddToRegistry(P, { BackgroundColor3 = 'AccentColor' });
-
-            -- Estado inicial aleatório ao longo da borda
-            local Edge   = math.random(1, 4); -- 1=top 2=bottom 3=left 4=right
-            local Phase  = math.random() * math.pi * 2;
-            local Speed  = 0.018 + math.random() * 0.022; -- devagar
-            local Drift  = (math.random() - 0.5) * 0.4;
-            local Life   = math.random();   -- fase atual no ciclo 0..1
-            local PSize  = Size;
-
-            Particles[i] = {
-                Frame = P;
-                Edge  = Edge;
-                Phase = Phase;
-                Speed = Speed;
-                Drift = Drift;
-                Life  = Life;
-                PSize = PSize;
-            };
-        end;
-
-        Library:GiveSignal(RenderStepped:Connect(function(Delta)
-            if not Outer.Parent then return end;
-
-            local W = Outer.AbsoluteSize.X;
-            local H = Outer.AbsoluteSize.Y;
-            if W == 0 then return end;
-
-            for _, pt in next, Particles do
-                pt.Life = pt.Life + pt.Speed;
-                if pt.Life > 1 then
-                    pt.Life = 0;
-                    pt.Edge  = math.random(1, 4);
-                    pt.Speed = 0.018 + math.random() * 0.022;
-                    pt.Drift = (math.random() - 0.5) * 0.4;
-                    pt.PSize = math.random(2, 4);
-                    pt.Frame.Size = UDim2.fromOffset(pt.PSize, pt.PSize);
-                end;
-
-                -- Transparência: aparece e some suavemente
-                local t = pt.Life;
-                local alpha = math.sin(t * math.pi); -- 0→1→0
-                pt.Frame.BackgroundTransparency = 1 - (alpha * 0.85);
-
-                -- Posição ao longo da borda + drift perpendicular flutuante
-                local along = t;
-                local perp  = math.sin(pt.Phase + t * math.pi * 3) * 6 * alpha;
-
-                local px, py;
-                if pt.Edge == 1 then      -- topo
-                    px = along * W;
-                    py = -perp;
-                elseif pt.Edge == 2 then  -- baixo
-                    px = (1 - along) * W;
-                    py = H + perp;
-                elseif pt.Edge == 3 then  -- esquerda
-                    px = -perp;
-                    py = along * H;
-                else                       -- direita
-                    px = W + perp;
-                    py = (1 - along) * H;
-                end;
-
-                pt.Frame.Position = UDim2.fromOffset(
-                    px - pt.PSize / 2,
-                    py - pt.PSize / 2
-                );
-            end;
-        end));
-    end;
+    Library:AddToRegistry(WindowLabel, { TextColor3 = 'AccentColor' });
 
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
