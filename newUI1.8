@@ -1,0 +1,433 @@
+-- ══════════════════════════════════════════════════════
+--   Demo — Linoria UI Library
+-- ══════════════════════════════════════════════════════
+
+local Library = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/newUI1.3"
+))()
+
+local Toggles = getgenv().Toggles
+local Options  = getgenv().Options
+
+-- ── Janela ─────────────────────────────────────────────
+local Window = Library:CreateWindow({
+    Title    = "BarbiUI | Phantom Forces",
+    AutoShow = true,
+    Size     = UDim2.fromOffset(560, 520),
+})
+
+-- ══════════════════════════════════════════════════════
+--   ABA 1 — Legit
+-- ══════════════════════════════════════════════════════
+local TabLegit = Window:AddTab("Legit")
+
+-- ── Aimbot (esquerda) ──────────────────────────────────
+local GbAim = TabLegit:AddLeftGroupbox("Aimbot")
+
+GbAim:AddToggle("Aimbot", {
+    Text     = "Aimbot",
+    Default  = false,
+    Callback = function(v) print("[Aimbot]", v) end,
+})
+
+GbAim:AddToggle("SilentAim", {
+    Text     = "Silent Aim",
+    Default  = false,
+    Callback = function(v) print("[Silent Aim]", v) end,
+})
+
+GbAim:AddToggle("Prediction", {
+    Text     = "Prediction",
+    Default  = true,
+    Callback = function(v) print("[Prediction]", v) end,
+})
+
+GbAim:AddSlider("FOV", {
+    Text     = "FOV",
+    Default  = 90,
+    Min      = 1,
+    Max      = 360,
+    Rounding = 0,
+    Callback = function(v) print("[FOV]", v) end,
+})
+
+GbAim:AddSlider("Smooth", {
+    Text     = "Smooth",
+    Default  = 50,
+    Min      = 1,
+    Max      = 100,
+    Rounding = 0,
+    Callback = function(v) print("[Smooth]", v) end,
+})
+
+GbAim:AddDropdown("TargetPart", {
+    Text    = "Target Part",
+    Values  = { "Head", "Torso", "Nearest" },
+    Default = "Head",
+    Callback = function(v) print("[Target Part]", v) end,
+})
+
+Toggles["Aimbot"]:AddKeyPicker("AimbotKey", {
+    Default  = "MB2",
+    Text     = "Aimbot key",
+    Mode     = "Hold",
+    Callback = function(v) print("[Aimbot key]", v) end,
+})
+
+-- ── Triggerbot (direita) ───────────────────────────────
+local GbTrig = TabLegit:AddRightGroupbox("Triggerbot")
+
+GbTrig:AddToggle("Triggerbot", {
+    Text     = "Triggerbot",
+    Default  = false,
+    Callback = function(v) print("[Triggerbot]", v) end,
+})
+
+GbTrig:AddSlider("TriggerDelay", {
+    Text     = "Delay (ms)",
+    Default  = 80,
+    Min      = 0,
+    Max      = 500,
+    Rounding = 0,
+    Callback = function(v) print("[Delay]", v) end,
+})
+
+Toggles["Triggerbot"]:AddKeyPicker("TriggerKey", {
+    Default  = "C",
+    Text     = "Trigger key",
+    Mode     = "Hold",
+    Callback = function(v) print("[Trigger key]", v) end,
+})
+
+GbTrig:AddDivider()
+
+GbTrig:AddButton({
+    Text = "Reset Triggerbot",
+    Func = function()
+        Options["TriggerDelay"]:SetValue(80)
+        Toggles["Triggerbot"]:SetValue(false)
+        Library:Notify("Triggerbot resetado.", 3)
+    end,
+})
+
+-- ══════════════════════════════════════════════════════
+--   ABA 2 — Visuals
+-- ══════════════════════════════════════════════════════
+local TabVisuals = Window:AddTab("Visuals")
+
+local GbESP = TabVisuals:AddLeftGroupbox("Enemy ESP")
+
+GbESP:AddToggle("Nametags", {
+    Text     = "Nametags",
+    Default  = true,
+    Callback = function(v) print("[Nametags]", v) end,
+})
+
+GbESP:AddToggle("Boxes", {
+    Text     = "Boxes",
+    Default  = true,
+    Callback = function(v) print("[Boxes]", v) end,
+})
+
+GbESP:AddToggle("Healthbars", {
+    Text     = "Healthbars",
+    Default  = true,
+    Callback = function(v) print("[Healthbars]", v) end,
+})
+
+GbESP:AddToggle("OffscreenArrows", {
+    Text     = "Offscreen Arrows",
+    Default  = false,
+    Callback = function(v) print("[Offscreen]", v) end,
+})
+
+GbESP:AddSlider("ESPDistance", {
+    Text     = "Max Distance",
+    Default  = 500,
+    Min      = 10,
+    Max      = 1000,
+    Rounding = 0,
+    Suffix   = "m",
+    Callback = function(v) print("[ESP Dist]", v) end,
+})
+
+GbESP:AddDropdown("ESPColor", {
+    Text    = "ESP Color",
+    Values  = { "Cyan", "White", "Red", "Team Color" },
+    Default = "Cyan",
+    Callback = function(v) print("[ESP Color]", v) end,
+})
+
+local GbChams = TabVisuals:AddRightGroupbox("Chams")
+
+GbChams:AddToggle("GunChams", {
+    Text     = "Gun Chams",
+    Default  = true,
+    Callback = function(v) print("[Gun Chams]", v) end,
+})
+
+GbChams:AddSlider("GunTrans", {
+    Text     = "Gun Transparency",
+    Default  = 33,
+    Min      = 0,
+    Max      = 100,
+    Rounding = 0,
+    Suffix   = "%",
+    Callback = function(v) print("[Gun Trans]", v) end,
+})
+
+GbChams:AddToggle("HandChams", {
+    Text     = "Hand Chams",
+    Default  = true,
+    Callback = function(v) print("[Hand Chams]", v) end,
+})
+
+GbChams:AddSlider("HandTrans", {
+    Text     = "Hand Transparency",
+    Default  = 33,
+    Min      = 0,
+    Max      = 100,
+    Rounding = 0,
+    Suffix   = "%",
+    Callback = function(v) print("[Hand Trans]", v) end,
+})
+
+GbChams:AddDivider()
+
+GbChams:AddToggle("LocalPlayer", {
+    Text     = "Visualize LocalPlayer",
+    Default  = false,
+    Callback = function(v) print("[LocalPlayer]", v) end,
+})
+
+GbChams:AddDropdown("CharModel", {
+    Text    = "Selected Character Model",
+    Values  = { "Default", "Toga (Custom)", "Invisible", "Wireframe" },
+    Default = "Toga (Custom)",
+    Callback = function(v) print("[Char Model]", v) end,
+})
+
+-- ══════════════════════════════════════════════════════
+--   ABA 3 — Rage
+-- ══════════════════════════════════════════════════════
+local TabRage = Window:AddTab("Rage")
+
+local GbRage = TabRage:AddLeftGroupbox("Rage Aimbot")
+
+GbRage:AddToggle("RageAim", {
+    Text     = "Rage Aimbot",
+    Default  = false,
+    Callback = function(v) print("[Rage Aim]", v) end,
+})
+
+GbRage:AddToggle("AutoShoot", {
+    Text     = "Auto Shoot",
+    Default  = false,
+    Callback = function(v) print("[Auto Shoot]", v) end,
+})
+
+GbRage:AddSlider("RageFOV", {
+    Text     = "FOV",
+    Default  = 180,
+    Min      = 1,
+    Max      = 360,
+    Rounding = 0,
+    Callback = function(v) print("[Rage FOV]", v) end,
+})
+
+Toggles["RageAim"]:AddKeyPicker("RageKey", {
+    Default  = "X",
+    Text     = "Rage toggle",
+    Mode     = "Toggle",
+    SyncToggleState = true,
+})
+
+GbRage:AddButton({
+    Text = "Panic — Desativar Tudo",
+    Func = function()
+        Toggles["RageAim"]:SetValue(false)
+        Toggles["AutoShoot"]:SetValue(false)
+        Library:Notify("Tudo desativado!", 3)
+    end,
+})
+
+local GbRageMisc = TabRage:AddRightGroupbox("Misc Rage")
+
+GbRageMisc:AddToggle("Spinbot", {
+    Text     = "Spinbot",
+    Default  = false,
+    Callback = function(v) print("[Spinbot]", v) end,
+})
+
+GbRageMisc:AddSlider("SpinSpeed", {
+    Text     = "Spin Speed",
+    Default  = 10,
+    Min      = 1,
+    Max      = 20,
+    Rounding = 0,
+    Callback = function(v) print("[Spin Speed]", v) end,
+})
+
+GbRageMisc:AddToggle("AntiAim", {
+    Text     = "Anti-Aim",
+    Default  = false,
+    Callback = function(v) print("[Anti-Aim]", v) end,
+})
+
+GbRageMisc:AddDropdown("AntiAimMode", {
+    Text    = "Anti-Aim Mode",
+    Values  = { "Jitter", "Static", "Sway", "Random" },
+    Default = "Jitter",
+    Callback = function(v) print("[AA Mode]", v) end,
+})
+
+-- ══════════════════════════════════════════════════════
+--   ABA 4 — Miscellaneous
+-- ══════════════════════════════════════════════════════
+local TabMisc = Window:AddTab("Miscellaneous")
+
+local GbMove = TabMisc:AddLeftGroupbox("Movement")
+
+GbMove:AddToggle("Bhop", {
+    Text     = "Bunny Hop",
+    Default  = false,
+    Callback = function(v) print("[Bhop]", v) end,
+})
+
+GbMove:AddToggle("AutoSprint", {
+    Text     = "Auto Sprint",
+    Default  = false,
+    Callback = function(v) print("[Auto Sprint]", v) end,
+})
+
+GbMove:AddSlider("Walkspeed", {
+    Text     = "Walkspeed",
+    Default  = 16,
+    Min      = 16,
+    Max      = 300,
+    Rounding = 0,
+    Callback = function(v)
+        local lp = game:GetService("Players").LocalPlayer
+        if lp and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+            lp.Character.Humanoid.WalkSpeed = v
+        end
+    end,
+})
+
+GbMove:AddSlider("JumpPower", {
+    Text     = "Jump Power",
+    Default  = 50,
+    Min      = 50,
+    Max      = 300,
+    Rounding = 0,
+    Callback = function(v)
+        local lp = game:GetService("Players").LocalPlayer
+        if lp and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+            lp.Character.Humanoid.JumpPower = v
+        end
+    end,
+})
+
+GbMove:AddButton({
+    Text = "Reset Movement",
+    Func = function()
+        Options["Walkspeed"]:SetValue(16)
+        Options["JumpPower"]:SetValue(50)
+        Library:Notify("Movement resetado.", 2)
+    end,
+})
+
+local GbUtil = TabMisc:AddRightGroupbox("Utility")
+
+GbUtil:AddToggle("Fullbright", {
+    Text     = "Fullbright",
+    Default  = false,
+    Callback = function(v)
+        local L = game:GetService("Lighting")
+        L.Brightness = v and 10 or 1
+        if v then L.ClockTime = 14 end
+    end,
+})
+
+GbUtil:AddToggle("NoFog", {
+    Text     = "No Fog",
+    Default  = false,
+    Callback = function(v)
+        game:GetService("Lighting").FogEnd = v and 999999 or 1000
+    end,
+})
+
+GbUtil:AddDivider()
+
+GbUtil:AddInput("SpectatePlayer", {
+    Text        = "Spectate Player",
+    Placeholder = "Nome do jogador...",
+    Finished    = true,
+    Callback    = function(v)
+        if v ~= "" then Library:Notify("Spectate: " .. v, 3) end
+    end,
+})
+
+GbUtil:AddButton({
+    Text = "Notif de Teste",
+    Func = function()
+        Library:Notify("Notificação funcionando!", 4)
+    end,
+})
+
+-- ══════════════════════════════════════════════════════
+--   ABA 5 — Settings
+-- ══════════════════════════════════════════════════════
+local TabSettings = Window:AddTab("Settings")
+
+local GbUI = TabSettings:AddLeftGroupbox("Interface")
+
+GbUI:AddLabel("Tecla padrão: RightShift / RightControl")
+
+GbUI:AddToggle("ShowWatermark", {
+    Text     = "Mostrar Watermark",
+    Default  = true,
+    Callback = function(v) Library:SetWatermarkVisibility(v) end,
+})
+
+GbUI:AddDivider()
+
+GbUI:AddButton({
+    Text = "Reset Geral",
+    Func = function()
+        Toggles["Aimbot"]:SetValue(false)
+        Toggles["SilentAim"]:SetValue(false)
+        Toggles["Nametags"]:SetValue(true)
+        Toggles["Boxes"]:SetValue(true)
+        Toggles["Healthbars"]:SetValue(true)
+        Options["FOV"]:SetValue(90)
+        Options["Smooth"]:SetValue(50)
+        Options["Walkspeed"]:SetValue(16)
+        Options["JumpPower"]:SetValue(50)
+        Library:Notify("Tudo resetado!", 3)
+    end,
+})
+
+GbUI:AddButton({
+    Text = "Destruir UI",
+    Func = function()
+        Library:Notify("Até mais!", 2)
+        task.wait(2)
+        Library:Unload()
+    end,
+})
+
+local GbCfg = TabSettings:AddRightGroupbox("Info")
+GbCfg:AddLabel("BarbiUI Demo v1.0")
+GbCfg:AddLabel("Tecla: RightShift abre/fecha a UI.")
+GbCfg:AddLabel("MB2 segura para Aimbot.")
+GbCfg:AddLabel("C segura para Triggerbot.")
+GbCfg:AddLabel("X toggle para Rage Aimbot.")
+
+-- ══════════════════════════════════════════════════════
+--   Watermark e notif de boas-vindas
+-- ══════════════════════════════════════════════════════
+Library:SetWatermark("BarbiUI | Phantom Forces")
+
+task.wait(0.5)
+Library:Notify("BarbiUI carregado com sucesso!", 4)
