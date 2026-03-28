@@ -392,7 +392,7 @@ function BarbiUI:CreateWindow(cfg)
         table.insert(Win._tabs,page)
         table.insert(Win._btns,btn)
         btn.MouseButton1Click:Connect(function() ActivateTab(btn,page) end)
-        if #Win._tabs==1 then task.defer(function() ActivateTab(btn,page) end) end
+        if Win._active==nil then task.defer(function() ActivateTab(btn,page) end) end
 
         local colIdx=0
         local Tab={}
