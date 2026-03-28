@@ -1,0 +1,725 @@
+-- BarbiUI | Linoria-style UI Library
+local Players          = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService     = game:GetService("TweenService")
+local CoreGui          = game:GetService("CoreGui")
+local HttpService      = game:GetService("HttpService")
+local LocalPlayer      = Players.LocalPlayer
+local Mouse            = LocalPlayer:GetMouse()
+
+-- file helpers (safe refs)
+local function _safe(a,b,c) return rawget(_G,a) or getfenv()[a] or b or c end
+local _wf = _safe("writefile"); local _rf = _safe("readfile")
+local _lf = _safe("listfiles"); local _mf = _safe("makefolder")
+local _df = _safe("delfile");   local _if = _safe("isfolder")
+
+-- ── Theme ────────────────────────────────────────────────────────────────────
+local T = {
+    Bg      = Color3.fromRGB(26,28,46),
+    Bar     = Color3.fromRGB(20,22,32),
+    Card    = Color3.fromRGB(22,24,36),
+    Elem    = Color3.fromRGB(20,22,32),
+    Brd     = Color3.fromRGB(42,45,66),
+    Cyan    = Color3.fromRGB(0,200,170),
+    Purple  = Color3.fromRGB(123,63,181),
+    White   = Color3.fromRGB(200,207,223),
+    Gray    = Color3.fromRGB(138,144,168),
+    Mute    = Color3.fromRGB(85,85,102),
+    Success = Color3.fromRGB(0,200,170),
+    Warn    = Color3.fromRGB(212,160,23),
+    Error   = Color3.fromRGB(200,80,80),
+    Info    = Color3.fromRGB(138,144,168),
+    Font    = Enum.Font.Code,
+}
+
+-- ── Helpers ──────────────────────────────────────────────────────────────────
+local function New(cls, props)
+    local ok, obj = pcall(Instance.new, cls)
+    if not ok then return nil end
+    if obj:IsA("GuiObject") then obj.BorderSizePixel = 0 end
+    for k, v in pairs(props or {}) do
+        if k ~= "Parent" then pcall(function() obj[k] = v end) end
+    end
+    if props and props.Parent then pcall(function() obj.Parent = props.Parent end) end
+    return obj
+end
+
+local function Stroke(p, col, th)
+    return New("UIStroke", {Color=col, Thickness=th or 1, Parent=p})
+end
+
+local function Pad(p, t, r, b, l)
+    return New("UIPadding", {
+        PaddingTop    = UDim.new(0, t or 6),
+        PaddingRight  = UDim.new(0, r or 6),
+        PaddingBottom = UDim.new(0, b or 6),
+        PaddingLeft   = UDim.new(0, l or 6),
+        Parent = p,
+    })
+end
+
+local function List(p, dir, gap, halign)
+    return New("UIListLayout", {
+        FillDirection       = dir or Enum.FillDirection.Vertical,
+        SortOrder           = Enum.SortOrder.LayoutOrder,
+        Padding             = UDim.new(0, gap or 0),
+        HorizontalAlignment = halign or Enum.HorizontalAlignment.Left,
+        Parent = p,
+    })
+end
+
+local function Tw(obj, props, t)
+    if not obj or not obj.Parent then return end
+    pcall(function()
+        TweenService:Create(obj, TweenInfo.new(t or 0.15, Enum.EasingStyle.Quad), props):Play()
+    end)
+end
+
+local function GetTime()
+    local ok, s = pcall(os.date, "%H:%M:%S")
+    return ok and s or "00:00:00"
+end
+
+-- ── Config System ─────────────────────────────────────────────────────────────
+local Cfg = {_t={}}
+function Cfg:Reg(name, obj) self._t[name] = obj end
+function Cfg:Save(name)
+    if not name or name == "" then return false end
+    local data = {}
+    for k, v in pairs(self._t) do pcall(function() data[k] = v:Get() end) end
+    return pcall(function()
+        if not _if("BarbiUI") then _mf("BarbiUI") end
+        _wf("BarbiUI/"..name..".json", HttpService:JSONEncode(data))
+    end)
+end
+function Cfg:Load(name)
+    if not name or name == "" then return false end
+    return pcall(function()
+        local data = HttpService:JSONDecode(_rf("BarbiUI/"..name..".json"))
+        for k, v in pairs(data) do if self._t[k] then self._t[k]:Set(v, false) end end
+    end)
+end
+function Cfg:List()
+    local list = {}
+    pcall(function()
+        if not _if("BarbiUI") then _mf("BarbiUI") return end
+        for _, f in ipairs(_lf("BarbiUI")) do
+            local n = f:match("([^/\\]+)%.json$")
+            if n then table.insert(list, n) end
+        end
+    end)
+    return list
+end
+
+-- ── Notifications ─────────────────────────────────────────────────────────────
+local Notifs = {sg=nil, holder=nil, n=0}
+function Notifs:Init()
+    if self.sg and self.sg.Parent then return end
+    self.sg = New("ScreenGui", {Name="BarbiUI_Notifs", ResetOnSpawn=false,
+        ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui})
+    self.holder = New("Frame", {BackgroundTransparency=1,
+        Size=UDim2.new(0,260,1,0), Position=UDim2.new(1,-268,0,0), Parent=self.sg})
+    List(self.holder, Enum.FillDirection.Vertical, 4)
+    New("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder,
+        VerticalAlignment=Enum.VerticalAlignment.Bottom,
+        HorizontalAlignment=Enum.HorizontalAlignment.Right,
+        Padding=UDim.new(0,4), Parent=self.holder})
+    Pad(self.holder, 0, 0, 12, 0)
+end
+function Notifs:Send(cfg)
+    self:Init()
+    cfg = cfg or {}
+    local cols = {success=T.Success, warning=T.Warn, error=T.Error, info=T.Info}
+    local col  = cols[cfg.Type or "info"] or T.Info
+    self.n = self.n + 1
+    local pill = New("Frame", {BackgroundColor3=T.Card, Size=UDim2.new(0,0,0,22),
+        AutomaticSize=Enum.AutomaticSize.X, LayoutOrder=self.n, Parent=self.holder})
+    Stroke(pill, T.Brd, 1)
+    List(pill, Enum.FillDirection.Horizontal, 5)
+    Pad(pill, 0, 10, 0, 8)
+    New("Frame", {BackgroundColor3=col, Size=UDim2.new(0,5,0,5),
+        Parent=pill})
+    New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0,0,1,0),
+        AutomaticSize=Enum.AutomaticSize.X, Text=cfg.Title or "Info",
+        TextColor3=T.White, Font=T.Font, TextSize=10, Parent=pill})
+    New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0,0,1,0),
+        AutomaticSize=Enum.AutomaticSize.X, Text=cfg.Message or "",
+        TextColor3=T.Mute, Font=T.Font, TextSize=9, Parent=pill})
+    task.delay(cfg.Duration or 4, function()
+        if pill and pill.Parent then
+            Tw(pill, {BackgroundTransparency=1}, 0.2)
+            task.delay(0.25, function() if pill and pill.Parent then pill:Destroy() end end)
+        end
+    end)
+end
+
+-- ── BarbiUI ───────────────────────────────────────────────────────────────────
+local BarbiUI = {}
+BarbiUI.__index = BarbiUI
+
+function BarbiUI:Notify(cfg) Notifs:Send(cfg) end
+
+function BarbiUI:CreateWindow(cfg)
+    cfg = cfg or {}
+    local title  = cfg.Title  or "BarbiUI"
+    local game_  = cfg.Game   or ""
+    local key    = cfg.Key    or Enum.KeyCode.RightShift
+    local winW   = cfg.Width  or 560
+    local winH   = cfg.Height or 520
+    local TH     = 28  -- titlebar height
+    local BH     = 26  -- tabbar height
+
+    -- ScreenGui
+    local sg = New("ScreenGui", {Name="BarbiUI_"..title, ResetOnSpawn=false,
+        ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui})
+
+    -- Janela
+    local win = New("Frame", {Name="Win", BackgroundColor3=T.Bg,
+        Size=UDim2.new(0,winW,0,winH),
+        Position=UDim2.new(0.5,-winW/2,0.5,-winH/2),
+        Parent=sg})
+    Stroke(win, T.Brd, 1)
+
+    -- ── Titlebar ──────────────────────────────────────────────────────────────
+    local tb = New("Frame", {BackgroundColor3=T.Bar,
+        Size=UDim2.new(1,0,0,TH), ZIndex=10, Parent=win})
+    New("Frame", {BackgroundColor3=T.Brd, Size=UDim2.new(1,0,0,1),
+        Position=UDim2.new(0,0,1,-1), ZIndex=11, Parent=tb})
+
+    New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,8,0.5,-7),
+        Size=UDim2.new(1,-80,0,14),
+        Text=title..(game_~="" and " | "..game_ or ""),
+        TextColor3=T.White, Font=T.Font, TextSize=11,
+        TextXAlignment=Enum.TextXAlignment.Left, ZIndex=11, Parent=tb})
+
+    local clk = New("TextLabel", {BackgroundTransparency=1,
+        Position=UDim2.new(1,-80,0.5,-6), Size=UDim2.new(0,72,0,12),
+        Text=GetTime(), TextColor3=T.Mute, Font=T.Font, TextSize=9,
+        TextXAlignment=Enum.TextXAlignment.Right, ZIndex=11, Parent=tb})
+    task.spawn(function() while clk and clk.Parent do clk.Text=GetTime() task.wait(1) end end)
+
+    -- ctrl buttons
+    local function CtrlBtn(sym, x, cb)
+        local b = New("TextButton", {BackgroundTransparency=1,
+            Position=UDim2.new(1,x,0.5,-7), Size=UDim2.new(0,14,0,14),
+            Text=sym, TextColor3=T.Mute, Font=T.Font, TextSize=10, ZIndex=15, Parent=tb})
+        b.MouseEnter:Connect(function() b.TextColor3=T.White end)
+        b.MouseLeave:Connect(function() b.TextColor3=T.Mute end)
+        b.MouseButton1Click:Connect(cb)
+    end
+    CtrlBtn("x", -16, function() sg:Destroy() end)
+    local minimized = false
+    CtrlBtn("-", -32, function()
+        minimized = not minimized
+        Tw(win, {Size=UDim2.new(0,winW,0,minimized and (TH+BH) or winH)}, 0.25)
+    end)
+
+    -- drag
+    local drag, dStart, dPos
+    tb.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            drag=true; dStart=i.Position; dPos=win.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
+            local d = i.Position - dStart
+            win.Position = UDim2.new(dPos.X.Scale, dPos.X.Offset+d.X,
+                                     dPos.Y.Scale, dPos.Y.Offset+d.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then drag=false end
+    end)
+
+    -- toggle visibilidade com tecla
+    local visible = true
+    UserInputService.InputBegan:Connect(function(i, gp)
+        if gp then return end
+        if i.KeyCode == key then
+            visible = not visible
+            win.Visible = visible
+        end
+    end)
+
+    -- ── Tabbar ────────────────────────────────────────────────────────────────
+    local tabbar = New("Frame", {BackgroundColor3=T.Bar,
+        Size=UDim2.new(1,0,0,BH), Position=UDim2.new(0,0,0,TH),
+        ClipsDescendants=true, ZIndex=9, Parent=win})
+    New("Frame", {BackgroundColor3=T.Brd, Size=UDim2.new(1,0,0,1),
+        Position=UDim2.new(0,0,1,-1), ZIndex=10, Parent=tabbar})
+    List(tabbar, Enum.FillDirection.Horizontal, 0)
+    Pad(tabbar, 0, 0, 0, 4)
+
+    -- ── Content ───────────────────────────────────────────────────────────────
+    local content = New("Frame", {BackgroundTransparency=1,
+        Position=UDim2.new(0,0,0,TH+BH),
+        Size=UDim2.new(1,0,1,-(TH+BH)),
+        ClipsDescendants=true, Parent=win})
+
+    -- ── Tab state ─────────────────────────────────────────────────────────────
+    local tabs   = {}  -- {btn, page}
+    local active = nil
+
+    local function ActivateTab(idx)
+        for i, t in ipairs(tabs) do
+            t.page.Visible = (i == idx)
+            t.btn.TextColor3 = (i == idx) and T.White or T.Mute
+            local ul = t.btn:FindFirstChild("_ul")
+            if ul then ul.BackgroundTransparency = (i == idx) and 0 or 1 end
+        end
+        active = idx
+    end
+
+    local function MakeTabBtn(name, lo)
+        local btn = New("TextButton", {BackgroundTransparency=1,
+            Size=UDim2.new(0,0,1,0), AutomaticSize=Enum.AutomaticSize.X,
+            Text=name, TextColor3=T.Mute, Font=T.Font, TextSize=11,
+            LayoutOrder=lo, ZIndex=10, Parent=tabbar})
+        Pad(btn, 0, 12, 0, 12)
+        local ul = New("Frame", {Name="_ul", BackgroundColor3=T.Cyan,
+            BackgroundTransparency=1, Size=UDim2.new(1,0,0,2),
+            Position=UDim2.new(0,0,1,-2), ZIndex=11, Parent=btn})
+        return btn
+    end
+
+    local function MakePage()
+        local page = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,1,0), Visible=false, Parent=content})
+        -- dois ScrollingFrames lado a lado
+        local lf = New("ScrollingFrame", {BackgroundTransparency=1,
+            Size=UDim2.new(0.5,-1,1,0), Position=UDim2.new(0,0,0,0),
+            ScrollBarThickness=2, ScrollBarImageColor3=T.Cyan,
+            CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y,
+            Parent=page})
+        Pad(lf, 6, 6, 6, 6); List(lf, Enum.FillDirection.Vertical, 4)
+        New("Frame", {BackgroundColor3=T.Brd, Size=UDim2.new(0,1,1,0),
+            Position=UDim2.new(0.5,0,0,0), Parent=page})
+        local rf = New("ScrollingFrame", {BackgroundTransparency=1,
+            Size=UDim2.new(0.5,-1,1,0), Position=UDim2.new(0.5,1,0,0),
+            ScrollBarThickness=2, ScrollBarImageColor3=T.Cyan,
+            CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y,
+            Parent=page})
+        Pad(rf, 6, 6, 6, 6); List(rf, Enum.FillDirection.Vertical, 4)
+        return page, lf, rf
+    end
+
+    -- ── Seções (groupboxes) ───────────────────────────────────────────────────
+    local function MakeSec(name, parent, lo)
+        -- header
+        local hdr = New("Frame", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,0,0,20), LayoutOrder=lo, Parent=parent})
+        Stroke(hdr, T.Brd, 1)
+        Pad(hdr, 0, 6, 0, 6)
+        List(hdr, Enum.FillDirection.Horizontal, 0)
+        New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0.5,0,1,0),
+            Text=name, TextColor3=T.Gray, Font=T.Font, TextSize=10,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=hdr})
+        -- card
+        local card = New("Frame", {BackgroundColor3=T.Card,
+            Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+            LayoutOrder=lo+1, Parent=parent})
+        Stroke(card, T.Brd, 1)
+        Pad(card, 4, 6, 4, 6)
+        List(card, Enum.FillDirection.Vertical, 0)
+        return hdr, card
+    end
+
+    -- ── Componentes ──────────────────────────────────────────────────────────
+    local function Row(card, lbl, h, lo)
+        local iOrd = lo or (#card:GetChildren())
+        local r = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,h or 20), LayoutOrder=iOrd, Parent=card})
+        if lbl then
+            New("TextLabel", {BackgroundTransparency=1,
+                Position=UDim2.new(0,16,0,0), Size=UDim2.new(1,-18,1,0),
+                Text=lbl, TextColor3=T.White, Font=T.Font, TextSize=10,
+                TextXAlignment=Enum.TextXAlignment.Left, Parent=r})
+        end
+        return r
+    end
+
+    local Sec = {}
+
+    function Sec:AddToggle(c)
+        c = c or {}
+        local lo = #self.card:GetChildren()
+        local row = Row(self.card, c.Name, 20, lo)
+        local state = c.Default or false
+        local cb = c.Callback or function() end
+
+        local chk = New("Frame", {
+            BackgroundColor3 = state and T.Cyan or T.Elem,
+            Size=UDim2.new(0,11,0,11), Position=UDim2.new(0,2,0.5,-5.5),
+            ZIndex=2, Parent=row})
+        local chkStr = Stroke(chk, state and T.Cyan or T.Brd, 1)
+
+        local function Upd(s, ani)
+            local col = s and T.Cyan or T.Elem
+            local scol = s and T.Cyan or T.Brd
+            if ani then Tw(chk, {BackgroundColor3=col}, 0.12)
+            else chk.BackgroundColor3 = col end
+            if chkStr then chkStr.Color = scol end
+        end
+
+        local o = {}
+        function o:Set(v, silent) state=v Upd(v,true) if not silent then cb(v) end end
+        function o:Get() return state end
+        Cfg:Reg(c.Name or "Toggle", o)
+
+        local hit = New("TextButton", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,1,0), Text="", ZIndex=5, Parent=row})
+        hit.MouseButton1Click:Connect(function() state=not state Upd(state,true) cb(state) end)
+        return o
+    end
+
+    function Sec:AddSlider(c)
+        c = c or {}
+        local mn=c.Min or 0; local mx=c.Max or 100; local def=c.Default or mn
+        local cb=c.Callback or function() end; local sfx=c.Suffix or ""; local isInt=c.Integer or false
+        local lo = #self.card:GetChildren()
+        local row = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,34), LayoutOrder=lo, Parent=self.card})
+        New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,2,0,2),
+            Size=UDim2.new(0.6,-4,0,12), Text=c.Name or "Slider", TextColor3=T.Gray,
+            Font=T.Font, TextSize=9, TextXAlignment=Enum.TextXAlignment.Left, Parent=row})
+        local vLbl = New("TextLabel", {BackgroundTransparency=1,
+            Position=UDim2.new(0.6,0,0,2), Size=UDim2.new(0.4,-2,0,12),
+            Text=tostring(def)..sfx.."/"..tostring(mx)..sfx,
+            TextColor3=T.Gray, Font=T.Font, TextSize=9,
+            TextXAlignment=Enum.TextXAlignment.Right, Parent=row})
+        local track = New("Frame", {BackgroundColor3=T.Brd,
+            Position=UDim2.new(0,2,0,20), Size=UDim2.new(1,-4,0,4), Parent=row})
+        local pct = (mx~=mn) and (def-mn)/(mx-mn) or 0
+        local fill = New("Frame", {BackgroundColor3=T.Cyan,
+            Size=UDim2.new(pct,0,1,0), Parent=track})
+        local val=def; local dragging=false
+        local function Upd(v)
+            v=math.clamp(v,mn,mx); if isInt then v=math.round(v) end; val=v
+            local p=(mx~=mn) and (v-mn)/(mx-mn) or 0
+            fill.Size=UDim2.new(p,0,1,0)
+            vLbl.Text=tostring(isInt and v or math.round(v*10)/10)..sfx.."/"..tostring(mx)..sfx
+            cb(v)
+        end
+        track.InputBegan:Connect(function(i)
+            if i.UserInputType==Enum.UserInputType.MouseButton1 then
+                dragging=true
+                local p=math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1)
+                Upd(mn+(mx-mn)*p)
+            end
+        end)
+        local mc=UserInputService.InputChanged:Connect(function(i)
+            if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+                local p=math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1)
+                Upd(mn+(mx-mn)*p)
+            end
+        end)
+        local me=UserInputService.InputEnded:Connect(function(i)
+            if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end
+        end)
+        self.card.AncestryChanged:Connect(function()
+            if not self.card.Parent then mc:Disconnect(); me:Disconnect() end
+        end)
+        local o={}; function o:Set(v) Upd(v) end; function o:Get() return val end
+        if c.Name then Cfg:Reg(c.Name, o) end
+        return o
+    end
+
+    function Sec:AddDropdown(c)
+        c = c or {}
+        local lo = #self.card:GetChildren()
+        local row = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,34), LayoutOrder=lo, Parent=self.card})
+        New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,2,0,2),
+            Size=UDim2.new(1,-4,0,12), Text=c.Name or "Dropdown",
+            TextColor3=T.Gray, Font=T.Font, TextSize=9,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=row})
+        local opts=c.Options or {}; local sel=c.Default or opts[1]
+        local cb=c.Callback or function() end; local open=false
+        local db = New("TextButton", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,-4,0,18), Position=UDim2.new(0,2,0,14),
+            Text="", Parent=row})
+        Stroke(db, T.Brd, 1)
+        local selLbl = New("TextLabel", {BackgroundTransparency=1,
+            Position=UDim2.new(0,5,0,0), Size=UDim2.new(1,-18,1,0),
+            Text=tostring(sel or ""), TextColor3=T.White, Font=T.Font, TextSize=9,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=db})
+        New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(1,-16,0,0),
+            Size=UDim2.new(0,12,1,0), Text="v", TextColor3=T.Mute, Font=T.Font,
+            TextSize=8, Parent=db})
+        local dl = New("Frame", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,-4,0,0), Position=UDim2.new(0,2,1,2),
+            ZIndex=100, ClipsDescendants=true, Visible=false, Parent=db})
+        Stroke(dl, T.Brd, 1)
+        List(dl, Enum.FillDirection.Vertical, 0)
+        for i, opt in ipairs(opts) do
+            local ob = New("TextButton", {BackgroundTransparency=1,
+                Size=UDim2.new(1,0,0,18), Text="  "..tostring(opt),
+                TextColor3=(opt==sel) and T.Cyan or T.White,
+                Font=T.Font, TextSize=9, TextXAlignment=Enum.TextXAlignment.Left,
+                LayoutOrder=i, ZIndex=101, Parent=dl})
+            ob.MouseEnter:Connect(function() ob.TextColor3=T.Cyan end)
+            ob.MouseLeave:Connect(function() ob.TextColor3=(sel==opt) and T.Cyan or T.White end)
+            ob.MouseButton1Click:Connect(function()
+                sel=opt; selLbl.Text=tostring(opt); open=false
+                Tw(dl, {Size=UDim2.new(1,-4,0,0)}, 0.12)
+                task.delay(0.14, function() dl.Visible=false end)
+                cb(sel)
+            end)
+        end
+        local th = #opts * 18
+        db.MouseButton1Click:Connect(function()
+            open = not open
+            if open then
+                dl.Visible=true; dl.Size=UDim2.new(1,-4,0,0)
+                Tw(dl, {Size=UDim2.new(1,-4,0,th)}, 0.15)
+            else
+                Tw(dl, {Size=UDim2.new(1,-4,0,0)}, 0.12)
+                task.delay(0.14, function() dl.Visible=false end)
+            end
+        end)
+        local o={}; function o:Set(v) sel=v; selLbl.Text=tostring(v) end; function o:Get() return sel end
+        if c.Name then Cfg:Reg(c.Name, o) end
+        return o
+    end
+
+    function Sec:AddButton(c)
+        c = c or {}
+        local lo = #self.card:GetChildren()
+        local row = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,22), LayoutOrder=lo, Parent=self.card})
+        local b = New("TextButton", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,-4,0,18), Position=UDim2.new(0,2,0,2),
+            Text=c.Name or "Button", TextColor3=T.Cyan, Font=T.Font,
+            TextSize=10, Parent=row})
+        Stroke(b, T.Brd, 1)
+        b.MouseEnter:Connect(function() Tw(b,{BackgroundColor3=Color3.fromRGB(30,32,52)},0.1) end)
+        b.MouseLeave:Connect(function() Tw(b,{BackgroundColor3=T.Elem},0.1) end)
+        b.MouseButton1Click:Connect(function()
+            local f = c.Callback or function() end
+            f()
+        end)
+    end
+
+    function Sec:AddBind(c)
+        c = c or {}
+        local lo = #self.card:GetChildren()
+        local row = Row(self.card, c.Name, 20, lo)
+        local bkey=c.Default; local lst=false; local cb=c.Callback or function() end
+        local chip = New("TextButton", {BackgroundColor3=T.Elem,
+            Position=UDim2.new(1,-60,0.5,-8), Size=UDim2.new(0,56,0,16),
+            Text=bkey and bkey.Name or "None",
+            TextColor3=bkey and T.Cyan or T.Mute,
+            Font=T.Font, TextSize=9, ZIndex=3, Parent=row})
+        Stroke(chip, T.Brd, 1)
+        chip.MouseButton1Click:Connect(function()
+            if lst then return end; lst=true; chip.Text="..."; chip.TextColor3=T.Cyan
+            local con; con=UserInputService.InputBegan:Connect(function(i,gp)
+                if gp then return end
+                if i.UserInputType==Enum.UserInputType.Keyboard then
+                    if i.KeyCode==Enum.KeyCode.Escape then
+                        bkey=nil; chip.Text="None"; chip.TextColor3=T.Mute
+                    else
+                        bkey=i.KeyCode; chip.Text=i.KeyCode.Name; chip.TextColor3=T.Cyan
+                    end
+                    lst=false; con:Disconnect()
+                end
+            end)
+        end)
+        UserInputService.InputBegan:Connect(function(i,gp)
+            if not gp and bkey and i.KeyCode==bkey then cb() end
+        end)
+        local o={}
+        function o:Set(v) bkey=v; chip.Text=v and v.Name or "None"; chip.TextColor3=v and T.Cyan or T.Mute end
+        function o:Get() return bkey end
+        return o
+    end
+
+    function Sec:AddTextBox(c)
+        c = c or {}
+        local lo = #self.card:GetChildren()
+        local row = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,34), LayoutOrder=lo, Parent=self.card})
+        New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,2,0,2),
+            Size=UDim2.new(1,-4,0,12), Text=c.Name or "Input",
+            TextColor3=T.Gray, Font=T.Font, TextSize=9,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=row})
+        local cb=c.Callback or function() end
+        local box = New("TextBox", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,-4,0,18), Position=UDim2.new(0,2,0,14),
+            Text=c.Default or "", PlaceholderText=c.Placeholder or "...",
+            TextColor3=T.White, PlaceholderColor3=T.Mute,
+            Font=T.Font, TextSize=9, ClearTextOnFocus=false, Parent=row})
+        Stroke(box, T.Brd, 1)
+        box.Focused:Connect(function() Tw(box,{BackgroundColor3=Color3.fromRGB(30,32,52)},0.1) end)
+        box.FocusLost:Connect(function(enter)
+            Tw(box,{BackgroundColor3=T.Elem},0.1)
+            if enter then cb(box.Text) end
+        end)
+        local o={}; function o:Set(v) box.Text=tostring(v) end; function o:Get() return box.Text end
+        return o
+    end
+
+    function Sec:AddLabel(text)
+        local lo = #self.card:GetChildren()
+        local r = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,16), LayoutOrder=lo, Parent=self.card})
+        New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,4,0,0),
+            Size=UDim2.new(1,-6,1,0), Text=text, TextColor3=T.Gray,
+            Font=T.Font, TextSize=9, TextXAlignment=Enum.TextXAlignment.Left,
+            TextWrapped=true, Parent=r})
+    end
+
+    function Sec:AddSeparator(lbl)
+        local lo = #self.card:GetChildren()
+        local r = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,14), LayoutOrder=lo, Parent=self.card})
+        New("Frame", {BackgroundColor3=T.Brd, AnchorPoint=Vector2.new(0,0.5),
+            Position=UDim2.new(0,0,0.5,0), Size=UDim2.new(1,0,0,1), Parent=r})
+        if lbl then
+            local lb = New("Frame", {BackgroundColor3=T.Card,
+                AnchorPoint=Vector2.new(0,0.5), Position=UDim2.new(0,6,0.5,0),
+                Size=UDim2.new(0,0,0,12), AutomaticSize=Enum.AutomaticSize.X, Parent=r})
+            Pad(lb,0,4,0,4)
+            New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0,0,1,0),
+                AutomaticSize=Enum.AutomaticSize.X, Text=lbl,
+                TextColor3=T.Mute, Font=T.Font, TextSize=8, Parent=lb})
+        end
+    end
+
+    -- ── AddTab ────────────────────────────────────────────────────────────────
+    local Win = {}
+    local tabCount = 0
+
+    function Win:AddTab(tc)
+        tc = tc or {}
+        local name = tc.Name or ("Tab "..tabCount+1)
+        tabCount = tabCount + 1
+
+        local btn = MakeTabBtn(name, tabCount)
+        local page, lf, rf = MakePage()
+        table.insert(tabs, {btn=btn, page=page})
+        local idx = #tabs
+
+        btn.MouseButton1Click:Connect(function() ActivateTab(idx) end)
+        if #tabs == 1 then ActivateTab(1) end
+
+        local colIdx = 0
+        local Tab = {}
+
+        function Tab:AddSection(sname)
+            colIdx = colIdx + 1
+            local parent = (colIdx % 2 == 1) and lf or rf
+            local lo = #parent:GetChildren()
+            local _, card = MakeSec(sname, parent, lo)
+
+            local s = setmetatable({card=card}, {__index=Sec})
+            return s
+        end
+
+        return Tab
+    end
+
+    -- ── Aba Config embutida ───────────────────────────────────────────────────
+    do
+        tabCount = tabCount + 1
+        local btn = MakeTabBtn("Config", tabCount)
+        local page, lf = MakePage()
+        table.insert(tabs, {btn=btn, page=page})
+        local cfgIdx = #tabs
+
+        btn.MouseButton1Click:Connect(function() ActivateTab(cfgIdx) end)
+
+        -- card de config
+        local _, card = MakeSec("Config", lf, 0)
+
+        local inp = New("TextBox", {BackgroundColor3=T.Elem,
+            Size=UDim2.new(1,0,0,20), LayoutOrder=#card:GetChildren(),
+            Text="", PlaceholderText="nome do config...",
+            TextColor3=T.White, PlaceholderColor3=T.Mute,
+            Font=T.Font, TextSize=9, ClearTextOnFocus=false, Parent=card})
+        Stroke(inp, T.Brd, 1)
+        inp.Focused:Connect(function() Tw(inp,{BackgroundColor3=Color3.fromRGB(30,32,52)},0.1) end)
+        inp.FocusLost:Connect(function() Tw(inp,{BackgroundColor3=T.Elem},0.1) end)
+
+        -- botões save/load
+        local bRow = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,22), LayoutOrder=#card:GetChildren(), Parent=card})
+        List(bRow, Enum.FillDirection.Horizontal, 4)
+
+        local chipsF = New("Frame", {BackgroundTransparency=1,
+            Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+            LayoutOrder=#card:GetChildren()+1, Parent=card})
+        List(chipsF, Enum.FillDirection.Horizontal, 3)
+        New("UIPadding",{PaddingTop=UDim.new(0,4),Parent=chipsF})
+
+        local function RefreshChips()
+            for _, c in ipairs(chipsF:GetChildren()) do
+                if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end
+            end
+            local list = Cfg:List()
+            if #list == 0 then
+                New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),
+                    Text="Nenhum config.",TextColor3=T.Mute,Font=T.Font,TextSize=9,Parent=chipsF})
+                return
+            end
+            for _, nm in ipairs(list) do
+                local chip = New("Frame",{BackgroundColor3=T.Elem,
+                    Size=UDim2.new(0,0,0,18), AutomaticSize=Enum.AutomaticSize.X, Parent=chipsF})
+                Stroke(chip,T.Brd,1)
+                List(chip, Enum.FillDirection.Horizontal, 0)
+                local lb = New("TextButton",{BackgroundTransparency=1,
+                    Size=UDim2.new(0,0,1,0), AutomaticSize=Enum.AutomaticSize.X, Text="",Parent=chip})
+                Pad(lb,0,5,0,6)
+                New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),
+                    AutomaticSize=Enum.AutomaticSize.X, Text=nm,
+                    TextColor3=T.Cyan,Font=T.Font,TextSize=9,Parent=lb})
+                lb.MouseButton1Click:Connect(function()
+                    local ok=Cfg:Load(nm)
+                    Notifs:Send({Title="Config",Message=ok and "Carregado: "..nm or "Erro.",
+                        Type=ok and "success" or "error",Duration=3})
+                end)
+                local del = New("TextButton",{BackgroundTransparency=1,
+                    Size=UDim2.new(0,14,1,0),Text="x",TextColor3=T.Mute,Font=T.Font,TextSize=9,Parent=chip})
+                del.MouseEnter:Connect(function() del.TextColor3=T.Error end)
+                del.MouseLeave:Connect(function() del.TextColor3=T.Mute end)
+                del.MouseButton1Click:Connect(function()
+                    pcall(function() _df("BarbiUI/"..nm..".json") end)
+                    Notifs:Send({Title="Config",Message="Deletado: "..nm,Type="warning",Duration=2})
+                    RefreshChips()
+                end)
+            end
+        end
+
+        local function CBtn(lbl, lo_, cb_)
+            local b = New("TextButton",{BackgroundColor3=T.Elem,
+                Size=UDim2.new(0.5,-2,1,0), Text=lbl, TextColor3=T.Cyan,
+                Font=T.Font, TextSize=10, LayoutOrder=lo_, Parent=bRow})
+            Stroke(b, T.Brd, 1)
+            b.MouseEnter:Connect(function() Tw(b,{BackgroundColor3=Color3.fromRGB(30,32,52)},0.1) end)
+            b.MouseLeave:Connect(function() Tw(b,{BackgroundColor3=T.Elem},0.1) end)
+            b.MouseButton1Click:Connect(cb_)
+        end
+
+        CBtn("Save", 1, function()
+            local n = inp.Text
+            local ok = Cfg:Save(n)
+            Notifs:Send({Title="Config", Message=ok and "Salvo: "..n or "Erro.", Type=ok and "success" or "error", Duration=3})
+            RefreshChips()
+        end)
+        CBtn("Reset", 2, function()
+            local n = inp.Text
+            if n == "" then Notifs:Send({Title="Config",Message="Digite o nome.",Type="warning",Duration=2}) return end
+            pcall(function() _df("BarbiUI/"..n..".json") end)
+            local ok = Cfg:Save(n)
+            Notifs:Send({Title="Config",Message=ok and "Reset: "..n or "Erro.",Type=ok and "success" or "error",Duration=3})
+            RefreshChips()
+        end)
+
+        btn.MouseButton1Click:Connect(function() RefreshChips() end)
+    end
+
+    return Win
+end
+
+return BarbiUI
