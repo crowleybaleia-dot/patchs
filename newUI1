@@ -1,0 +1,919 @@
+--[[
+    BarbiUI v4
+    Black + Purple · Linoria Style · Tabs on top · Grid sections
+--]]
+
+local Players          = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService     = game:GetService("TweenService")
+local CoreGui          = game:GetService("CoreGui")
+local HttpService      = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse       = LocalPlayer:GetMouse()
+
+local _wf = rawget(_G,"writefile")  or getfenv().writefile  or writefile
+local _rf  = rawget(_G,"readfile")   or getfenv().readfile   or readfile
+local _lf  = rawget(_G,"listfiles")  or getfenv().listfiles  or listfiles
+local _mf  = rawget(_G,"makefolder") or getfenv().makefolder or makefolder
+local _df  = rawget(_G,"delfile")    or getfenv().delfile    or delfile
+local _if  = rawget(_G,"isfolder")   or getfenv().isfolder   or isfolder
+
+-- ── Theme ─────────────────────────────────────────────────────────────────────
+local T = {
+    Black       = Color3.fromRGB(0,   0,   0  ),
+    Black1      = Color3.fromRGB(10,  10,  10 ),
+    Black2      = Color3.fromRGB(17,  17,  17 ),
+    Black3      = Color3.fromRGB(26,  26,  26 ),
+    Brd1        = Color3.fromRGB(34,  34,  34 ),
+    Brd2        = Color3.fromRGB(51,  51,  51 ),
+    Purple      = Color3.fromRGB(136, 85,  255),
+    PurpleLight = Color3.fromRGB(170, 119, 255),
+    PurpleDark  = Color3.fromRGB(80,  40,  160),
+    TxtPri      = Color3.fromRGB(204, 204, 204),
+    TxtSec      = Color3.fromRGB(255, 255, 255),
+    TxtMute     = Color3.fromRGB(85,  85,  85 ),
+    TxtDim      = Color3.fromRGB(68,  68,  68 ),
+    Success     = Color3.fromRGB(52,  211, 153),
+    Warning     = Color3.fromRGB(251, 191, 36 ),
+    Error       = Color3.fromRGB(248, 113, 113),
+    Info        = Color3.fromRGB(170, 119, 255),
+    Mono        = Enum.Font.Code,
+    Body        = Enum.Font.Gotham,
+    Bold        = Enum.Font.GothamBold,
+    Semi        = Enum.Font.GothamSemibold,
+}
+
+-- ── Utilities ─────────────────────────────────────────────────────────────────
+local U = {}
+
+function U.Tw(obj, props, t, sty, dir)
+    if not obj or not obj.Parent then return end
+    pcall(function()
+        TweenService:Create(
+            obj,
+            TweenInfo.new(t or 0.2, sty or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
+            props
+        ):Play()
+    end)
+end
+
+function U.New(cls, props)
+    local ok, obj = pcall(Instance.new, cls)
+    if not ok then return nil end
+    pcall(function() if obj:IsA("GuiObject") then obj.BorderSizePixel = 0 end end)
+    for k, v in pairs(props or {}) do
+        if k ~= "Parent" then pcall(function() obj[k] = v end) end
+    end
+    if props and props.Parent then pcall(function() obj.Parent = props.Parent end) end
+    return obj
+end
+
+function U.Corner(p, r)
+    return U.New("UICorner", {CornerRadius = UDim.new(0, r or 2), Parent = p})
+end
+
+function U.Stroke(p, col, th, tr)
+    return U.New("UIStroke", {Color = col, Thickness = th or 1, Transparency = tr or 0, Parent = p})
+end
+
+function U.Pad(p, t, r, b, l)
+    return U.New("UIPadding", {
+        PaddingTop    = UDim.new(0, t or 6),
+        PaddingRight  = UDim.new(0, r or 6),
+        PaddingBottom = UDim.new(0, b or 6),
+        PaddingLeft   = UDim.new(0, l or 6),
+        Parent = p
+    })
+end
+
+function U.List(p, dir, pad, ha, va)
+    return U.New("UIListLayout", {
+        FillDirection       = dir or Enum.FillDirection.Vertical,
+        SortOrder           = Enum.SortOrder.LayoutOrder,
+        Padding             = UDim.new(0, pad or 0),
+        HorizontalAlignment = ha  or Enum.HorizontalAlignment.Left,
+        VerticalAlignment   = va  or Enum.VerticalAlignment.Top,
+        Parent = p
+    })
+end
+
+function U.GetTime()
+    local ok, t = pcall(os.time)
+    if not ok then return "00:00:00" end
+    local ok2, s = pcall(os.date, "%H:%M:%S", t)
+    return ok2 and s or "00:00:00"
+end
+
+function U.Ripple(btn, x, y)
+    if not btn or not btn.AbsolutePosition then return end
+    local r = U.New("Frame", {
+        BackgroundColor3       = Color3.new(1,1,1),
+        BackgroundTransparency = 0.85,
+        Position = UDim2.new(0, x - btn.AbsolutePosition.X - 6, 0, y - btn.AbsolutePosition.Y - 6),
+        Size     = UDim2.new(0, 12, 0, 12),
+        ZIndex   = (btn.ZIndex or 1) + 5,
+        ClipsDescendants = true,
+        Parent   = btn
+    })
+    if not r then return end
+    U.Corner(r, 999)
+    local s = btn.AbsoluteSize.X * 2.2
+    U.Tw(r, {Size=UDim2.new(0,s,0,s), Position=UDim2.new(0.5,-s/2,0.5,-s/2), BackgroundTransparency=1}, 0.4)
+    task.delay(0.45, function() if r and r.Parent then r:Destroy() end end)
+end
+
+-- ── Config System ─────────────────────────────────────────────────────────────
+local ConfigSystem = {_toggles = {}}
+
+function ConfigSystem:Register(name, obj)
+    self._toggles[name] = obj
+end
+
+function ConfigSystem:Save(cfgName)
+    if not cfgName or cfgName == "" then return false end
+    local data = {}
+    for name, obj in pairs(self._toggles) do
+        pcall(function() data[name] = obj:Get() end)
+    end
+    local ok = pcall(function()
+        if not _if("BarbiUI") then _mf("BarbiUI") end
+        _wf("BarbiUI/" .. cfgName .. ".json", HttpService:JSONEncode(data))
+    end)
+    return ok
+end
+
+function ConfigSystem:Load(cfgName)
+    if not cfgName or cfgName == "" then return false end
+    local ok = pcall(function()
+        local data = HttpService:JSONDecode(_rf("BarbiUI/" .. cfgName .. ".json"))
+        for name, val in pairs(data) do
+            if self._toggles[name] then self._toggles[name]:Set(val, false) end
+        end
+    end)
+    return ok
+end
+
+function ConfigSystem:List()
+    local list = {}
+    pcall(function()
+        if not _if("BarbiUI") then _mf("BarbiUI") return end
+        for _, f in ipairs(_lf("BarbiUI")) do
+            local n = f:match("([^/\\]+)%.json$")
+            if n then table.insert(list, n) end
+        end
+    end)
+    return list
+end
+
+-- ── Active Panel ──────────────────────────────────────────────────────────────
+local ActivePanel = {_rows={}, _count=0, _sg=nil, _list=nil, _cntLbl=nil}
+
+function ActivePanel:Init()
+    if self._sg and self._sg.Parent then return end
+    self._sg = U.New("ScreenGui", {
+        Name="BarbiUI_ActivePanel", ResetOnSpawn=false,
+        ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui
+    })
+    local panel = U.New("Frame", {
+        BackgroundColor3=T.Black, Size=UDim2.new(0,130,0,0),
+        Position=UDim2.new(0,6,0.5,-60),
+        AutomaticSize=Enum.AutomaticSize.Y, Parent=self._sg
+    })
+    U.Stroke(panel, T.Brd1, 1, 0)
+    U.List(panel)
+
+    local hdr = U.New("Frame", {BackgroundColor3=T.Black1, Size=UDim2.new(1,0,0,20), LayoutOrder=0, Parent=panel})
+    U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), Parent=hdr})
+    local dot = U.New("Frame", {BackgroundColor3=T.Purple, Size=UDim2.new(0,5,0,5), Position=UDim2.new(0,8,0.5,-2.5), Parent=hdr})
+    U.Corner(dot, 999)
+    task.spawn(function()
+        while dot and dot.Parent do
+            U.Tw(dot,{BackgroundTransparency=0.7},1) task.wait(1)
+            U.Tw(dot,{BackgroundTransparency=0},1)   task.wait(1)
+        end
+    end)
+    U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,20,0,0), Size=UDim2.new(1,-20,1,0), Text="ACTIVE", TextColor3=T.TxtMute, Font=T.Mono, TextSize=8, TextXAlignment=Enum.TextXAlignment.Left, Parent=hdr})
+
+    local listFrame = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, LayoutOrder=1, Parent=panel})
+    U.List(listFrame)
+    U.Pad(listFrame, 4, 6, 4, 6)
+    self._list = listFrame
+
+    local footer = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,18), LayoutOrder=2, Parent=panel})
+    U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Parent=footer})
+    self._cntLbl = U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,0,0,2), Size=UDim2.new(1,0,1,-2), Text="0 actives", TextColor3=T.TxtMute, Font=T.Mono, TextSize=7, Parent=footer})
+end
+
+function ActivePanel:Set(name, active)
+    self:Init()
+    if not self._rows[name] then
+        local row = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,18), Visible=false, Parent=self._list})
+        local d   = U.New("Frame", {BackgroundColor3=T.Purple, Size=UDim2.new(0,4,0,4), Position=UDim2.new(0,0,0.5,-2), Parent=row})
+        U.Corner(d, 999)
+        U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,10,0,0), Size=UDim2.new(1,-10,1,0), Text=name, TextColor3=T.TxtPri, Font=T.Mono, TextSize=8, TextXAlignment=Enum.TextXAlignment.Left, Parent=row})
+        self._rows[name] = row
+    end
+    local row = self._rows[name]
+    if active then
+        if not row.Visible then row.Visible=true self._count=self._count+1 end
+    else
+        if row.Visible then row.Visible=false self._count=math.max(0,self._count-1) end
+    end
+    if self._cntLbl then
+        self._cntLbl.Text = self._count .. " active" .. (self._count==1 and "" or "s")
+    end
+end
+
+-- ── Notifs ────────────────────────────────────────────────────────────────────
+local Notifs = {holder=nil, sg=nil, count=0}
+
+function Notifs:Init()
+    if self.sg and self.sg.Parent then return end
+    self.sg = U.New("ScreenGui", {
+        Name="BarbiUI_Notifs", ResetOnSpawn=false,
+        ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui
+    })
+    self.holder = U.New("Frame", {
+        BackgroundTransparency=1, Size=UDim2.new(0,260,1,0),
+        Position=UDim2.new(1,-268,0,0), Parent=self.sg
+    })
+    U.New("UIListLayout", {
+        SortOrder=Enum.SortOrder.LayoutOrder,
+        VerticalAlignment=Enum.VerticalAlignment.Bottom,
+        HorizontalAlignment=Enum.HorizontalAlignment.Right,
+        Padding=UDim.new(0,4), Parent=self.holder
+    })
+    U.Pad(self.holder, 0, 0, 12, 0)
+end
+
+function Notifs:Send(cfg)
+    self:Init()
+    cfg = cfg or {}
+    local title = cfg.Title    or "Notify"
+    local msg   = cfg.Message  or ""
+    local ntype = cfg.Type     or "info"
+    local dur   = cfg.Duration or 4
+    local cols  = {info=T.Info, success=T.Success, warning=T.Warning, error=T.Error}
+    local col   = cols[ntype] or T.Info
+    self.count  = self.count + 1
+
+    local pill = U.New("Frame", {
+        BackgroundColor3=T.Black1, Size=UDim2.new(0,0,0,24),
+        AutomaticSize=Enum.AutomaticSize.X, LayoutOrder=self.count,
+        ClipsDescendants=true, Parent=self.holder
+    })
+    U.Corner(pill, 999)
+    U.Stroke(pill, T.Brd1, 1, 0)
+    U.List(pill, Enum.FillDirection.Horizontal, 5, nil, Enum.VerticalAlignment.Center)
+    U.Pad(pill, 0, 10, 0, 8)
+
+    local dot = U.New("Frame", {BackgroundColor3=col, Size=UDim2.new(0,6,0,6), Parent=pill})
+    U.Corner(dot, 999)
+    U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0,0,1,0), AutomaticSize=Enum.AutomaticSize.X, Text=title, TextColor3=T.TxtSec, Font=T.Semi, TextSize=9, Parent=pill})
+    U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0,0,1,0), AutomaticSize=Enum.AutomaticSize.X, Text=msg, TextColor3=T.TxtMute, Font=T.Mono, TextSize=8, Parent=pill})
+
+    pill.Position = UDim2.new(1, 10, 0, 0)
+    U.Tw(pill, {Position=UDim2.new(0,0,0,0)}, 0.25, Enum.EasingStyle.Back)
+    task.delay(dur, function()
+        if not pill or not pill.Parent then return end
+        U.Tw(pill, {Position=UDim2.new(1,10,0,0), BackgroundTransparency=1}, 0.18)
+        task.delay(0.22, function() if pill and pill.Parent then pill:Destroy() end end)
+    end)
+end
+
+-- ── BarbiUI ───────────────────────────────────────────────────────────────────
+local BarbiUI = {}
+BarbiUI.__index = BarbiUI
+
+function BarbiUI:Notify(cfg) Notifs:Send(cfg) end
+
+function BarbiUI:CreateWindow(cfg)
+    cfg = cfg or {}
+    local title  = cfg.Title  or "BarbiUI"
+    local sub    = cfg.Sub    or ""
+    local key    = cfg.Key    or Enum.KeyCode.RightShift
+    local winW   = cfg.Width  or 560
+    local winH   = cfg.Height or 490
+    local titleH = 28
+    local tabH   = 26
+
+    ActivePanel:Init()
+
+    local sg = U.New("ScreenGui", {
+        Name="BarbiUI_"..title, ResetOnSpawn=false,
+        ZIndexBehavior=Enum.ZIndexBehavior.Global, IgnoreGuiInset=true, Parent=CoreGui
+    })
+
+    local win = U.New("Frame", {
+        Name="Window", BackgroundColor3=T.Black,
+        Size=UDim2.new(0,winW,0,0),
+        Position=UDim2.new(0.5,-winW/2, 0.5,-winH/2),
+        ClipsDescendants=false, Parent=sg
+    })
+    U.Stroke(win, T.Brd1, 1, 0)
+
+    local clip = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,1,0), ClipsDescendants=true, Parent=win})
+    U.New("Frame", {BackgroundColor3=T.Black, Size=UDim2.new(1,0,1,0), Parent=clip})
+
+    -- ── Topbar ────────────────────────────────────────────────────────────────
+    local tb = U.New("Frame", {BackgroundColor3=T.Black, Size=UDim2.new(1,0,0,titleH), ZIndex=10, Parent=clip})
+    U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), ZIndex=11, Parent=tb})
+
+    local titleStr = sub ~= "" and (title .. "  |  " .. sub) or title
+    U.New("TextLabel", {
+        BackgroundTransparency=1, Position=UDim2.new(0,10,0,0),
+        Size=UDim2.new(1,-70,1,0), Text=titleStr,
+        TextColor3=T.TxtPri, Font=T.Mono, TextSize=11,
+        TextXAlignment=Enum.TextXAlignment.Left, ZIndex=11, Parent=tb
+    })
+
+    local clk = U.New("TextLabel", {
+        BackgroundTransparency=1, Position=UDim2.new(0.5,-30,0,0),
+        Size=UDim2.new(0,60,1,0), Text=U.GetTime(),
+        TextColor3=T.TxtDim, Font=T.Mono, TextSize=8,
+        TextXAlignment=Enum.TextXAlignment.Center, ZIndex=11, Parent=tb
+    })
+    task.spawn(function() while clk and clk.Parent do clk.Text=U.GetTime() task.wait(1) end end)
+
+    local function CtrlBtn(sym, hcol, xOff, cb)
+        local b = U.New("TextButton", {
+            BackgroundColor3=T.Black1, Position=UDim2.new(1,xOff,0.5,-7),
+            Size=UDim2.new(0,14,0,14), Text=sym,
+            TextColor3=T.TxtMute, Font=T.Bold, TextSize=9, ZIndex=15, Parent=tb
+        })
+        U.Corner(b, 999)
+        U.Stroke(b, T.Brd1, 1, 0)
+        b.MouseEnter:Connect(function() U.Tw(b,{BackgroundColor3=hcol,TextColor3=Color3.new(1,1,1)},0.1) end)
+        b.MouseLeave:Connect(function() U.Tw(b,{BackgroundColor3=T.Black1,TextColor3=T.TxtMute},0.1) end)
+        b.MouseButton1Click:Connect(cb)
+        return b
+    end
+
+    CtrlBtn("×", T.Error, -10, function()
+        U.Tw(win,{Size=UDim2.new(0,winW,0,0)},0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In)
+        task.wait(0.22) sg:Destroy()
+    end)
+
+    local minimized = false
+    local savedH    = winH
+    CtrlBtn("−", T.Warning, -30, function()
+        minimized = not minimized
+        if minimized then
+            savedH = win.Size.Y.Offset > (titleH+tabH) and win.Size.Y.Offset or winH
+            U.Tw(win,{Size=UDim2.new(0,winW,0,titleH+tabH)},0.2,Enum.EasingStyle.Quart)
+        else
+            U.Tw(win,{Size=UDim2.new(0,winW,0,savedH)},0.3,Enum.EasingStyle.Quart)
+        end
+    end)
+
+    -- drag
+    local dragging, dStart, dSPos
+    tb.InputBegan:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then
+            dragging=true dStart=i.Position dSPos=win.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+            local d=i.Position-dStart
+            win.Position=UDim2.new(dSPos.X.Scale,dSPos.X.Offset+d.X,dSPos.Y.Scale,dSPos.Y.Offset+d.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end
+    end)
+
+    local vis=true
+    local currentKey=key
+    local function SetUIKey(k) currentKey=k end
+
+    UserInputService.InputBegan:Connect(function(i,gp)
+        if gp then return end
+        if i.KeyCode==currentKey then
+            vis=not vis
+            if vis then
+                win.Visible=true
+                win.Size=UDim2.new(0,winW,0,titleH)
+                U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.3,Enum.EasingStyle.Quart)
+            else
+                U.Tw(win,{Size=UDim2.new(0,winW,0,titleH)},0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In)
+                task.wait(0.22) win.Visible=false
+            end
+        end
+    end)
+
+    -- ── Tab Bar ───────────────────────────────────────────────────────────────
+    local tabBar = U.New("Frame", {
+        BackgroundColor3=T.Black, Size=UDim2.new(1,0,0,tabH),
+        Position=UDim2.new(0,0,0,titleH), ZIndex=9, Parent=clip
+    })
+    U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), ZIndex=10, Parent=tabBar})
+    U.List(tabBar, Enum.FillDirection.Horizontal, 0)
+
+    -- ── Content area ──────────────────────────────────────────────────────────
+    local contentY = titleH + tabH
+    local contentArea = U.New("Frame", {
+        BackgroundTransparency=1,
+        Position=UDim2.new(0,0,0,contentY),
+        Size=UDim2.new(1,0,1,-contentY-18),
+        ClipsDescendants=true, Parent=clip
+    })
+
+    -- ── Status bar ────────────────────────────────────────────────────────────
+    local statusBar = U.New("Frame", {
+        BackgroundColor3=T.Black, Size=UDim2.new(1,0,0,18),
+        Position=UDim2.new(0,0,1,-18), ZIndex=9, Parent=clip
+    })
+    U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,0,0), ZIndex=10, Parent=statusBar})
+
+    local function StatusDot(lbl, xOff)
+        local dot = U.New("Frame", {BackgroundColor3=T.Purple, Size=UDim2.new(0,4,0,4), Position=UDim2.new(0,xOff,0.5,-2), Parent=statusBar})
+        U.Corner(dot, 999)
+        task.spawn(function()
+            while dot and dot.Parent do
+                U.Tw(dot,{BackgroundTransparency=0.7},1) task.wait(1)
+                U.Tw(dot,{BackgroundTransparency=0},1)   task.wait(1)
+            end
+        end)
+        U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,xOff+8,0,0), Size=UDim2.new(0,60,1,0), Text=lbl, TextColor3=T.TxtDim, Font=T.Mono, TextSize=7, TextXAlignment=Enum.TextXAlignment.Left, Parent=statusBar})
+    end
+    StatusDot("INJECTED", 8)
+    StatusDot("BYPASSED", 72)
+
+    local activesLbl = U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(1,-80,0,0), Size=UDim2.new(0,76,1,0), Text="0 actives", TextColor3=T.TxtDim, Font=T.Mono, TextSize=7, TextXAlignment=Enum.TextXAlignment.Right, Parent=statusBar})
+    task.spawn(function()
+        while activesLbl and activesLbl.Parent do
+            activesLbl.Text = (ActivePanel._count or 0).." active"..(ActivePanel._count==1 and "" or "s")
+            task.wait(0.5)
+        end
+    end)
+
+    -- ── Win object ────────────────────────────────────────────────────────────
+    local Win = {_btns={}, _active=nil, _ord=0}
+
+    local function ActivateTab(data)
+        for _, it in ipairs(Win._btns) do
+            it.page.Visible=false
+            U.Tw(it.btn,{BackgroundColor3=T.Black,BackgroundTransparency=1},0.12)
+            U.Tw(it.lbl,{TextColor3=T.TxtMute},0.12)
+            if it.ul then U.Tw(it.ul,{BackgroundTransparency=1},0.12) end
+        end
+        data.page.Visible=true
+        Win._active=data.page
+        U.Tw(data.btn,{BackgroundColor3=T.Black2,BackgroundTransparency=0},0.12)
+        U.Tw(data.lbl,{TextColor3=T.TxtSec},0.12)
+        if data.ul then U.Tw(data.ul,{BackgroundTransparency=0},0.12) end
+    end
+
+    local function MakeTabBtn(name, badge)
+        Win._ord=Win._ord+1
+        local btn = U.New("TextButton", {
+            BackgroundColor3=T.Black, BackgroundTransparency=1,
+            Size=UDim2.new(0,0,1,0), AutomaticSize=Enum.AutomaticSize.X,
+            Text="", LayoutOrder=Win._ord, ClipsDescendants=false, Parent=tabBar
+        })
+        U.Stroke(btn, T.Brd1, 1, 0)
+        U.Pad(btn, 0, 14, 0, 14)
+
+        local lbl = U.New("TextLabel", {
+            BackgroundTransparency=1, Size=UDim2.new(0,0,1,0),
+            AutomaticSize=Enum.AutomaticSize.X, Text=name,
+            TextColor3=T.TxtMute, Font=T.Mono, TextSize=10, ZIndex=2, Parent=btn
+        })
+        local ul = U.New("Frame", {
+            BackgroundColor3=T.Purple, Size=UDim2.new(1,0,0,2),
+            AnchorPoint=Vector2.new(0,1), Position=UDim2.new(0,0,1,0),
+            BackgroundTransparency=1, ZIndex=3, Parent=btn
+        })
+
+        if badge then
+            local bf = U.New("Frame", {BackgroundColor3=T.PurpleDark, Position=UDim2.new(1,-2,0.5,-8), Size=UDim2.new(0,14,0,12), ZIndex=4, Parent=btn})
+            U.Corner(bf,3)
+            U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(1,0,1,0), Text=tostring(badge), TextColor3=T.PurpleLight, Font=T.Bold, TextSize=7, ZIndex=5, Parent=bf})
+        end
+
+        btn.MouseEnter:Connect(function()
+            if Win._active ~= btn then U.Tw(btn,{BackgroundTransparency=0.5,BackgroundColor3=T.Black2},0.1) end
+        end)
+        btn.MouseLeave:Connect(function()
+            local isActive=false
+            for _,it in ipairs(Win._btns) do if it.btn==btn and it.page==Win._active then isActive=true break end end
+            if not isActive then U.Tw(btn,{BackgroundTransparency=1},0.1) end
+        end)
+
+        return btn, lbl, ul
+    end
+
+    local function MakePage()
+        local page = U.New("ScrollingFrame", {
+            BackgroundTransparency=1, Size=UDim2.new(1,0,1,0),
+            ScrollBarThickness=2, ScrollBarImageColor3=T.Purple,
+            CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y,
+            Visible=false, Parent=contentArea
+        })
+        U.Pad(page, 4, 4, 4, 4)
+        U.List(page, nil, 0)
+        return page
+    end
+
+    local function MakeGrid(page)
+        local grid = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, LayoutOrder=0, Parent=page})
+        local colL = U.New("Frame", {BackgroundTransparency=1, Position=UDim2.new(0,0,0,0), Size=UDim2.new(0.5,-1,0,0), AutomaticSize=Enum.AutomaticSize.Y, Parent=grid})
+        U.List(colL, nil, 0)
+        local colR = U.New("Frame", {BackgroundTransparency=1, Position=UDim2.new(0.5,1,0,0), Size=UDim2.new(0.5,-1,0,0), AutomaticSize=Enum.AutomaticSize.Y, Parent=grid})
+        U.List(colR, nil, 0)
+        return colL, colR
+    end
+
+    local function MakeCard(parent, lo)
+        local card = U.New("Frame", {BackgroundColor3=T.Black, Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, LayoutOrder=lo or 1, Parent=parent})
+        U.Stroke(card, T.Brd1, 1, 0)
+        U.List(card, nil, 0)
+        return card
+    end
+
+    local function CardHeader(card, left, right)
+        local hdr = U.New("Frame", {BackgroundColor3=T.Black1, Size=UDim2.new(1,0,0,20), LayoutOrder=0, Parent=card})
+        U.New("Frame", {BackgroundColor3=T.Brd1, Size=UDim2.new(1,0,0,1), Position=UDim2.new(0,0,1,-1), Parent=hdr})
+        if right then
+            U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0,0,0,0), Size=UDim2.new(0.5,0,1,0), Text=left, TextColor3=T.Purple, Font=T.Mono, TextSize=9, TextXAlignment=Enum.TextXAlignment.Center, Parent=hdr})
+            U.New("TextLabel", {BackgroundTransparency=1, Position=UDim2.new(0.5,0,0,0), Size=UDim2.new(0.5,0,1,0), Text=right, TextColor3=T.Purple, Font=T.Mono, TextSize=9, TextXAlignment=Enum.TextXAlignment.Center, Parent=hdr})
+        else
+            U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(1,0,1,0), Text=left, TextColor3=T.Purple, Font=T.Mono, TextSize=9, TextXAlignment=Enum.TextXAlignment.Center, Parent=hdr})
+        end
+    end
+
+    -- ── Aba Config ────────────────────────────────────────────────────────────
+    do
+        local btn, lbl, ul = MakeTabBtn("Config", "cfg")
+        local page  = MakePage()
+        local colL, colR = MakeGrid(page)
+
+        local cfgCard = MakeCard(colL, 1)
+        CardHeader(cfgCard, "Config")
+
+        local inputWrap = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,28), LayoutOrder=1, Parent=cfgCard})
+        U.Pad(inputWrap, 4, 4, 0, 4)
+        local saveBox = U.New("TextBox", {
+            BackgroundColor3=T.Black1, Size=UDim2.new(1,0,1,0),
+            Text="", PlaceholderText="config name...",
+            TextColor3=T.TxtSec, PlaceholderColor3=T.TxtMute,
+            Font=T.Mono, TextSize=9, ClearTextOnFocus=false, Parent=inputWrap
+        })
+        U.Stroke(saveBox, T.Brd2, 1, 0)
+        saveBox.Focused:Connect(function() U.Tw(saveBox,{BackgroundColor3=T.Black2},0.1) end)
+        saveBox.FocusLost:Connect(function() U.Tw(saveBox,{BackgroundColor3=T.Black1},0.1) end)
+
+        local btnRow = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,28), LayoutOrder=2, Parent=cfgCard})
+        U.Pad(btnRow, 4, 4, 4, 4)
+
+        local bSave = U.New("TextButton", {BackgroundColor3=T.Black2, Position=UDim2.new(0,0,0,0), Size=UDim2.new(0.5,-2,1,0), Text="Save", TextColor3=T.Purple, Font=T.Mono, TextSize=9, ClipsDescendants=true, Parent=btnRow})
+        U.Stroke(bSave, T.Brd2, 1, 0)
+        bSave.MouseEnter:Connect(function() U.Tw(bSave,{BackgroundColor3=T.Black3},0.1) end)
+        bSave.MouseLeave:Connect(function() U.Tw(bSave,{BackgroundColor3=T.Black2},0.1) end)
+
+        local bReset = U.New("TextButton", {BackgroundColor3=T.Black2, Position=UDim2.new(0.5,2,0,0), Size=UDim2.new(0.5,-2,1,0), Text="Reset", TextColor3=T.TxtMute, Font=T.Mono, TextSize=9, ClipsDescendants=true, Parent=btnRow})
+        U.Stroke(bReset, T.Brd2, 1, 0)
+        bReset.MouseEnter:Connect(function() U.Tw(bReset,{BackgroundColor3=T.Black3},0.1) end)
+        bReset.MouseLeave:Connect(function() U.Tw(bReset,{BackgroundColor3=T.Black2},0.1) end)
+
+        local chipsWrap = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, LayoutOrder=3, Parent=cfgCard})
+        U.Pad(chipsWrap, 2, 4, 4, 4)
+        U.New("UIListLayout", {FillDirection=Enum.FillDirection.Horizontal, Wraps=true, Padding=UDim.new(0,4), Parent=chipsWrap})
+
+        local function RefreshChips()
+            for _, c in ipairs(chipsWrap:GetChildren()) do
+                if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end
+            end
+            local cfgs = ConfigSystem:List()
+            if #cfgs == 0 then
+                U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,16), Text="no configs saved", TextColor3=T.TxtDim, Font=T.Mono, TextSize=8, Parent=chipsWrap})
+                return
+            end
+            for _, name in ipairs(cfgs) do
+                local chip = U.New("TextButton", {BackgroundColor3=T.Black2, Size=UDim2.new(0,0,0,16), AutomaticSize=Enum.AutomaticSize.X, Text=name.." ×", TextColor3=T.Purple, Font=T.Mono, TextSize=8, ClipsDescendants=true, Parent=chipsWrap})
+                U.Pad(chip, 0, 5, 0, 5)
+                U.Stroke(chip, T.Brd2, 1, 0)
+                chip.MouseButton1Click:Connect(function()
+                    local mp = UserInputService:GetMouseLocation()
+                    local chipEnd = chip.AbsolutePosition.X + chip.AbsoluteSize.X
+                    if mp.X > chipEnd - 14 then
+                        pcall(function() _df("BarbiUI/"..name..".json") end)
+                        Notifs:Send({Title="Config", Message='Deleted "'..name..'"', Type="warning", Duration=2})
+                        RefreshChips()
+                    else
+                        local ok = ConfigSystem:Load(name)
+                        Notifs:Send({Title="Config", Message=ok and 'Loaded "'..name..'"' or "Error loading.", Type=ok and "success" or "error", Duration=3})
+                    end
+                end)
+            end
+        end
+
+        bSave.MouseButton1Click:Connect(function()
+            U.Ripple(bSave,Mouse.X,Mouse.Y)
+            local ok=ConfigSystem:Save(saveBox.Text)
+            Notifs:Send({Title="Config", Message=ok and 'Saved "'..saveBox.Text..'"' or "Error saving.", Type=ok and "success" or "error", Duration=3})
+            RefreshChips()
+        end)
+        bReset.MouseButton1Click:Connect(function()
+            U.Ripple(bReset,Mouse.X,Mouse.Y)
+            local n=saveBox.Text
+            if n=="" then Notifs:Send({Title="Config", Message="Type a name first.", Type="warning", Duration=2}) return end
+            pcall(function() _df("BarbiUI/"..n..".json") end)
+            local ok=ConfigSystem:Save(n)
+            Notifs:Send({Title="Config", Message=ok and 'Reset "'..n..'"' or "Error.", Type=ok and "success" or "error", Duration=3})
+            RefreshChips()
+        end)
+
+        -- UI Key card
+        local keyCard = MakeCard(colL, 2)
+        CardHeader(keyCard, "UI Key")
+        local keyRow = U.New("Frame", {BackgroundTransparency=1, Size=UDim2.new(1,0,0,28), LayoutOrder=1, Parent=keyCard})
+        U.Pad(keyRow, 4, 4, 4, 4)
+        U.New("TextLabel", {BackgroundTransparency=1, Size=UDim2.new(0.5,0,1,0), Text="Open / Close", TextColor3=T.TxtPri, Font=T.Mono, TextSize=9, TextXAlignment=Enum.TextXAlignment.Left, Parent=keyRow})
+        local keyLst=false
+        local keyChip = U.New("TextButton", {BackgroundColor3=T.Black2, Position=UDim2.new(0.5,0,0,0), Size=UDim2.new(0.5,0,1,0), Text=key.Name, TextColor3=T.Purple, Font=T.Mono, TextSize=9, ClipsDescendants=true, Parent=keyRow})
+        U.Stroke(keyChip, T.Brd2, 1, 0)
+        keyChip.MouseButton1Click:Connect(function()
+            if keyLst then return end keyLst=true keyChip.Text="..." keyChip.TextColor3=T.PurpleLight
+            local con; con=UserInputService.InputBegan:Connect(function(i,gp)
+                if gp then return end
+                if i.UserInputType==Enum.UserInputType.Keyboard then
+                    if i.KeyCode~=Enum.KeyCode.Escape then SetUIKey(i.KeyCode) keyChip.Text=i.KeyCode.Name
+                    else keyChip.Text=currentKey.Name end
+                    keyChip.TextColor3=T.Purple keyLst=false con:Disconnect()
+                end
+            end)
+        end)
+
+        local tabData = {btn=btn, lbl=lbl, ul=ul, page=page}
+        table.insert(Win._btns, tabData)
+        btn.MouseButton1Click:Connect(function() ActivateTab(tabData) RefreshChips() end)
+    end
+
+    -- ── AddTab ────────────────────────────────────────────────────────────────
+    function Win:AddTab(tc)
+        tc = tc or {}
+        local name  = tc.Name  or ("Tab "..#Win._btns+1)
+        local badge = tc.Badge
+
+        local btn, lbl, ul = MakeTabBtn(name, badge)
+        local page = MakePage()
+        local colL, colR = MakeGrid(page)
+        local colIdx = 0
+
+        local tabData = {btn=btn, lbl=lbl, ul=ul, page=page}
+        table.insert(Win._btns, tabData)
+
+        btn.MouseButton1Click:Connect(function() ActivateTab(tabData) end)
+
+        if #Win._btns == 1 then
+            task.defer(function() ActivateTab(tabData) end)
+        end
+
+        local Tab = {}
+
+        function Tab:AddSection(sc)
+            sc = sc or {}
+            local sname  = sc.Name  or "Section"
+            local sname2 = sc.Name2
+            colIdx = colIdx + 1
+            local col  = (colIdx%2==1) and colL or colR
+            local card = MakeCard(col, colIdx)
+            CardHeader(card, sname, sname2)
+
+            local Sec={} local iOrd=0
+
+            local function Row(h)
+                iOrd=iOrd+1
+                local r=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,h or 20),LayoutOrder=iOrd,Parent=card})
+                U.Pad(r,2,4,2,4)
+                return r
+            end
+
+            -- ── Toggle ────────────────────────────────────────────────────────
+            function Sec:AddToggle(c)
+                c=c or {}
+                local tName=c.Name or "Toggle"
+                local state=c.Default or false
+                local cb=c.Callback or function() end
+                local row=Row(20)
+
+                local box=U.New("Frame",{BackgroundColor3=state and T.Purple or T.Black2,Position=UDim2.new(0,0,0.5,-5),Size=UDim2.new(0,10,0,10),Parent=row})
+                U.Corner(box,1)
+                local bstr=U.Stroke(box,state and T.Purple or T.Brd2,1,0)
+
+                U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,16,0,0),Size=UDim2.new(1,-40,1,0),Text=tName,TextColor3=T.TxtPri,Font=T.Mono,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=row})
+
+                -- color picker slot direito
+                local cslot=U.New("Frame",{BackgroundColor3=T.Black2,Position=UDim2.new(1,-26,0.5,-6),Size=UDim2.new(0,24,0,12),Parent=row})
+                U.Stroke(cslot,T.Brd2,1,0)
+
+                local o={}
+                local function Upd(s,ani)
+                    if ani then U.Tw(box,{BackgroundColor3=s and T.Purple or T.Black2},0.12)
+                    else box.BackgroundColor3=s and T.Purple or T.Black2 end
+                    pcall(function() box:FindFirstChildOfClass("UIStroke"):Destroy() end)
+                    U.Stroke(box,s and T.Purple or T.Brd2,1,0)
+                    ActivePanel:Set(tName,s)
+                end
+                function o:Set(v,silent) state=v Upd(v,true) if not silent then cb(v) end end
+                function o:Get() return state end
+                Upd(state,false)
+                ConfigSystem:Register(tName,o)
+
+                local hit=U.New("TextButton",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text="",ZIndex=5,Parent=row})
+                hit.MouseButton1Click:Connect(function() state=not state Upd(state,true) cb(state) end)
+                return o
+            end
+
+            -- ── Slider ────────────────────────────────────────────────────────
+            function Sec:AddSlider(c)
+                c=c or {}
+                local mn=c.Min or 0 local mx=c.Max or 100 local def=c.Default or mn
+                local cb=c.Callback or function() end local sfx=c.Suffix or "" local isInt=c.Integer or false
+                iOrd=iOrd+1
+                local wrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,34),LayoutOrder=iOrd,Parent=card})
+                U.Pad(wrap,2,4,2,4)
+
+                local lblRow=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),Parent=wrap})
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0.6,0,1,0),Text=c.Name or "Slider",TextColor3=T.TxtMute,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=lblRow})
+                local vLbl=U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0.6,0,0,0),Size=UDim2.new(0.4,0,1,0),TextColor3=T.Purple,Font=T.Mono,TextSize=8,TextXAlignment=Enum.TextXAlignment.Right,Parent=lblRow})
+
+                local track=U.New("TextButton",{BackgroundColor3=T.Black2,Position=UDim2.new(0,0,0,16),Size=UDim2.new(1,0,0,5),Text="",Parent=wrap})
+                U.Corner(track,1)
+                local val=def local pct0=(mx~=mn) and (def-mn)/(mx-mn) or 0
+                local fillB=U.New("Frame",{BackgroundColor3=T.Purple,Size=UDim2.new(pct0,0,1,0),Parent=track})
+                U.Corner(fillB,1)
+
+                local function Fmt(v) return tostring(isInt and v or math.round(v*10)/10) end
+                vLbl.Text=Fmt(def).."/"..tostring(mx)..sfx
+
+                local function UpdS(v)
+                    v=math.clamp(v,mn,mx) if isInt then v=math.round(v) end val=v
+                    local p=(mx~=mn) and (v-mn)/(mx-mn) or 0
+                    fillB.Size=UDim2.new(p,0,1,0) vLbl.Text=Fmt(v).."/"..tostring(mx)..sfx cb(v)
+                end
+
+                local drag=false local mvC,edC
+                track.InputBegan:Connect(function(i)
+                    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+                        drag=true UpdS(mn+(mx-mn)*math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1))
+                    end
+                end)
+                mvC=UserInputService.InputChanged:Connect(function(i)
+                    if drag and i.UserInputType==Enum.UserInputType.MouseMovement then
+                        UpdS(mn+(mx-mn)*math.clamp((i.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1))
+                    end
+                end)
+                edC=UserInputService.InputEnded:Connect(function(i)
+                    if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end
+                end)
+                card.AncestryChanged:Connect(function()
+                    if not card.Parent then
+                        if mvC then mvC:Disconnect() end if edC then edC:Disconnect() end
+                    end
+                end)
+
+                local o={} function o:Set(v) UpdS(v) end function o:Get() return val end
+                if c.Name then ConfigSystem:Register(c.Name,o) end
+                return o
+            end
+
+            -- ── Keybind ───────────────────────────────────────────────────────
+            function Sec:AddBind(c)
+                c=c or {}
+                local bkey=c.Default local lst=false local cb=c.Callback or function() end local toggle=c.Toggle
+                local row=Row(20)
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0.5,0,1,0),Text=c.Name or "Keybind",TextColor3=T.TxtPri,Font=T.Mono,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=row})
+                local chip=U.New("TextButton",{BackgroundColor3=T.Black2,Position=UDim2.new(0.5,0,0.5,-9),Size=UDim2.new(0.5,0,0,18),Text=bkey and bkey.Name or "None",TextColor3=bkey and T.Purple or T.TxtMute,Font=T.Mono,TextSize=8,ClipsDescendants=true,Parent=row})
+                U.Stroke(chip,T.Brd2,1,0)
+                chip.MouseButton1Click:Connect(function()
+                    if lst then return end lst=true chip.Text="..." chip.TextColor3=T.PurpleLight
+                    local con; con=UserInputService.InputBegan:Connect(function(i,gp)
+                        if gp then return end
+                        if i.UserInputType==Enum.UserInputType.Keyboard then
+                            if i.KeyCode==Enum.KeyCode.Escape then bkey=nil chip.Text="None" chip.TextColor3=T.TxtMute
+                            else bkey=i.KeyCode chip.Text=i.KeyCode.Name chip.TextColor3=T.Purple end
+                            lst=false con:Disconnect()
+                        end
+                    end)
+                end)
+                UserInputService.InputBegan:Connect(function(i,gp)
+                    if not gp and bkey and i.KeyCode==bkey then cb() if toggle then toggle:Set(not toggle:Get(),false) end end
+                end)
+                local o={} function o:Set(v) bkey=v chip.Text=v and v.Name or "None" chip.TextColor3=v and T.Purple or T.TxtMute end function o:Get() return bkey end
+                if c.Name then ConfigSystem:Register(c.Name,{Get=function() return bkey and bkey.Name or "None" end,Set=function(_,v) local kc=v~="None" and Enum.KeyCode[v] or nil o:Set(kc) end}) end
+                return o
+            end
+
+            -- ── Dropdown ──────────────────────────────────────────────────────
+            function Sec:AddDropdown(c)
+                c=c or {}
+                local opts=c.Options or {} local sel=c.Default or opts[1] local cb=c.Callback or function() end local open=false
+                iOrd=iOrd+1
+                local wrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=iOrd,Parent=card})
+                U.Pad(wrap,2,4,2,4)
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),Text=c.Name or "Dropdown",TextColor3=T.TxtMute,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=wrap})
+                local db=U.New("TextButton",{BackgroundColor3=T.Black1,Position=UDim2.new(0,0,0,16),Size=UDim2.new(1,0,0,20),Text="",ClipsDescendants=false,Parent=wrap})
+                U.Stroke(db,T.Brd2,1,0)
+                local selLbl=U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,6,0,0),Size=UDim2.new(1,-20,1,0),Text=tostring(sel or ""),TextColor3=T.TxtPri,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=db})
+                local chev=U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(1,-16,0,0),Size=UDim2.new(0,14,1,0),Text="▾",TextColor3=T.Purple,Font=T.Mono,TextSize=10,Parent=db})
+                local dl=U.New("Frame",{BackgroundColor3=T.Black1,Position=UDim2.new(0,0,1,0),Size=UDim2.new(1,0,0,0),ZIndex=100,ClipsDescendants=true,Visible=false,Parent=db})
+                U.Stroke(dl,T.Brd2,1,0) U.List(dl)
+                for i,opt in ipairs(opts) do
+                    local ob=U.New("TextButton",{BackgroundColor3=T.Black2,BackgroundTransparency=(opt==sel) and 0 or 1,Size=UDim2.new(1,0,0,22),Text="",LayoutOrder=i,ZIndex=101,Parent=dl})
+                    U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,6,0,0),Size=UDim2.new(1,-6,1,0),Text=tostring(opt),TextColor3=(opt==sel) and T.Purple or T.TxtPri,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=102,Parent=ob})
+                    ob.MouseEnter:Connect(function() U.Tw(ob,{BackgroundTransparency=0,BackgroundColor3=T.Black2},0.08) end)
+                    ob.MouseLeave:Connect(function() U.Tw(ob,{BackgroundTransparency=opt==sel and 0 or 1},0.08) end)
+                    ob.MouseButton1Click:Connect(function()
+                        sel=opt selLbl.Text=tostring(opt) open=false
+                        U.Tw(chev,{Rotation=0},0.1) U.Tw(dl,{Size=UDim2.new(1,0,0,0)},0.15)
+                        task.wait(0.18) if dl and dl.Parent then dl.Visible=false end cb(sel)
+                    end)
+                end
+                local th=#opts*22
+                local function OpenDD() open=true dl.Visible=true dl.Size=UDim2.new(1,0,0,0) U.Tw(dl,{Size=UDim2.new(1,0,0,th)},0.2,Enum.EasingStyle.Quart) U.Tw(chev,{Rotation=180},0.1) end
+                local function CloseDD() open=false U.Tw(chev,{Rotation=0},0.1) U.Tw(dl,{Size=UDim2.new(1,0,0,0)},0.15) task.wait(0.18) if dl and dl.Parent then dl.Visible=false end end
+                db.MouseButton1Click:Connect(function() if open then task.spawn(CloseDD) else OpenDD() end end)
+                -- FIX: fecha fora
+                UserInputService.InputBegan:Connect(function(i)
+                    if not open or i.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+                    local mp=i.Position
+                    local function inB(obj) if not obj or not obj.Parent then return false end local p,s=obj.AbsolutePosition,obj.AbsoluteSize return mp.X>=p.X and mp.X<=p.X+s.X and mp.Y>=p.Y and mp.Y<=p.Y+s.Y end
+                    if not inB(db) and not inB(dl) then task.defer(CloseDD) end
+                end)
+                local o={} function o:Set(v) sel=v selLbl.Text=tostring(v) end function o:Get() return sel end
+                if c.Name then ConfigSystem:Register(c.Name,o) end
+                return o
+            end
+
+            -- ── TextBox ───────────────────────────────────────────────────────
+            function Sec:AddTextBox(c)
+                c=c or {} local cb=c.Callback or function() end local numOnly=c.NumberOnly or false
+                iOrd=iOrd+1
+                local wrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,LayoutOrder=iOrd,Parent=card})
+                U.Pad(wrap,2,4,2,4)
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),Text=c.Name or "Input",TextColor3=T.TxtMute,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=wrap})
+                local box=U.New("TextBox",{BackgroundColor3=T.Black1,Position=UDim2.new(0,0,0,16),Size=UDim2.new(1,0,0,20),Text=c.Default or "",PlaceholderText=c.Placeholder or "...",TextColor3=T.TxtSec,PlaceholderColor3=T.TxtMute,Font=T.Mono,TextSize=9,ClearTextOnFocus=false,Parent=wrap})
+                U.Stroke(box,T.Brd2,1,0)
+                box.Focused:Connect(function() U.Tw(box,{BackgroundColor3=T.Black2},0.1) end)
+                box.FocusLost:Connect(function(enter) U.Tw(box,{BackgroundColor3=T.Black1},0.1) if numOnly and not tonumber(box.Text) then box.Text="" end if enter then cb(box.Text) end end)
+                box:GetPropertyChangedSignal("Text"):Connect(function() if numOnly then box.Text=box.Text:gsub("[^%d%.%-]","") end end)
+                local o={} function o:Set(v) box.Text=tostring(v) end function o:Get() return box.Text end
+                return o
+            end
+
+            -- ── Button ────────────────────────────────────────────────────────
+            function Sec:AddButton(c)
+                c=c or {} iOrd=iOrd+1
+                local wrap=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,28),LayoutOrder=iOrd,Parent=card})
+                U.Pad(wrap,4,4,4,4)
+                local b=U.New("TextButton",{BackgroundColor3=T.Black2,Size=UDim2.new(1,0,1,0),Text=c.Name or "Button",TextColor3=T.Purple,Font=T.Mono,TextSize=9,ClipsDescendants=true,Parent=wrap})
+                U.Stroke(b,T.Brd2,1,0)
+                b.MouseEnter:Connect(function() U.Tw(b,{BackgroundColor3=T.Black3},0.1) end)
+                b.MouseLeave:Connect(function() U.Tw(b,{BackgroundColor3=T.Black2},0.1) end)
+                b.MouseButton1Click:Connect(function() U.Ripple(b,Mouse.X,Mouse.Y) ;(c.Callback or function()end)() end)
+                if c.Description then
+                    iOrd=iOrd+1
+                    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),LayoutOrder=iOrd,Text=c.Description,TextColor3=T.TxtDim,Font=T.Mono,TextSize=8,TextXAlignment=Enum.TextXAlignment.Center,Parent=card})
+                end
+            end
+
+            -- ── Label ─────────────────────────────────────────────────────────
+            function Sec:AddLabel(text)
+                iOrd=iOrd+1
+                local r=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,18),LayoutOrder=iOrd,Parent=card})
+                U.Pad(r,0,4,0,4)
+                U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),Text=text,TextColor3=T.TxtMute,Font=T.Mono,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true,Parent=r})
+            end
+
+            -- ── Separator ─────────────────────────────────────────────────────
+            function Sec:AddSeparator(lbl)
+                iOrd=iOrd+1
+                local r=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,14),LayoutOrder=iOrd,Parent=card})
+                U.Pad(r,0,4,0,4)
+                U.New("Frame",{BackgroundColor3=T.Brd1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,0,0.5,0),Size=UDim2.new(1,0,0,1),Parent=r})
+                if lbl then
+                    local lb=U.New("Frame",{BackgroundColor3=T.Black,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,4,0.5,0),Size=UDim2.new(0,0,0,10),AutomaticSize=Enum.AutomaticSize.X,Parent=r})
+                    U.Pad(lb,0,3,0,3)
+                    U.New("TextLabel",{BackgroundTransparency=1,Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,Text=lbl,TextColor3=T.TxtDim,Font=T.Mono,TextSize=7,Parent=lb})
+                end
+            end
+
+            return Sec
+        end
+
+        return Tab
+    end
+
+    -- abertura
+    win.Size=UDim2.new(0,winW,0,0)
+    task.wait(0.04)
+    U.Tw(win,{Size=UDim2.new(0,winW,0,winH)},0.28,Enum.EasingStyle.Quart)
+
+    return Win
+end
+
+return BarbiUI
