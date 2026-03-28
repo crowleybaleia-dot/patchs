@@ -3004,9 +3004,7 @@ function Library:CreateWindow(...)
         Parent = Outer;
     });
 
-    Library:AddToRegistry(OuterStroke, {
-        Color = 'AccentColor';
-    });
+    Library:AddToRegistry(OuterStroke, { Color = 'AccentColor' });
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -3032,7 +3030,7 @@ function Library:CreateWindow(...)
         TextSize = 13;
         TextColor3 = Color3.new(1, 1, 1);
         TextXAlignment = Enum.TextXAlignment.Left;
-        ZIndex = 1;
+        ZIndex = 2;
         Parent = Inner;
     });
 
@@ -3046,6 +3044,53 @@ function Library:CreateWindow(...)
     });
 
     Library:AddToRegistry(WindowLabel, { TextColor3 = 'FontColor' });
+
+    -- Kanji shimmer subliminar sobre o titulo
+    local KanjiLabel = Library:CreateLabel({
+        Position = UDim2.new(0, 7, 0, 0);
+        Size = UDim2.new(1, -14, 0, 23);
+        Text = '';
+        TextSize = 13;
+        TextColor3 = Library.AccentColor;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        TextTransparency = 0.6;
+        ZIndex = 3;
+        Parent = Inner;
+    });
+
+    Library:AddToRegistry(KanjiLabel, { TextColor3 = 'AccentColor' });
+
+    do
+        local Kanjis = {
+            '龍','剣','炎','闇','光','魂','幻','鬼','神','武',
+            '影','嵐','刃','霊','天','滅','罪','夢','狂','獄',
+            '絶','崩','壊','死','命','星','邪','鎖','牙','爪',
+        };
+        local RealTitle = Config.Title or '';
+        local Length = utf8.len(RealTitle) or #RealTitle;
+        local Timer = 0;
+        local Interval = 0.18; -- devagar / subliminar
+
+        Library:GiveSignal(RenderStepped:Connect(function(Delta)
+            if not Inner.Parent then return end;
+
+            Timer = Timer + Delta;
+            if Timer < Interval then return end;
+            Timer = 0;
+
+            local Result = {};
+            for i = 1, Length do
+                if math.random() < 0.15 then
+                    -- ~15% das letras viram kanji num dado frame
+                    table.insert(Result, Kanjis[math.random(#Kanjis)]);
+                else
+                    table.insert(Result, ' ');
+                end;
+            end;
+
+            KanjiLabel.Text = table.concat(Result);
+        end));
+    end;
 
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
