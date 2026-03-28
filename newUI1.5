@@ -168,7 +168,7 @@ function BarbiUI:CreateWindow(cfg)
 
     -- janela principal
     local win=U.New("Frame",{Name="Window",BackgroundColor3=T.WinBg,BackgroundTransparency=0,
-        Size=UDim2.new(0,winW,0,0),Position=UDim2.new(0.5,-winW/2,0.5,-winH/2),ClipsDescendants=false,Parent=sg})
+        Size=UDim2.new(0,winW,0,0),Position=UDim2.new(0.5,-winW/2,0.5,-winH/2),ClipsDescendants=true,Parent=sg})
     U.Stroke(win,T.BrdWin,1,0)
 
     -- ── Titlebar ──────────────────────────────────────────────────────────────
@@ -423,8 +423,9 @@ function BarbiUI:CreateWindow(cfg)
                 iOrd=iOrd+1
                 local r=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,h or 20),LayoutOrder=iOrd,Parent=card})
                 if lbl then
-                    U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,2,0,0),
-                        Size=UDim2.new(0.65,-4,1,0),Text=lbl,TextColor3=T.TxtPri,
+                    -- começa em x=16 para não sobrepor o checkbox de 11px + 3px gap
+                    U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,16,0,0),
+                        Size=UDim2.new(1,-18,1,0),Text=lbl,TextColor3=T.TxtPri,
                         Font=T.FntMono,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=r})
                 end
                 return r
@@ -437,29 +438,21 @@ function BarbiUI:CreateWindow(cfg)
                 local state=c.Default or false
                 local cb=c.Callback or function() end
 
-                -- checkbox (quadrado cyan)
+                -- só o quadradinho esquerdo (= o toggle, igual ao Linoria)
                 local chk=U.New("Frame",{BackgroundColor3=state and T.Accent or T.Elem,
-                    Size=UDim2.new(0,11,0,11),Position=UDim2.new(0,-1,0.5,-5.5),ZIndex=2,Parent=row})
-                U.Stroke(chk, state and T.Accent or T.BrdElem, 1, 0)
-
-                -- toggle pill (roxo) à direita
-                local togBg=U.New("Frame",{BackgroundColor3=state and T.Purple or Color3.fromRGB(42,45,66),
-                    Size=UDim2.new(0,30,0,13),Position=UDim2.new(1,-32,0.5,-6.5),ZIndex=2,Parent=row})
-                local togThumb=U.New("Frame",{BackgroundColor3=Color3.new(1,1,1),
-                    Size=UDim2.new(0,9,0,9),Position=state and UDim2.new(1,-11,0.5,-4.5) or UDim2.new(0,2,0.5,-4.5),
-                    ZIndex=3,Parent=togBg}) U.Corner(togThumb,999)
+                    Size=UDim2.new(0,11,0,11),Position=UDim2.new(0,2,0.5,-5.5),ZIndex=2,Parent=row})
+                local chkStroke=U.Stroke(chk, state and T.Accent or T.BrdElem, 1, 0)
 
                 local o={}
                 local function Upd(s,ani)
+                    local col = s and T.Accent or T.Elem
+                    local scol = s and T.Accent or T.BrdElem
                     if ani then
-                        U.Tw(chk,{BackgroundColor3=s and T.Accent or T.Elem},0.15)
-                        U.Tw(togBg,{BackgroundColor3=s and T.Purple or Color3.fromRGB(42,45,66)},0.15)
-                        U.Tw(togThumb,{Position=s and UDim2.new(1,-11,0.5,-4.5) or UDim2.new(0,2,0.5,-4.5)},0.15)
+                        U.Tw(chk,{BackgroundColor3=col},0.15)
                     else
-                        chk.BackgroundColor3=s and T.Accent or T.Elem
-                        togBg.BackgroundColor3=s and T.Purple or Color3.fromRGB(42,45,66)
-                        togThumb.Position=s and UDim2.new(1,-11,0.5,-4.5) or UDim2.new(0,2,0.5,-4.5)
+                        chk.BackgroundColor3=col
                     end
+                    if chkStroke then chkStroke.Color=scol end
                 end
                 function o:Set(v,silent) state=v Upd(v,true) if not silent then cb(v) end end
                 function o:Get() return state end
@@ -617,7 +610,7 @@ function BarbiUI:CreateWindow(cfg)
             function Sec:AddLabel(text)
                 iOrd=iOrd+1
                 local r=U.New("Frame",{BackgroundTransparency=1,Size=UDim2.new(1,0,0,16),LayoutOrder=iOrd,Parent=card})
-                U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,2,0,0),Size=UDim2.new(1,-4,1,0),
+                U.New("TextLabel",{BackgroundTransparency=1,Position=UDim2.new(0,4,0,0),Size=UDim2.new(1,-6,1,0),
                     Text=text,TextColor3=T.TxtSec,Font=T.FntMono,TextSize=9,
                     TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true,Parent=r})
             end
