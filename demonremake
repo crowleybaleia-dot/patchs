@@ -1,0 +1,279 @@
+-- ================================================
+--   DEMO SCRIPT - UI Library Test (v2)
+-- ================================================
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/remakelinoria122'))()
+
+Library.NotifyOnError = true
+
+-- ================================================
+--  JANELA PRINCIPAL
+-- ================================================
+
+local Window = Library:CreateWindow({
+    Title        = 'Demo UI',
+    Center       = true,
+    AutoShow     = true,
+    MenuFadeTime = 0.2,
+    TabPadding   = 8,
+    Size         = UDim2.fromOffset(550, 600),
+})
+
+-- ================================================
+--  ABA 1: BÁSICO
+-- ================================================
+
+local TabBasico  = Window:AddTab('Básico')
+local GrupoEsq   = TabBasico:AddLeftGroupbox('Toggles & Botões')
+local GrupoDir   = TabBasico:AddRightGroupbox('Sliders & Input')
+
+GrupoEsq:AddToggle('MainToggle', {
+    Text     = 'Toggle Principal',
+    Default  = false,
+    Tooltip  = 'Liga/desliga a feature principal',
+    Callback = function(Value)
+        print('[Demo] Toggle Principal:', Value)
+    end,
+})
+
+GrupoEsq:AddToggle('SubToggle', {
+    Text     = 'Sub-Toggle',
+    Default  = false,
+    Callback = function(Value)
+        print('[Demo] Sub-Toggle:', Value)
+    end,
+})
+
+GrupoEsq:AddButton({
+    Text = 'Clique aqui!',
+    Func = function()
+        print('[Demo] Botão clicado!')
+        Library:Notify('Botão funcionando! ✅', 2)
+    end,
+    DoubleClick = false,
+})
+
+GrupoEsq:AddButton({
+    Text        = 'Double-click para executar',
+    Func        = function()
+        print('[Demo] Double click!')
+        Library:Notify('Double click confirmado! ✅', 2)
+    end,
+    DoubleClick = true,
+    Tooltip     = 'Clique duas vezes para ativar',
+})
+
+GrupoEsq:AddDivider()
+GrupoEsq:AddLabel('Linha separadora acima ☝')
+
+GrupoDir:AddSlider('SpeedSlider', {
+    Text     = 'Velocidade',
+    Min      = 0,
+    Max      = 100,
+    Default  = 16,
+    Suffix   = ' studs/s',
+    Rounding = 0,
+    Callback = function(Value)
+        print('[Demo] Velocidade:', Value)
+    end,
+})
+
+GrupoDir:AddSlider('SensSlider', {
+    Text     = 'Sensibilidade',
+    Min      = 0.1,
+    Max      = 5.0,
+    Default  = 1.0,
+    Suffix   = 'x',
+    Rounding = 1,
+    Callback = function(Value)
+        print('[Demo] Sensibilidade:', Value)
+    end,
+})
+
+GrupoDir:AddInput('NomeInput', {
+    Text        = 'Nome do Player',
+    Default     = '',
+    Numeric     = false,
+    Finished    = false,
+    Placeholder = 'Digite aqui...',
+    Tooltip     = 'Digite o nome do player alvo',
+    Callback    = function(Value)
+        print('[Demo] Input:', Value)
+    end,
+})
+
+GrupoDir:AddInput('NumInput', {
+    Text        = 'Número',
+    Default     = '0',
+    Numeric     = true,
+    Finished    = true,
+    Placeholder = '0',
+    Callback    = function(Value)
+        print('[Demo] Número:', Value)
+    end,
+})
+
+-- ================================================
+--  ABA 2: SELEÇÃO
+-- ================================================
+
+local TabSelecao = Window:AddTab('Seleção')
+local GrupoEsq2  = TabSelecao:AddLeftGroupbox('Dropdowns')
+local GrupoDir2  = TabSelecao:AddRightGroupbox('Cores & Teclas')
+
+GrupoEsq2:AddDropdown('ModoDropdown', {
+    Text     = 'Modo de Ataque',
+    Values   = { 'Silent Aim', 'Prediction', 'Teleport', 'Nenhum' },
+    Default  = 'Nenhum',
+    Tooltip  = 'Escolha o modo',
+    Callback = function(Value)
+        print('[Demo] Modo:', Value)
+    end,
+})
+
+GrupoEsq2:AddDropdown('TimeDropdown', {
+    Text     = 'Times Ignorados',
+    Values   = { 'Red Team', 'Blue Team', 'Green Team', 'VIPs' },
+    Default  = {},
+    Multi    = true,
+    Tooltip  = 'Selecione os times a ignorar',
+    Callback = function(Value)
+        print('[Demo] Times:')
+        for k, v in pairs(Value) do
+            if v then print(' -', k) end
+        end
+    end,
+})
+
+GrupoEsq2:AddDropdown('PlayerDropdown', {
+    Text        = 'Player Alvo',
+    Values      = {},
+    SpecialType = 'Player',
+    Tooltip     = 'Selecione o alvo',
+    Callback    = function(Value)
+        print('[Demo] Alvo:', Value)
+    end,
+})
+
+-- ColorPicker e KeyPicker DEVEM ser encadeados em um Toggle (padrão LinoriaLib)
+GrupoDir2:AddToggle('ChamsEnabled', {
+    Text     = 'Cor dos Chams',
+    Default  = false,
+    Callback = function(Value) print('[Demo] Chams:', Value) end,
+}):AddColorPicker('ChamsColor', {
+    Default  = Color3.fromRGB(255, 0, 0),
+    Title    = 'Cor dos Chams',
+    Callback = function(Value) print('[Demo] Cor Chams:', Value) end,
+})
+
+GrupoDir2:AddToggle('BgEnabled', {
+    Text     = 'Cor de Fundo',
+    Default  = false,
+    Callback = function(Value) print('[Demo] Fundo:', Value) end,
+}):AddColorPicker('BgColor', {
+    Default  = Color3.fromRGB(0, 120, 255),
+    Title    = 'Cor de Fundo',
+    Callback = function(Value) print('[Demo] Cor Fundo:', Value) end,
+})
+
+GrupoDir2:AddToggle('AimEnabled', {
+    Text     = 'Aim (Hold)',
+    Default  = false,
+    Tooltip  = 'Segure a tecla configurada para ativar',
+    Callback = function(Value) print('[Demo] Aim toggle:', Value) end,
+}):AddKeyPicker('AimKey', {
+    Default = 'Q',
+    Text    = 'Aim',
+    Mode    = 'Hold',
+    ChangedCallback = function(NewKey) print('[Demo] Nova tecla:', NewKey) end,
+    Callback        = function(Active)  print('[Demo] Aim ativo:', Active)  end,
+})
+
+-- ================================================
+--  ABA 3: TABBOX
+-- ================================================
+
+local TabAvancado = Window:AddTab('Avançado')
+
+local TbEsp        = TabAvancado:AddLeftTabbox('ESP')
+local SubEspPlayer = TbEsp:AddTab('Players')
+local SubEspWorld  = TbEsp:AddTab('World')
+
+SubEspPlayer:AddToggle('EspPlayers', {
+    Text     = 'ESP de Players',
+    Default  = false,
+    Callback = function(v) print('[Demo] ESP Players:', v) end,
+}):AddColorPicker('EspColor', {
+    Default  = Color3.fromRGB(255, 255, 255),
+    Title    = 'Cor do ESP',
+    Callback = function(v) print('[Demo] ESP Color:', v) end,
+})
+SubEspPlayer:AddSlider('EspDistance', {
+    Text     = 'Distância Máxima',
+    Min      = 50,
+    Max      = 2000,
+    Default  = 500,
+    Suffix   = 'm',
+    Rounding = 0,
+    Callback = function(v) print('[Demo] ESP Dist:', v) end,
+})
+
+SubEspWorld:AddToggle('EspItems', {
+    Text     = 'Items no Mapa',
+    Default  = false,
+    Callback = function(v) print('[Demo] ESP Items:', v) end,
+})
+SubEspWorld:AddToggle('EspChests', {
+    Text     = 'Baús',
+    Default  = false,
+    Callback = function(v) print('[Demo] ESP Baús:', v) end,
+})
+
+local TbAim     = TabAvancado:AddRightTabbox('Aim')
+local SubSilent = TbAim:AddTab('Silent')
+local SubLegit  = TbAim:AddTab('Legit')
+
+SubSilent:AddToggle('SilentEnabled', {
+    Text     = 'Silent Aim',
+    Default  = false,
+    Callback = function(v) print('[Demo] Silent:', v) end,
+})
+SubSilent:AddSlider('SilentFov', {
+    Text     = 'FOV',
+    Min      = 1,
+    Max      = 360,
+    Default  = 90,
+    Suffix   = '°',
+    Rounding = 0,
+    Callback = function(v) print('[Demo] FOV:', v) end,
+})
+SubSilent:AddDropdown('SilentHitpart', {
+    Text     = 'Hitpart',
+    Values   = { 'Head', 'HumanoidRootPart', 'UpperTorso' },
+    Default  = 'Head',
+    Callback = function(v) print('[Demo] Hitpart:', v) end,
+})
+
+SubLegit:AddToggle('LegitEnabled', {
+    Text     = 'Legit Aim',
+    Default  = false,
+    Callback = function(v) print('[Demo] Legit:', v) end,
+})
+SubLegit:AddSlider('LegitSmooth', {
+    Text     = 'Smoothness',
+    Min      = 1,
+    Max      = 20,
+    Default  = 5,
+    Rounding = 1,
+    Callback = function(v) print('[Demo] Smooth:', v) end,
+})
+
+-- ================================================
+--  NOTIFICAÇÃO INICIAL
+-- ================================================
+
+task.delay(0.5, function()
+    Library:Notify('Demo v2 carregado! 🎉', 4)
+end)
+
+print('[Demo] Script carregado com sucesso!')
