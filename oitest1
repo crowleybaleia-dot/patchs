@@ -113,7 +113,7 @@ function Library:SafeCallback(f, ...)
 end;
 
 function Library:AttemptSave()
-    -- Só salva se já houver uma config carregada/nomeada (evita notificação indesejada)
+    -- So salva automaticamente se ja houver uma config carregada/nomeada
     if Library.SaveManager and Library.SaveManager.LoadedConfig and Library.SaveManager.LoadedConfig ~= '' then
         Library.SaveManager:Save();
     end;
@@ -1260,22 +1260,25 @@ do
             end;
         end);
 
+        local function KeyMatchesInput(Input)
+            local Key = KeyPicker.Value;
+            if not Key or Key == 'None' or Key == '' then return false end;
+            if Key == 'MB1' then return Input.UserInputType == Enum.UserInputType.MouseButton1 end;
+            if Key == 'MB2' then return Input.UserInputType == Enum.UserInputType.MouseButton2 end;
+            return Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Key;
+        end;
+
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
             if (not Picking) then
                 if KeyPicker.Mode == 'Toggle' then
-                    local Key = KeyPicker.Value;
-
-                    if Key == 'MB1' or Key == 'MB2' then
-                        if Key == 'MB1' and Input.UserInputType == Enum.UserInputType.MouseButton1
-                        or Key == 'MB2' and Input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            KeyPicker.Toggled = not KeyPicker.Toggled
-                            KeyPicker:DoClick()
-                        end;
-                    elseif Input.UserInputType == Enum.UserInputType.Keyboard then
-                        if Input.KeyCode.Name == Key then
-                            KeyPicker.Toggled = not KeyPicker.Toggled;
-                            KeyPicker:DoClick()
-                        end;
+                    if KeyMatchesInput(Input) then
+                        KeyPicker.Toggled = not KeyPicker.Toggled;
+                        KeyPicker:DoClick();
+                    end;
+                elseif KeyPicker.Mode == 'Hold' then
+                    if KeyMatchesInput(Input) then
+                        KeyPicker.Toggled = true;
+                        KeyPicker:DoClick();
                     end;
                 end;
 
@@ -1294,6 +1297,11 @@ do
 
         Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
             if (not Picking) then
+                -- Hold: ao soltar a tecla, dispara callback com false
+                if KeyPicker.Mode == 'Hold' and KeyMatchesInput(Input) then
+                    KeyPicker.Toggled = false;
+                    KeyPicker:DoClick();
+                end;
                 KeyPicker:Update();
             end;
         end))
@@ -3345,6 +3353,9 @@ function Library:CreateWindow(...)
     local Toggled = false;
     local Fading = false;
 
+    -- FIX: Library:Toggle() usa upvalues, nao usa self
+    -- mas task.spawn(Library.Toggle) perdia o contexto em alguns executores.
+    -- Agora definido como function local pra ser seguro.
     function Library:Toggle()
         if Fading then return; end;
 
@@ -3427,17 +3438,21 @@ function Library:CreateWindow(...)
         Fading = false;
     end
 
+    -- FIX PRINCIPAL: task.spawn(Library.Toggle) -> task.spawn(function() Library:Toggle() end)
+    -- Garante que o metodo e chamado corretamente em todos os executores
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
             if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Library.ToggleKeybind.Value then
-                task.spawn(Library.Toggle)
+                task.spawn(function() Library:Toggle() end) -- FIX
             end
         elseif Input.KeyCode == Enum.KeyCode.RightControl or (Input.KeyCode == Enum.KeyCode.RightShift and (not Processed)) then
-            task.spawn(Library.Toggle)
+            task.spawn(function() Library:Toggle() end) -- FIX
         end
     end))
 
-    if Config.AutoShow then task.spawn(Library.Toggle) end
+    if Config.AutoShow then
+        task.spawn(function() Library:Toggle() end) -- FIX
+    end
 
     Window.Holder = Outer;
     return Window;
@@ -3579,6 +3594,9 @@ do
             end;
         end;
 
+        -- Garante que as pastas existem antes de salvar
+        pcall(function() self:_buildFolderTree() end);
+
         local ok, err = pcall(function()
             writefile(self.Folder .. '/configs/' .. name .. '.json',
                       HttpService:JSONEncode(config));
@@ -3612,14 +3630,24 @@ do
             return Library:Notify('Erro ao ler config: ' .. tostring(result), 3);
         end;
 
+        local loadErrors = 0;
         for idx, data in next, result do
             if not Ignore[idx] and data.type and Parser[data.type] then
-                pcall(Parser[data.type].Load, idx, data);
+                -- Verifica se o elemento existe antes de tentar carregar
+                local elem = Toggles[idx] or Options[idx];
+                if elem then
+                    local ok2, err2 = pcall(Parser[data.type].Load, idx, data);
+                    if not ok2 then loadErrors = loadErrors + 1 end;
+                end;
             end;
         end;
 
         self.LoadedConfig = name;
-        Library:Notify('Config carregada: ' .. name, 2);
+        if loadErrors > 0 then
+            Library:Notify('Config carregada com ' .. loadErrors .. ' erro(s): ' .. name, 3);
+        else
+            Library:Notify('Config carregada: ' .. name, 2);
+        end;
     end;
 
     function SaveManager:Delete(name)
