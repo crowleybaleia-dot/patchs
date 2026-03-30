@@ -113,8 +113,9 @@ function Library:SafeCallback(f, ...)
 end;
 
 function Library:AttemptSave()
-    if Library.SaveManager then
-        Library.SaveManager:Save(Library.SaveManager.LoadedConfig);
+    -- Só salva se já houver uma config carregada/nomeada (evita notificação indesejada)
+    if Library.SaveManager and Library.SaveManager.LoadedConfig and Library.SaveManager.LoadedConfig ~= '' then
+        Library.SaveManager:Save();
     end;
 end;
 
@@ -3344,9 +3345,6 @@ function Library:CreateWindow(...)
     local Toggled = false;
     local Fading = false;
 
-    -- FIX: Library:Toggle() usa upvalues, nao usa self
-    -- mas task.spawn(Library.Toggle) perdia o contexto em alguns executores.
-    -- Agora definido como function local pra ser seguro.
     function Library:Toggle()
         if Fading then return; end;
 
@@ -3429,21 +3427,17 @@ function Library:CreateWindow(...)
         Fading = false;
     end
 
-    -- FIX PRINCIPAL: task.spawn(Library.Toggle) -> task.spawn(function() Library:Toggle() end)
-    -- Garante que o metodo e chamado corretamente em todos os executores
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
             if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Library.ToggleKeybind.Value then
-                task.spawn(function() Library:Toggle() end) -- FIX
+                task.spawn(Library.Toggle)
             end
         elseif Input.KeyCode == Enum.KeyCode.RightControl or (Input.KeyCode == Enum.KeyCode.RightShift and (not Processed)) then
-            task.spawn(function() Library:Toggle() end) -- FIX
+            task.spawn(Library.Toggle)
         end
     end))
 
-    if Config.AutoShow then
-        task.spawn(function() Library:Toggle() end) -- FIX
-    end
+    if Config.AutoShow then task.spawn(Library.Toggle) end
 
     Window.Holder = Outer;
     return Window;
