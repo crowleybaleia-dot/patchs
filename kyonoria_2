@@ -3069,8 +3069,23 @@ function Library:CreateWindow(...)
         BorderColor3 = 'AccentColor';
     });
 
+    local LogoSize = Config.Logo and 16 or 0;
+    local LogoGap  = Config.Logo and 5  or 0;
+
+    if Config.Logo then
+        Library:Create('ImageLabel', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 7, 0.5, -8);
+            Size = UDim2.new(0, LogoSize, 0, LogoSize);
+            Image = Config.Logo;
+            ImageColor3 = Config.LogoColor or Color3.new(1, 1, 1);
+            ZIndex = 2;
+            Parent = Inner;
+        });
+    end;
+
     local WindowLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 7, 0, 0);
+        Position = UDim2.new(0, 7 + LogoSize + LogoGap, 0, 0);
         Size = UDim2.new(0, 0, 0, 23);
         Text = Config.Title or '';
         TextSize = 13;
