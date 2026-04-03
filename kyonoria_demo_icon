@@ -2,7 +2,7 @@
 --   DEMO COMPLETA
 -- ================================================
 
-local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/kyonoria'))()
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/kyonoria_2'))()
 local SaveManager  = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
 
@@ -19,6 +19,8 @@ local Window = Library:CreateWindow({
     MenuFadeTime = 0.2,
     TabPadding   = 8,
     Size         = UDim2.fromOffset(550, 600),
+    Logo         = 'rbxassetid://112962575242023',
+    LogoColor    = Color3.fromRGB(200, 180, 255),
 })
 
 -- ================================================
@@ -338,11 +340,11 @@ ThemeManager:ApplyToTab(TabUI)
 SaveManager:LoadAutoloadConfig()
 
 -- Força o tema verde após o ThemeManager carregar
-Library.AccentColor      = Color3.fromRGB(180, 180, 185)
-Library.MainColor        = Color3.fromRGB(28, 28, 30)
-Library.BackgroundColor  = Color3.fromRGB(18, 18, 20)
-Library.OutlineColor     = Color3.fromRGB(48, 48, 52)
-Library.FontColor        = Color3.fromRGB(220, 220, 225)
+Library.AccentColor      = Color3.fromRGB(160, 130, 210)
+Library.MainColor        = Color3.fromRGB(26, 24, 32)
+Library.BackgroundColor  = Color3.fromRGB(16, 15, 20)
+Library.OutlineColor     = Color3.fromRGB(50, 44, 65)
+Library.FontColor        = Color3.fromRGB(218, 215, 228)
 Library.AccentColorDark  = Library:GetDarkerColor(Library.AccentColor)
 Library:UpdateColorsUsingRegistry()
 
