@@ -3069,14 +3069,15 @@ function Library:CreateWindow(...)
         BorderColor3 = 'AccentColor';
     });
 
-    local LogoSize = Config.Logo and 16 or 0;
-    local LogoGap  = Config.Logo and 5  or 0;
+    local LogoW   = Config.Logo and 25 or 0;
+    local LogoH   = Config.Logo and 30 or 0;
+    local LogoGap = Config.Logo and 6  or 0;
 
     if Config.Logo then
         Library:Create('ImageLabel', {
             BackgroundTransparency = 1;
-            Position = UDim2.new(0, 7, 0.5, -8);
-            Size = UDim2.new(0, LogoSize, 0, LogoSize);
+            Position = UDim2.new(0, 7, 0.5, -15);
+            Size = UDim2.new(0, LogoW, 0, LogoH);
             Image = Config.Logo;
             ImageColor3 = Config.LogoColor or Color3.new(1, 1, 1);
             ZIndex = 2;
@@ -3085,8 +3086,8 @@ function Library:CreateWindow(...)
     end;
 
     local WindowLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 7 + LogoSize + LogoGap, 0, 0);
-        Size = UDim2.new(0, 0, 0, 23);
+        Position = UDim2.new(0, 7 + LogoW + LogoGap, 0, 0);
+        Size = UDim2.new(0, 0, 0, 34);
         Text = Config.Title or '';
         TextSize = 13;
         TextColor3 = Library.AccentColor;
@@ -3100,8 +3101,8 @@ function Library:CreateWindow(...)
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 23);
-        Size = UDim2.new(1, -16, 1, -31);
+        Position = UDim2.new(0, 8, 0, 34);
+        Size = UDim2.new(1, -16, 1, -42);
         ZIndex = 1;
         Parent = Inner;
     });
