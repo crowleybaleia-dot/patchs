@@ -3155,7 +3155,7 @@ function Library:CreateWindow(...)
             Tabboxes = {};
         };
 
-        local IconSize = Icon and 18 or 0;
+        local IconSize = Icon and 20 or 0;
         local IconGap  = Icon and 4  or 0;
         local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 13);
 
