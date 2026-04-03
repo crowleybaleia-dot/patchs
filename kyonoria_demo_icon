@@ -1,0 +1,357 @@
+-- ================================================
+--   DEMO COMPLETA
+-- ================================================
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/crowleybaleia-dot/patchs/refs/heads/main/kyonoria'))()
+local SaveManager  = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua'))()
+
+Library.NotifyOnError = true
+
+-- ================================================
+--   JANELA
+-- ================================================
+
+local Window = Library:CreateWindow({
+    Title        = 'Demo Completa',
+    Center       = true,
+    AutoShow     = true,
+    MenuFadeTime = 0.2,
+    TabPadding   = 8,
+    Size         = UDim2.fromOffset(550, 600),
+})
+
+-- ================================================
+--   ABA 1 - AIMBOT
+-- ================================================
+
+local TabAim   = Window:AddTab('Aimbot',      'rbxassetid://SEU_ICON_AIMBOT')
+local GrpEsq   = TabAim:AddLeftGroupbox('Configurações', 'rbxassetid://7733960981', Color3.new(1, 1, 1))
+local GrpDir   = TabAim:AddRightGroupbox('Opções', 'rbxassetid://7733715400', Color3.new(1, 1, 1))
+
+-- Toggle simples
+GrpEsq:AddToggle('AimEnabled', {
+    Text     = 'Ativar Aimbot',
+    Default  = false,
+    Tooltip  = 'Liga/desliga o aimbot',
+    Callback = function(v)
+        print('[Aimbot] Ativo:', v)
+    end,
+})
+
+-- Toggle + KeyPicker (Toggle: aperta ativa, aperta dnv desativa)
+GrpEsq:AddToggle('AimKey_Toggle', {
+    Text     = 'Aim Key',
+    Default  = false,
+    Callback = function(v)
+        print('[Aim Key] Estado:', v)
+    end,
+}):AddKeyPicker('AimKey', {
+    Default         = 'C',
+    Text            = 'Aim',
+    Mode            = 'Toggle',
+    SyncToggleState = true,
+    Callback = function(active)
+        print('[Aim Key] Ativo:', active)
+    end,
+})
+
+-- Slider FOV
+GrpEsq:AddSlider('AimFov', {
+    Text     = 'FOV',
+    Min      = 1,
+    Max      = 360,
+    Default  = 90,
+    Suffix   = '°',
+    Rounding = 0,
+    Callback = function(v)
+        print('[FOV]', v)
+    end,
+})
+
+-- Slider Smooth
+GrpEsq:AddSlider('AimSmooth', {
+    Text     = 'Smooth',
+    Min      = 1,
+    Max      = 20,
+    Default  = 5,
+    Rounding = 1,
+    Callback = function(v)
+        print('[Smooth]', v)
+    end,
+})
+
+-- Dropdown hitpart
+GrpDir:AddDropdown('Hitpart', {
+    Text     = 'Hitpart',
+    Values   = { 'Head', 'Neck', 'UpperTorso', 'HumanoidRootPart' },
+    Default  = 'Head',
+    Callback = function(v)
+        print('[Hitpart]', v)
+    end,
+})
+
+-- Dropdown player alvo
+GrpDir:AddDropdown('PlayerAlvo', {
+    Text        = 'Player Alvo',
+    Values      = {},
+    SpecialType = 'Player',
+    Callback    = function(v)
+        print('[Alvo]', v)
+    end,
+})
+
+GrpDir:AddDivider()
+
+-- Botão simples
+GrpDir:AddButton({
+    Text = 'Testar Aimbot',
+    Func = function()
+        Library:Notify('Aimbot testado!', 3)
+        print('[Btn] Testado!')
+    end,
+    DoubleClick = false,
+    Tooltip     = 'Clique para testar',
+})
+
+-- Botão duplo clique
+GrpDir:AddButton({
+    Text        = 'Reset (duplo clique)',
+    Func        = function()
+        Options.AimFov:SetValue(90)
+        Options.AimSmooth:SetValue(5)
+        Library:Notify('Resetado!', 2)
+    end,
+    DoubleClick = true,
+    Tooltip     = 'Clique duas vezes para resetar',
+})
+
+-- ================================================
+--   ABA 2 - ESP
+-- ================================================
+
+local TabEsp = Window:AddTab('ESP',          'rbxassetid://SEU_ICON_ESP')
+local TbEsp  = TabEsp:AddLeftTabbox('Tipo')
+
+local SubPlayers = TbEsp:AddTab('Players')
+local SubWorld   = TbEsp:AddTab('World')
+
+-- Players
+SubPlayers:AddToggle('EspPlayers', {
+    Text     = 'ESP Players',
+    Default  = false,
+    Callback = function(v) print('[ESP Players]', v) end,
+}):AddColorPicker('EspColorPlayers', {
+    Default  = Color3.fromRGB(255, 255, 255),
+    Title    = 'Cor do ESP',
+    Callback = function(c) print('[ESP Cor]', c) end,
+})
+
+SubPlayers:AddToggle('EspNome', {
+    Text     = 'Mostrar Nome',
+    Default  = false,
+    Callback = function(v) print('[ESP Nome]', v) end,
+})
+
+SubPlayers:AddToggle('EspDistancia', {
+    Text     = 'Mostrar Distância',
+    Default  = false,
+    Callback = function(v) print('[ESP Dist]', v) end,
+})
+
+SubPlayers:AddSlider('EspMaxDist', {
+    Text     = 'Distância Máxima',
+    Min      = 50,
+    Max      = 2000,
+    Default  = 500,
+    Suffix   = 'm',
+    Rounding = 0,
+    Callback = function(v) print('[ESP MaxDist]', v) end,
+})
+
+-- World
+SubWorld:AddToggle('EspItems', {
+    Text     = 'Items no Mapa',
+    Default  = false,
+    Callback = function(v) print('[ESP Items]', v) end,
+})
+
+SubWorld:AddToggle('EspChests', {
+    Text     = 'Baús',
+    Default  = false,
+    Callback = function(v) print('[ESP Baús]', v) end,
+})
+
+local TbEspDir = TabEsp:AddRightTabbox('Visual')
+local SubBox   = TbEspDir:AddTab('Box')
+local SubSkel  = TbEspDir:AddTab('Esqueleto')
+
+SubBox:AddToggle('EspBox', {
+    Text     = 'Box ESP',
+    Default  = false,
+    Callback = function(v) print('[Box ESP]', v) end,
+}):AddColorPicker('EspBoxCor', {
+    Default  = Color3.fromRGB(255, 0, 0),
+    Title    = 'Cor da Box',
+    Callback = function(c) print('[Box Cor]', c) end,
+})
+
+SubSkel:AddToggle('EspSkel', {
+    Text     = 'Esqueleto',
+    Default  = false,
+    Callback = function(v) print('[Esqueleto]', v) end,
+}):AddColorPicker('EspSkelCor', {
+    Default  = Color3.fromRGB(0, 255, 0),
+    Title    = 'Cor do Esqueleto',
+    Callback = function(c) print('[Skel Cor]', c) end,
+})
+
+-- ================================================
+--   ABA 3 - MISC
+-- ================================================
+
+local TabMisc  = Window:AddTab('Misc',        'rbxassetid://SEU_ICON_MISC')
+local GrpMisc1 = TabMisc:AddLeftGroupbox('Movimento', 'rbxassetid://7734053929', Color3.new(1, 1, 1))
+local GrpMisc2 = TabMisc:AddRightGroupbox('Outros', 'rbxassetid://7733960981', Color3.new(1, 1, 1))
+
+-- Speed com keybind Toggle
+GrpMisc1:AddToggle('SpeedEnabled', {
+    Text     = 'Speed',
+    Default  = false,
+    Callback = function(v) print('[Speed]', v) end,
+}):AddKeyPicker('SpeedKey', {
+    Default         = 'X',
+    Text            = 'Speed',
+    Mode            = 'Toggle',
+    SyncToggleState = true,
+    Callback = function(active) print('[Speed Key]', active) end,
+})
+
+GrpMisc1:AddSlider('SpeedVal', {
+    Text     = 'Velocidade',
+    Min      = 16,
+    Max      = 200,
+    Default  = 16,
+    Suffix   = ' studs/s',
+    Rounding = 0,
+    Callback = function(v) print('[Speed Val]', v) end,
+})
+
+-- Fly com keybind Toggle
+GrpMisc1:AddToggle('FlyEnabled', {
+    Text     = 'Fly',
+    Default  = false,
+    Callback = function(v) print('[Fly]', v) end,
+}):AddKeyPicker('FlyKey', {
+    Default         = 'F',
+    Text            = 'Fly',
+    Mode            = 'Toggle',
+    SyncToggleState = true,
+    Callback = function(active) print('[Fly Key]', active) end,
+})
+
+GrpMisc1:AddSlider('FlySpeed', {
+    Text     = 'Velocidade do Fly',
+    Min      = 10,
+    Max      = 500,
+    Default  = 50,
+    Suffix   = ' studs/s',
+    Rounding = 0,
+    Callback = function(v) print('[Fly Speed]', v) end,
+})
+
+-- Noclip
+GrpMisc2:AddToggle('Noclip', {
+    Text     = 'Noclip',
+    Default  = false,
+    Callback = function(v) print('[Noclip]', v) end,
+}):AddKeyPicker('NoclipKey', {
+    Default         = 'N',
+    Text            = 'Noclip',
+    Mode            = 'Toggle',
+    SyncToggleState = true,
+    Callback = function(active) print('[Noclip Key]', active) end,
+})
+
+-- Input
+GrpMisc2:AddInput('PlayerInput', {
+    Text        = 'Nome do Player',
+    Default     = '',
+    Numeric     = false,
+    Finished    = true,
+    Placeholder = 'Digite o nome...',
+    Callback    = function(v) print('[Input]', v) end,
+})
+
+GrpMisc2:AddDivider()
+
+-- Times ignorados (multi dropdown)
+GrpMisc2:AddDropdown('TimesIgnorados', {
+    Text     = 'Times Ignorados',
+    Values   = { 'Red Team', 'Blue Team', 'Green Team', 'VIP' },
+    Default  = {},
+    Multi    = true,
+    Callback = function(v)
+        print('[Times Ignorados]')
+        for k, val in pairs(v) do
+            if val then print(' -', k) end
+        end
+    end,
+})
+
+GrpMisc2:AddLabel('Pressione a tecla configurada\npara ativar/desativar cada função!', true)
+
+-- ================================================
+--   ABA 4 - UI SETTINGS
+-- ================================================
+
+local TabUI = Window:AddTab('UI Settings',   'rbxassetid://SEU_ICON_UI')
+local GrpUI = TabUI:AddLeftGroupbox('Menu', 'rbxassetid://7734053200', Color3.new(1, 1, 1))
+
+GrpUI:AddButton({
+    Text = 'Descarregar Script',
+    Func = function() Library:Unload() end,
+})
+
+GrpUI:AddLabel('Tecla do Menu'):AddKeyPicker('MenuKeybind', {
+    Default = 'End',
+    NoUI    = true,
+    Text    = 'Menu',
+    Mode    = 'Toggle',
+})
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+-- Addons
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+
+ThemeManager:SetFolder('DemoCompleta')
+SaveManager:SetFolder('DemoCompleta/configs')
+
+SaveManager:BuildConfigSection(TabUI)
+ThemeManager:ApplyToTab(TabUI)
+
+SaveManager:LoadAutoloadConfig()
+
+-- Força o tema verde após o ThemeManager carregar
+Library.AccentColor      = Color3.fromRGB(180, 180, 185)
+Library.MainColor        = Color3.fromRGB(28, 28, 30)
+Library.BackgroundColor  = Color3.fromRGB(18, 18, 20)
+Library.OutlineColor     = Color3.fromRGB(48, 48, 52)
+Library.FontColor        = Color3.fromRGB(220, 220, 225)
+Library.AccentColorDark  = Library:GetDarkerColor(Library.AccentColor)
+Library:UpdateColorsUsingRegistry()
+
+-- ================================================
+--   NOTIFICAÇÃO INICIAL
+-- ================================================
+
+task.delay(0.5, function()
+    Library:Notify('Demo carregada! Use End para abrir/fechar', 4)
+end)
+
+print('[Demo] Carregada com sucesso!')
