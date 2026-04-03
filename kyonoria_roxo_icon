@@ -3149,18 +3149,20 @@ function Library:CreateWindow(...)
         WindowLabel.Text = Title;
     end;
 
-    function Window:AddTab(Name)
+    function Window:AddTab(Name, Icon)
         local Tab = {
             Groupboxes = {};
             Tabboxes = {};
         };
 
+        local IconSize = Icon and 14 or 0;
+        local IconGap  = Icon and 4  or 0;
         local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 13);
 
         local TabButton = Library:Create('Frame', {
             BackgroundColor3 = Library.BackgroundColor;
             BorderColor3 = Library.OutlineColor;
-            Size = UDim2.new(0, TabButtonWidth + 8 + 4, 1, 0);
+            Size = UDim2.new(0, TabButtonWidth + 8 + 4 + IconSize + IconGap, 1, 0);
             ZIndex = 1;
             Parent = TabArea;
         });
@@ -3172,9 +3174,20 @@ function Library:CreateWindow(...)
             BorderColor3 = 'OutlineColor';
         });
 
+        if Icon then
+            Library:Create('ImageLabel', {
+                BackgroundTransparency = 1;
+                Position = UDim2.new(0, 5, 0.5, -7);
+                Size = UDim2.new(0, IconSize, 0, IconSize);
+                Image = Icon;
+                ZIndex = 2;
+                Parent = TabButton;
+            });
+        end;
+
         local TabButtonLabel = Library:CreateLabel({
-            Position = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, -1);
+            Position = UDim2.new(0, Icon and (5 + IconSize + IconGap) or 0, 0, 0);
+            Size = UDim2.new(1, Icon and -(5 + IconSize + IconGap) or 0, 1, -1);
             Text = Name;
             ZIndex = 1;
             Parent = TabButton;
