@@ -3069,8 +3069,8 @@ function Library:CreateWindow(...)
         BorderColor3 = 'AccentColor';
     });
 
-    local LogoW   = Config.Logo and 25 or 0;
-    local LogoH   = Config.Logo and 30 or 0;
+    local LogoW   = Config.Logo and 35 or 0;
+    local LogoH   = Config.Logo and 40 or 0;
     local LogoGap = Config.Logo and 6  or 0;
 
     if Config.Logo then
