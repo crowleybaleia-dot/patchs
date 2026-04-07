@@ -3077,7 +3077,7 @@ if Config.Logo then
     Library:Create('ImageLabel', {
         BackgroundTransparency = 1;
         Position = UDim2.new(0, 7, 0, 2);
-        Size = UDim2.new(0, 65, 0, 65);
+        Size = UDim2.new(0, 35, 0, 35);
         Image = (type(Config.Logo) == 'number') and ('rbxassetid://' .. Config.Logo) or Config.Logo;
         ImageColor3 = Config.LogoColor or Color3.new(1, 1, 1);
         ZIndex = 10;
@@ -3087,7 +3087,7 @@ end;
 
     local WindowLabel = Library:CreateLabel({
         Position = UDim2.new(0, 7 + LogoW + LogoGap, 0, 0);
-        Size = UDim2.new(0, 0, 0, 65);
+        Size = UDim2.new(0, 0, 0, 35);
         Text = Config.Title or '';
         TextSize = 13;
         TextColor3 = Library.AccentColor;
@@ -3101,7 +3101,7 @@ end;
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 65);
+        Position = UDim2.new(0, 8, 0, 35);
         Size = UDim2.new(1, -16, 1, -75);
         ZIndex = 1;
         Parent = Inner;
