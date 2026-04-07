@@ -3102,7 +3102,7 @@ end;
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
         Position = UDim2.new(0, 8, 0, 65);
-        Size = UDim2.new(1, -16, 1, -85);
+        Size = UDim2.new(1, -16, 1, -75);
         ZIndex = 1;
         Parent = Inner;
     });
