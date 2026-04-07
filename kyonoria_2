@@ -3077,7 +3077,7 @@ function Library:CreateWindow(...)
         Library:Create('ImageLabel', {
             BackgroundTransparency = 1;
             Position = UDim2.new(0, 7, 0, 2);
-            Size = UDim2.new(0, LogoW, 0, LogoH);
+            Size = UDim2.new(40, LogoW, 40, LogoH);
             Image = (type(Config.Logo) == 'number') and ('rbxassetid://' .. Config.Logo) or Config.Logo;
             ImageColor3 = Config.LogoColor or Color3.new(1, 1, 1);
             ScaleType = Enum.ScaleType.Fit;
