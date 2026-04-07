@@ -3077,7 +3077,7 @@ if Config.Logo then
     Library:Create('ImageLabel', {
         BackgroundTransparency = 1;
         Position = UDim2.new(0, 7, 0, 2);
-        Size = UDim2.new(0, 35, 0, 35);
+        Size = UDim2.new(0, 30, 0, 30);
         Image = (type(Config.Logo) == 'number') and ('rbxassetid://' .. Config.Logo) or Config.Logo;
         ImageColor3 = Config.LogoColor or Color3.new(1, 1, 1);
         ZIndex = 10;
