@@ -3454,12 +3454,9 @@ end;
                 task.wait();
                 local BtnPos = TabButton.AbsolutePosition.X - MainSectionInner.AbsolutePosition.X;
                 local BtnSize = TabButton.AbsoluteSize.X;
-                print('[TabIndicator] BtnPos:', BtnPos, '| BtnSize:', BtnSize);
-                print('[TabIndicator] TabButton.AbsolutePosition:', TabButton.AbsolutePosition);
-                print('[TabIndicator] MainSectionInner.AbsolutePosition:', MainSectionInner.AbsolutePosition);
                 TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                     Position = UDim2.fromOffset(BtnPos, 8);
-                    Size     = UDim2.fromOffset(BtnSize, 2);
+                    Size     = UDim2.fromOffset(BtnSize, 1);
                 }):Play();
             end);
 
