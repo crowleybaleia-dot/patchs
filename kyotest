@@ -3282,10 +3282,10 @@ end;
     local TabIndicator = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel  = 0;
-        Position         = UDim2.new(0, 0, 0, 0);
+        Position         = UDim2.new(0, 8, 0, 8);
         Size             = UDim2.new(0, 0, 0, 2);
         ZIndex           = 10;
-        Parent           = TabArea;
+        Parent           = MainSectionInner;
     });
 
     Library:Create('UICorner', {
@@ -3452,10 +3452,10 @@ end;
             -- Tween do indicador para a tab ativa
             task.spawn(function()
                 task.wait();
-                local BtnPos = TabButton.AbsolutePosition.X - TabArea.AbsolutePosition.X;
+                local BtnPos = TabButton.AbsolutePosition.X - MainSectionInner.AbsolutePosition.X;
                 local BtnSize = TabButton.AbsoluteSize.X;
                 TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                    Position = UDim2.fromOffset(BtnPos, 0);
+                    Position = UDim2.fromOffset(BtnPos, 8);
                     Size     = UDim2.fromOffset(BtnSize, 2);
                 }):Play();
             end);
