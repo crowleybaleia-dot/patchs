@@ -3434,15 +3434,15 @@ end;
             for _, Desc in next, TabFrame:GetDescendants() do
                 if Desc:IsA('TextLabel') or Desc:IsA('TextButton') or Desc:IsA('TextBox') then
                     Desc.TextTransparency = 1;
-                    TweenService:Create(Desc, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { TextTransparency = 0 }):Play();
+                    TweenService:Create(Desc, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { TextTransparency = 0 }):Play();
                 elseif Desc:IsA('ImageLabel') or Desc:IsA('ImageButton') then
                     Desc.ImageTransparency = 1;
-                    TweenService:Create(Desc, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { ImageTransparency = 0 }):Play();
+                    TweenService:Create(Desc, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { ImageTransparency = 0 }):Play();
                 elseif Desc:IsA('Frame') or Desc:IsA('ScrollingFrame') then
                     if Desc.BackgroundTransparency < 1 then
                         local Original = Desc.BackgroundTransparency;
                         Desc.BackgroundTransparency = 1;
-                        TweenService:Create(Desc, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = Original }):Play();
+                        TweenService:Create(Desc, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = Original }):Play();
                     end;
                 end;
             end;
