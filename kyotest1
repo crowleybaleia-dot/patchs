@@ -2128,12 +2128,16 @@ do
 
         Library:ApplyCorner(SliderOuter, 4);
 
-        Library:Create('UIStroke', {
+        local SliderStroke = Library:Create('UIStroke', {
             Color = Library.OutlineColor;
             Thickness = 1;
             LineJoinMode = Enum.LineJoinMode.Round;
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
             Parent = SliderOuter;
+        });
+
+        Library:AddToRegistry(SliderStroke, {
+            Color = 'OutlineColor';
         });
 
         Library:AddToRegistry(SliderOuter, {
