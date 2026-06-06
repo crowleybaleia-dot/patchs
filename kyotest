@@ -3450,12 +3450,14 @@ end;
             TabFrame.Visible = true;
 
             -- Tween do indicador para a tab ativa
-            local BtnPos = TabButton.AbsolutePosition.X - TabArea.AbsolutePosition.X;
-            local BtnSize = TabButton.AbsoluteSize.X;
-            TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.fromOffset(BtnPos, 0);
-                Size     = UDim2.fromOffset(BtnSize, 2);
-            }):Play();
+            task.defer(function()
+                local BtnPos = TabButton.AbsolutePosition.X - TabArea.AbsolutePosition.X;
+                local BtnSize = TabButton.AbsoluteSize.X;
+                TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    Position = UDim2.fromOffset(BtnPos, 0);
+                    Size     = UDim2.fromOffset(BtnSize, 2);
+                }):Play();
+            end);
 
             for _, Desc in next, TabFrame:GetDescendants() do
                 if Desc:IsA('TextLabel') or Desc:IsA('TextButton') or Desc:IsA('TextBox') then
