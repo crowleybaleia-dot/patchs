@@ -3198,6 +3198,29 @@ end;
 
     Library:AddToRegistry(WindowLabel, { TextColor3 = 'AccentColor' });
 
+    -- Bolinhas decorativas (estilo macOS)
+    local DotsColors = {
+        Color3.fromRGB(255, 95, 87),   -- vermelho
+        Color3.fromRGB(255, 189, 46),  -- amarelo
+        Color3.fromRGB(40, 200, 65),   -- verde
+    };
+
+    for i, DotColor in ipairs(DotsColors) do
+        local Dot = Library:Create('Frame', {
+            BackgroundColor3 = DotColor;
+            BorderSizePixel  = 0;
+            Size             = UDim2.fromOffset(10, 10);
+            Position         = UDim2.new(1, -12 - ((#DotsColors - i) * 16), 0, 13);
+            ZIndex           = 50;
+            Parent           = Outer;
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(1, 0);
+            Parent       = Dot;
+        });
+    end;
+
     local MainSectionOuter = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderColor3 = Library.OutlineColor;
