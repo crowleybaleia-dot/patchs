@@ -3280,21 +3280,29 @@ end;
     });
 
     local TabIndicator = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel  = 0;
-        Position         = UDim2.new(0, 8, 0, 8);
-        Size             = UDim2.new(0, 0, 0, 2);
-        ZIndex           = 10;
-        Parent           = MainSectionInner;
+        BackgroundTransparency = 1;
+        BorderSizePixel        = 0;
+        Position               = UDim2.new(0, 8, 0, 8);
+        Size                   = UDim2.new(0, 0, 0, 0);
+        ZIndex                 = 10;
+        Parent                 = MainSectionInner;
     });
 
     Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 2);
+        CornerRadius = UDim.new(0, 6);
         Parent       = TabIndicator;
     });
 
-    Library:AddToRegistry(TabIndicator, {
-        BackgroundColor3 = 'AccentColor';
+    local TabIndicatorStroke = Library:Create('UIStroke', {
+        Color     = Library.AccentColor;
+        Thickness = 1;
+        LineJoinMode = Enum.LineJoinMode.Round;
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
+        Parent    = TabIndicator;
+    });
+
+    Library:AddToRegistry(TabIndicatorStroke, {
+        Color = 'AccentColor';
     });
 
     local TabContainer = Library:Create('Frame', {
@@ -3454,9 +3462,10 @@ end;
                 task.wait();
                 local BtnPos = TabButton.AbsolutePosition.X - MainSectionInner.AbsolutePosition.X;
                 local BtnSize = TabButton.AbsoluteSize.X;
+                local BtnHeight = TabButton.AbsoluteSize.Y;
                 TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                     Position = UDim2.fromOffset(BtnPos, 8);
-                    Size     = UDim2.fromOffset(BtnSize, 1);
+                    Size     = UDim2.fromOffset(BtnSize, BtnHeight);
                 }):Play();
             end);
 
