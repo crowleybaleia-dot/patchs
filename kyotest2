@@ -3212,7 +3212,7 @@ end;
             Size             = UDim2.fromOffset(10, 10);
             Position         = UDim2.new(1, -24 - ((#DotsColors - i) * 16), 0, 13);
             ZIndex           = 50;
-            Parent           = Outer;
+            Parent           = Inner;
         });
 
         Library:Create('UICorner', {
