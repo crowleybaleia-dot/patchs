@@ -3279,6 +3279,24 @@ end;
         Parent = TabArea;
     });
 
+    local TabIndicator = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel  = 0;
+        Position         = UDim2.new(0, 0, 0, 0);
+        Size             = UDim2.new(0, 0, 0, 2);
+        ZIndex           = 10;
+        Parent           = TabArea;
+    });
+
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 2);
+        Parent       = TabIndicator;
+    });
+
+    Library:AddToRegistry(TabIndicator, {
+        BackgroundColor3 = 'AccentColor';
+    });
+
     local TabContainer = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.OutlineColor;
@@ -3430,6 +3448,14 @@ end;
             TabButtonLabel.TextColor3 = Library.AccentColor;
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'AccentColor';
             TabFrame.Visible = true;
+
+            -- Tween do indicador para a tab ativa
+            local BtnPos = TabButton.AbsolutePosition.X - TabArea.AbsolutePosition.X;
+            local BtnSize = TabButton.AbsoluteSize.X;
+            TweenService:Create(TabIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Position = UDim2.fromOffset(BtnPos, 0);
+                Size     = UDim2.fromOffset(BtnSize, 2);
+            }):Play();
 
             for _, Desc in next, TabFrame:GetDescendants() do
                 if Desc:IsA('TextLabel') or Desc:IsA('TextButton') or Desc:IsA('TextBox') then
