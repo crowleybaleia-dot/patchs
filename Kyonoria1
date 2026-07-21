@@ -3298,8 +3298,8 @@ function Library:CreateWindow(...)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
-        BackgroundColor3 = Color3.fromRGB(8, 10, 10);
-        BackgroundTransparency = 0.38;
+        BackgroundColor3 = Color3.fromRGB(10, 12, 10);
+        BackgroundTransparency = 0.18;
         BorderSizePixel = 0;
         Position = Config.Position,
         Size = Config.Size,
@@ -3314,27 +3314,17 @@ function Library:CreateWindow(...)
     -- Borda glass sutil
     local OuterStroke = Library:Create('UIStroke', {
         Color = Color3.fromRGB(255, 255, 255);
-        Transparency = 0.82;
+        Transparency = 0.88;
         Thickness = 1;
         LineJoinMode = Enum.LineJoinMode.Round;
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
         Parent = Outer;
     });
 
-    -- Linha accent no topo (destaque de cor)
-    local AccentTopLine = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel  = 0;
-        Size             = UDim2.new(0.45, 0, 0, 1);
-        Position         = UDim2.new(0.275, 0, 0, 0);
-        ZIndex           = 10;
-        Parent           = Outer;
-    });
-    Library:AddToRegistry(AccentTopLine, { BackgroundColor3 = 'AccentColor' });
+
 
     local Inner = Library:Create('Frame', {
-        BackgroundColor3 = Color3.fromRGB(12, 14, 12);
-        BackgroundTransparency = 0.45;
+        BackgroundTransparency = 1;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 0, 0, 0);
         Size = UDim2.new(1, 0, 1, 0);
@@ -3344,16 +3334,7 @@ function Library:CreateWindow(...)
 
     Library:ApplyCorner(Inner, 8);
 
-    -- Linha separadora abaixo do titlebar
-    local TitleSeparator = Library:Create('Frame', {
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-        BackgroundTransparency = 0.88;
-        BorderSizePixel = 0;
-        Size   = UDim2.new(1, -24, 0, 1);
-        Position = UDim2.new(0, 12, 0, 34);
-        ZIndex = 5;
-        Parent = Inner;
-    });
+
 
     -- Aplica o BlurModule no Outer (glass 3D atrás da janela)
     task.spawn(function()
@@ -3670,43 +3651,46 @@ end;
             local Groupbox = {};
 
             local BoxOuter = Library:Create('Frame', {
-                BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Library.OutlineColor;
-                BorderMode = Enum.BorderMode.Inset;
+                BackgroundColor3 = Color3.fromRGB(15, 17, 15);
+                BorderSizePixel = 0;
                 Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
                 Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
-            Library:ApplyCorner(BoxOuter, 6);
+            Library:ApplyCorner(BoxOuter, 8);
 
-            Library:AddToRegistry(BoxOuter, {
-                BackgroundColor3 = 'BackgroundColor';
-                BorderColor3 = 'OutlineColor';
+            Library:Create('UIStroke', {
+                Color = Color3.fromRGB(255, 255, 255);
+                Transparency = 0.92;
+                Thickness = 1;
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
+                Parent = BoxOuter;
             });
 
             local BoxInner = Library:Create('Frame', {
-                BackgroundColor3 = Library.BackgroundColor;
-                BorderColor3 = Color3.new(0, 0, 0);
-                -- BorderMode = Enum.BorderMode.Inset;
-                Size = UDim2.new(1, -2, 1, -2);
-                Position = UDim2.new(0, 1, 0, 1);
+                BackgroundColor3 = Color3.fromRGB(15, 17, 15);
+                BorderSizePixel = 0;
+                Size = UDim2.new(1, 0, 1, 0);
+                Position = UDim2.new(0, 0, 0, 0);
                 ZIndex = 4;
                 Parent = BoxOuter;
             });
 
-            Library:ApplyCorner(BoxInner, 5);
-
-            Library:AddToRegistry(BoxInner, {
-                BackgroundColor3 = 'BackgroundColor';
-            });
+            Library:ApplyCorner(BoxInner, 8);
 
             local Highlight = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
+                BackgroundTransparency = 0.3;
                 BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 2);
+                Size = UDim2.new(1, 0, 0, 1);
                 ZIndex = 5;
                 Parent = BoxInner;
+            });
+
+            Library:Create('UICorner', {
+                CornerRadius = UDim.new(0, 8);
+                Parent = Highlight;
             });
 
             Library:AddToRegistry(Highlight, {
@@ -3715,9 +3699,10 @@ end;
 
             local GroupboxLabel = Library:CreateLabel({
                 Size = UDim2.new(1, 0, 0, 16);
-                Position = Info.Icon and UDim2.new(0, 22, 0, 2) or UDim2.new(0, 4, 0, 2);
-                TextSize = 15;
-                Text = Info.Name;
+                Position = Info.Icon and UDim2.new(0, 22, 0, 3) or UDim2.new(0, 8, 0, 3);
+                TextSize = 11;
+                Text = string.upper(Info.Name);
+                TextColor3 = Color3.fromRGB(160, 160, 160);
                 TextXAlignment = Enum.TextXAlignment.Left;
                 ZIndex = 5;
                 Parent = BoxInner;
