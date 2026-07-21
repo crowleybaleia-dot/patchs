@@ -26,6 +26,163 @@ local Options = {};
 getgenv().Toggles = Toggles;
 getgenv().Options = Options;
 
+-- ── BlurModule (glass effect — based on Luna Interface Suite) ──────────────
+local function BlurModule(Frame)
+    local Camera = workspace.CurrentCamera
+    local MTREL  = 'Glass'
+    local root   = Instance.new('Folder', Camera)
+    root.Name    = 'LibBlur'
+
+    local gToken = math.random(1, 99999999)
+
+    local DepthOfField = Instance.new('DepthOfFieldEffect', game:GetService('Lighting'))
+    DepthOfField.FarIntensity  = 0
+    DepthOfField.FocusDistance = 51.6
+    DepthOfField.InFocusRadius = 50
+    DepthOfField.NearIntensity = 1
+    DepthOfField.Name          = 'LibDOF_' .. gToken
+
+    local blurFrame = Instance.new('Frame', Frame)
+    blurFrame.Size              = UDim2.new(1, 0, 1, 0)
+    blurFrame.Position          = UDim2.new(0, 0, 0, 0)
+    blurFrame.BackgroundTransparency = 1
+    blurFrame.ZIndex            = Frame.ZIndex
+
+    local uid_c = 0
+    local function GenUid()
+        uid_c = uid_c + 1
+        return 'libblur::' .. uid_c
+    end
+
+    local parents = {}
+    do
+        local function add(child)
+            if child:IsA('GuiObject') then
+                parents[#parents + 1] = child
+                add(child.Parent)
+            end
+        end
+        add(blurFrame)
+    end
+
+    local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt
+    local sz = 0.22
+
+    local function DrawTriangle(v1, v2, v3, p0, p1)
+        local s1 = (v1-v2).Magnitude
+        local s2 = (v2-v3).Magnitude
+        local s3 = (v3-v1).Magnitude
+        local smax = max(s1, s2, s3)
+        local A, B, C
+        if s1 == smax then A,B,C = v1,v2,v3
+        elseif s2 == smax then A,B,C = v2,v3,v1
+        else A,B,C = v3,v1,v2 end
+
+        local para = ((B-A).X*(C-A).X+(B-A).Y*(C-A).Y+(B-A).Z*(C-A).Z)/(A-B).Magnitude
+        local perp = sqrt((C-A).Magnitude^2 - para*para)
+        local dif_para = (A-B).Magnitude - para
+
+        local st = CFrame.new(B, A)
+        local za = CFrame.Angles(pi/2, 0, 0)
+        local cf0 = st
+        local Top_Look = (cf0*za).LookVector
+        local Mid_Point = A + CFrame.new(A,B).LookVector * para
+        local Needed_Look = CFrame.new(Mid_Point, C).LookVector
+        local dot = Top_Look.X*Needed_Look.X + Top_Look.Y*Needed_Look.Y + Top_Look.Z*Needed_Look.Z
+        local ac = CFrame.Angles(0, 0, acos(dot))
+        cf0 = cf0 * ac
+        if ((cf0*za).LookVector - Needed_Look).Magnitude > 0.01 then
+            cf0 = cf0 * CFrame.Angles(0, 0, -2*acos(dot))
+        end
+        cf0 = cf0 * CFrame.new(0, perp/2, -(dif_para + para/2))
+
+        local cf1 = st * ac * CFrame.Angles(0, pi, 0)
+        if ((cf1*za).LookVector - Needed_Look).Magnitude > 0.01 then
+            cf1 = cf1 * CFrame.Angles(0, 0, 2*acos(dot))
+        end
+        cf1 = cf1 * CFrame.new(0, perp/2, dif_para/2)
+
+        if not p0 then
+            p0 = Instance.new('Part')
+            p0.FormFactor = 'Custom'
+            p0.TopSurface  = 0; p0.BottomSurface = 0
+            p0.Anchored    = true; p0.CanCollide = false; p0.CastShadow = false
+            p0.Material    = MTREL
+            p0.Size        = Vector3.new(sz, sz, sz)
+            local m = Instance.new('SpecialMesh', p0)
+            m.MeshType = 2; m.Name = 'WedgeMesh'
+        end
+        p0.WedgeMesh.Scale = Vector3.new(0, perp/sz, para/sz)
+        p0.CFrame = cf0
+
+        if not p1 then p1 = p0:Clone() end
+        p1.WedgeMesh.Scale = Vector3.new(0, perp/sz, dif_para/sz)
+        p1.CFrame = cf1
+        return p0, p1
+    end
+
+    local function DrawQuad(v1, v2, v3, v4, parts)
+        parts[1], parts[2] = DrawTriangle(v1, v2, v3, parts[1], parts[2])
+        parts[3], parts[4] = DrawTriangle(v3, v2, v4, parts[3], parts[4])
+    end
+
+    local parts = {}
+    local f = Instance.new('Folder', root)
+    f.Name = 'BlurParts'
+
+    local function UpdateOrientation(fetchProps)
+        local props = { Transparency = 0.55; BrickColor = BrickColor.new('Institutional white') }
+        local zIndex = 1 - 0.05 * blurFrame.ZIndex
+
+        local tl = blurFrame.AbsolutePosition
+        local br = tl + blurFrame.AbsoluteSize
+        local tr = Vector2.new(br.X, tl.Y)
+        local bl = Vector2.new(tl.X, br.Y)
+
+        local rot = 0
+        for _, v in ipairs(parents) do rot = rot + v.Rotation end
+        if rot ~= 0 and rot % 180 ~= 0 then
+            local mid = tl:Lerp(br, 0.5)
+            local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot))
+            tl = Vector2.new(c*(tl.X-mid.X)-s*(tl.Y-mid.Y), s*(tl.X-mid.X)+c*(tl.Y-mid.Y)) + mid
+            tr = Vector2.new(c*(tr.X-mid.X)-s*(tr.Y-mid.Y), s*(tr.X-mid.X)+c*(tr.Y-mid.Y)) + mid
+            bl = Vector2.new(c*(bl.X-mid.X)-s*(bl.Y-mid.Y), s*(bl.X-mid.X)+c*(bl.Y-mid.Y)) + mid
+            br = Vector2.new(c*(br.X-mid.X)-s*(br.Y-mid.Y), s*(br.X-mid.X)+c*(br.Y-mid.Y)) + mid
+        end
+
+        DrawQuad(
+            Camera:ScreenPointToRay(tl.X, tl.Y, zIndex).Origin,
+            Camera:ScreenPointToRay(tr.X, tr.Y, zIndex).Origin,
+            Camera:ScreenPointToRay(bl.X, bl.Y, zIndex).Origin,
+            Camera:ScreenPointToRay(br.X, br.Y, zIndex).Origin,
+            parts
+        )
+
+        if fetchProps then
+            for _, pt in pairs(parts) do pt.Parent = f end
+            for propName, propValue in pairs(props) do
+                for _, pt in pairs(parts) do pt[propName] = propValue end
+            end
+        end
+    end
+
+    local isNaN = Camera:ScreenPointToRay(0,0).Origin.X
+    if isNaN == isNaN then
+        UpdateOrientation(true)
+    end
+
+    local uid = GenUid()
+    RunService:BindToRenderStep(uid, 2000, UpdateOrientation)
+
+    return function()
+        RunService:UnbindFromRenderStep(uid)
+        DepthOfField:Destroy()
+        f:Destroy()
+        root:Destroy()
+    end
+end
+-- ── fim BlurModule ──────────────────────────────────────────────────────────
+
 local Library = {
     Registry = {};
     RegistryMap = {};
@@ -3141,8 +3298,8 @@ function Library:CreateWindow(...)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint = Config.AnchorPoint,
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BackgroundTransparency = 0.55;
+        BackgroundColor3 = Color3.fromRGB(8, 10, 10);
+        BackgroundTransparency = 0.38;
         BorderSizePixel = 0;
         Position = Config.Position,
         Size = Config.Size,
@@ -3151,35 +3308,60 @@ function Library:CreateWindow(...)
         Parent = ScreenGui;
     });
 
-    Library:ApplyCorner(Outer, 5);
+    Library:ApplyCorner(Outer, 8);
     Library:MakeDraggable(Outer, 25);
 
+    -- Borda glass sutil
     local OuterStroke = Library:Create('UIStroke', {
-        Color = Library.AccentColor;
+        Color = Color3.fromRGB(255, 255, 255);
+        Transparency = 0.82;
         Thickness = 1;
         LineJoinMode = Enum.LineJoinMode.Round;
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border;
         Parent = Outer;
     });
 
-    Library:AddToRegistry(OuterStroke, { Color = 'AccentColor' });
+    -- Linha accent no topo (destaque de cor)
+    local AccentTopLine = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel  = 0;
+        Size             = UDim2.new(0.45, 0, 0, 1);
+        Position         = UDim2.new(0.275, 0, 0, 0);
+        ZIndex           = 10;
+        Parent           = Outer;
+    });
+    Library:AddToRegistry(AccentTopLine, { BackgroundColor3 = 'AccentColor' });
 
     local Inner = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BackgroundTransparency = 0.6;
-        BorderColor3 = Library.AccentColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Position = UDim2.new(0, 1, 0, 1);
-        Size = UDim2.new(1, -2, 1, -2);
+        BackgroundColor3 = Color3.fromRGB(12, 14, 12);
+        BackgroundTransparency = 0.45;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0, 0);
+        Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 1;
         Parent = Outer;
     });
 
-    Library:ApplyCorner(Inner, 4);
+    Library:ApplyCorner(Inner, 8);
 
-    Library:AddToRegistry(Inner, {
-        BorderColor3 = 'AccentColor';
+    -- Linha separadora abaixo do titlebar
+    local TitleSeparator = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+        BackgroundTransparency = 0.88;
+        BorderSizePixel = 0;
+        Size   = UDim2.new(1, -24, 0, 1);
+        Position = UDim2.new(0, 12, 0, 34);
+        ZIndex = 5;
+        Parent = Inner;
     });
+
+    -- Aplica o BlurModule no Outer (glass 3D atrás da janela)
+    task.spawn(function()
+        task.wait(0.05)
+        if Outer and Outer.Parent then
+            pcall(BlurModule, Outer)
+        end
+    end);
 
     local LogoW   = Config.Logo and 35 or 0;
     local LogoH   = Config.Logo and 40 or 0;
@@ -3234,33 +3416,23 @@ end;
     end;
 
     local MainSectionOuter = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BackgroundTransparency = 0.65;
-        BorderColor3 = Library.OutlineColor;
-        Position = UDim2.new(0, 8, 0, 35);
-        Size = UDim2.new(1, -16, 1, -45);
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0);
+        BackgroundTransparency = 1;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0, 35);
+        Size = UDim2.new(1, 0, 1, -35);
         ZIndex = 1;
         Parent = Inner;
     });
 
-    Library:ApplyCorner(MainSectionOuter, 7);
-
-    Library:AddToRegistry(MainSectionOuter, {
-        BorderColor3 = 'OutlineColor';
-    });
-
     local MainSectionInner = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(0, 0, 0);
         BackgroundTransparency = 1;
-        BorderColor3 = Color3.new(0, 0, 0);
-        BorderMode = Enum.BorderMode.Inset;
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 0, 0, 0);
         Size = UDim2.new(1, 0, 1, 0);
         ZIndex = 1;
         Parent = MainSectionOuter;
     });
-
-    Library:ApplyCorner(MainSectionInner, 7);
 
     local TabArea = Library:Create('Frame', {
         BackgroundTransparency = 1;
@@ -3304,9 +3476,9 @@ end;
     });
 
     local TabContainer = Library:Create('Frame', {
-        BackgroundColor3 = Color3.new(0, 0, 0);
-        BackgroundTransparency = 0.7;
-        BorderColor3 = Library.OutlineColor;
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+        BackgroundTransparency = 0.97;
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 8, 0, 30);
         Size = UDim2.new(1, -16, 1, -38);
         ZIndex = 2;
@@ -3314,10 +3486,6 @@ end;
     });
 
     Library:ApplyCorner(TabContainer, 6);
-
-    Library:AddToRegistry(TabContainer, {
-        BorderColor3 = 'OutlineColor';
-    });
 
     function Window:SetWindowTitle(Title)
         WindowLabel.Text = Title;
@@ -3334,8 +3502,9 @@ end;
         local TabButtonWidth = Library:GetTextBounds(Name, Library.Font, 13);
 
         local TabButton = Library:Create('Frame', {
-            BackgroundColor3 = Library.BackgroundColor;
-            BorderColor3 = Library.OutlineColor;
+            BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+            BackgroundTransparency = 0.93;
+            BorderSizePixel = 0;
             Size = UDim2.new(0, TabButtonWidth + 8 + 4 + IconSize + IconGap, 1, 0);
             ZIndex = 1;
             Parent = TabArea;
@@ -3345,7 +3514,6 @@ end;
 
         Library:AddToRegistry(TabButton, {
             BackgroundColor3 = 'BackgroundColor';
-            BorderColor3 = 'OutlineColor';
         });
 
         if Icon then
@@ -3446,11 +3614,10 @@ end;
                 Tab:HideTab();
             end;
 
-            Blocker.BackgroundTransparency = 0;
-            TabButton.BackgroundColor3 = Library.MainColor;
-            TabButton.BorderColor3 = Library.AccentColor;
-            Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
-            Library.RegistryMap[TabButton].Properties.BorderColor3 = 'AccentColor';
+            Blocker.BackgroundTransparency = 1;
+            TabButton.BackgroundColor3 = Library.AccentColor;
+            TabButton.BackgroundTransparency = 0.75;
+            Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'AccentColor';
             TabButtonLabel.TextColor3 = Library.AccentColor;
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'AccentColor';
             TabFrame.Visible = true;
@@ -3486,10 +3653,9 @@ end;
 
         function Tab:HideTab()
             Blocker.BackgroundTransparency = 1;
-            TabButton.BackgroundColor3 = Library.BackgroundColor;
-            TabButton.BorderColor3 = Library.OutlineColor;
+            TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+            TabButton.BackgroundTransparency = 0.93;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'BackgroundColor';
-            Library.RegistryMap[TabButton].Properties.BorderColor3 = 'OutlineColor';
             TabButtonLabel.TextColor3 = Library.FontColor;
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'FontColor';
             TabFrame.Visible = false;
