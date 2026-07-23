@@ -7411,9 +7411,11 @@ do
 	Luna.CreateWindow = function(self, WindowSettings)
 		local Window = origCreateWindow(self, WindowSettings)
 
-		-- Nuke everything in Navigation.Tabs (Home, InActive Template, etc.)
+		-- Hide everything in Navigation.Tabs but keep InActive Template alive (CreateTab needs it)
 		for _, child in ipairs(Navigation.Tabs:GetChildren()) do
-			child:Destroy()
+			if child:IsA("Frame") then
+				child.Visible = false
+			end
 		end
 
 		-- Hide Player info
@@ -7475,6 +7477,10 @@ do
 		Window.CreateTab = function(tabSelf, tabSettings)
 			local Tab = origCreateTab(tabSelf, tabSettings)
 			tabOrder += 1
+
+			-- Hide the original cloned button from template
+			local clonedBtn = Navigation.Tabs:FindFirstChild(tabSettings.Name)
+			if clonedBtn then clonedBtn.Visible = false end
 
 			-- Create styled sidebar button
 			local Btn = Instance.new("Frame")
