@@ -222,7 +222,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 500),
         BackgroundColor3     = Color3.fromRGB(10, 10, 13),
-        BackgroundTransparency = 0.30,
+        BackgroundTransparency = 0.21,
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
@@ -377,7 +377,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.30}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.21}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -484,7 +484,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             main.Visible = true
             main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.30}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.21}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
         else
             tw(main, {Size = UDim2.new(0, 779, 0, 437), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
@@ -1009,8 +1009,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local gbox = Frame(gboxOuter, {
                 Size                 = UDim2.new(1,0,0,0),
                 AutomaticSize        = Enum.AutomaticSize.Y,
-                BackgroundColor3     = C.white,
-                BackgroundTransparency = 0.975,
+                BackgroundColor3     = C.element,
+                BackgroundTransparency = 0,
                 ClipsDescendants     = true,
                 ZIndex               = 3,
             })
