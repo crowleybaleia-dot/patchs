@@ -4557,6 +4557,37 @@ function Luna:CreateWindow(WindowSettings)
 					"CreateInput","CreateDropdown","CreateColorPicker"
 				}
 
+				-- Após criar um elemento dentro do GroupBox, remove o card visual
+				-- (background + stroke) pra ficar flat igual à referência
+				local function flattenLastChild()
+					task.wait() -- aguarda o elemento ser parented
+					-- pega o último filho real do ContentFrame
+					local children = ContentFrame:GetChildren()
+					local last
+					for _, c in ipairs(children) do
+						if c:IsA("GuiObject") and c.Name ~= "UIListLayout" and c.Name ~= "UIPadding" then
+							last = c
+						end
+					end
+					if not last then return end
+					-- remove card background
+					if last:IsA("Frame") then
+						last.BackgroundTransparency = 1
+					end
+					-- remove UIStroke
+					local stroke = last:FindFirstChildOfClass("UIStroke")
+					if stroke then stroke.Transparency = 1 end
+					-- deixa o texto/desc um pouco mais claro pra compensar sem o card
+					local title = last:FindFirstChild("Title")
+					if title and title:IsA("TextLabel") then
+						title.TextColor3 = Color3.fromRGB(210, 215, 210)
+					end
+					local desc = last:FindFirstChild("Desc")
+					if desc and desc:IsA("TextLabel") then
+						desc.TextColor3 = Color3.fromRGB(130, 135, 130)
+					end
+				end
+
 				for _, m in ipairs(methodNames) do
 					if Section[m] then
 						GroupBoxV[m] = function(self, ...)
@@ -4567,6 +4598,7 @@ function Luna:CreateWindow(WindowSettings)
 							local result = Section[m](Section, ...)
 							Section._cols = origCols
 							Section._target = origTarget
+							flattenLastChild()
 							return result
 						end
 					end
