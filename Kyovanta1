@@ -221,13 +221,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         AnchorPoint          = Vector2.new(0.5, 0.5),
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 500),
-        BackgroundColor3     = C.bg,
-        BackgroundTransparency = 0,
+        BackgroundColor3     = Color3.fromRGB(16, 16, 20),
+        BackgroundTransparency = 0.18,
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
     Corner(main, 6)
-    Stroke(main, C.border, 1, 0)
+    Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
 
     -- ── drag — funciona em toda a sidebar ────────────────────────────────────
@@ -372,12 +372,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local dbc          = false
     local currentToast = nil
 
-    -- animate in: grow + fade
+    -- ── BlurEffect (glassmorphism) ────────────────────────────────────────
+    local Lighting = game:GetService("Lighting")
+    local blurEffect = Instance.new("BlurEffect")
+    blurEffect.Size    = 0
+    blurEffect.Enabled = true
+    blurEffect.Parent  = Lighting
+
+    -- animate in: grow + fade + blur
     main.Size = UDim2.new(0, 492, 0, 264)
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.18}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(blurEffect, {Size = 18}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -484,10 +492,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             main.Visible = true
             main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main,       {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0.18}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(blurEffect, {Size = 18}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
         else
-            tw(main, {Size = UDim2.new(0, 779, 0, 437), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(main,       {Size = UDim2.new(0, 779, 0, 437), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(blurEffect, {Size = 0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
         end
