@@ -7449,37 +7449,26 @@ do
 		SidebarCorner.CornerRadius = UDim.new(0, 12)
 		SidebarCorner.Parent = Sidebar
 
-		-- Inner tab list: auto-sizes to its children and anchors to center
-		local TabList = Instance.new("Frame")
-		TabList.Name = "KyoTabList"
-		TabList.BackgroundTransparency = 1
-		TabList.AnchorPoint = Vector2.new(0.5, 0.5)
-		TabList.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabList.Size = UDim2.new(1, -12, 0, 0)
-		TabList.AutomaticSize = Enum.AutomaticSize.Y
-		TabList.BorderSizePixel = 0
-		TabList.ZIndex = 3
-		TabList.Parent = Sidebar
-
-		local Layout = Instance.new("UIListLayout")
-		Layout.SortOrder = Enum.SortOrder.LayoutOrder
-		Layout.FillDirection = Enum.FillDirection.Vertical
-		Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		Layout.VerticalAlignment = Enum.VerticalAlignment.Top
-		Layout.Padding = UDim.new(0, 10)
-		Layout.Parent = TabList
-
 		local tabOrder = 0
+		local tabButtons = {}
+
+		-- Recalculate all button sizes/positions to distribute evenly
+		local function redistributeTabs()
+			local n = #tabButtons
+			if n == 0 then return end
+			for i, btn in ipairs(tabButtons) do
+				btn.Size = UDim2.new(1, -12, 1/n, -8)
+				btn.Position = UDim2.new(0, 6, (i-1)/n, 4)
+			end
+		end
 
 		-- Helper to reset all sidebar buttons to inactive state
 		local function deactivateAll()
-			for _, child in ipairs(TabList:GetChildren()) do
-				if child:IsA("Frame") then
-					child.BackgroundColor3 = KV.CardBg
-					child.BackgroundTransparency = 1
-					local icon = child:FindFirstChild("Icon")
-					if icon then icon.ImageColor3 = Color3.fromRGB(160, 160, 160) end
-				end
+			for _, btn in ipairs(tabButtons) do
+				btn.BackgroundColor3 = KV.CardBg
+				btn.BackgroundTransparency = 1
+				local icon = btn:FindFirstChild("Icon")
+				if icon then icon.ImageColor3 = Color3.fromRGB(160, 160, 160) end
 			end
 		end
 
@@ -7498,11 +7487,12 @@ do
 			Btn.Name = tabSettings.Name
 			Btn.BackgroundColor3 = KV.Accent
 			Btn.BackgroundTransparency = 1
-			Btn.Size = UDim2.new(1, 0, 0, 40)
 			Btn.BorderSizePixel = 0
-			Btn.LayoutOrder = tabOrder
 			Btn.ZIndex = 3
-			Btn.Parent = TabList
+			Btn.Parent = Sidebar
+
+			table.insert(tabButtons, Btn)
+			redistributeTabs()
 
 			local BtnCorner = Instance.new("UICorner")
 			BtnCorner.CornerRadius = UDim.new(0, 10)
@@ -7571,14 +7561,11 @@ do
 		if origHide then
 			Window.Hide = function(hSelf, hBind)
 				origHide(hSelf, hBind)
-				-- Hide sidebar buttons
-				for _, child in ipairs(TabList:GetChildren()) do
-					if child:IsA("Frame") then
-						TweenService:Create(child, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
-						local icon = child:FindFirstChild("Icon")
-						if icon then
-							TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
-						end
+				for _, btn in ipairs(tabButtons) do
+					TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+					local icon = btn:FindFirstChild("Icon")
+					if icon then
+						TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
 					end
 				end
 			end
@@ -7588,23 +7575,20 @@ do
 		if origUnhide then
 			Window.Unhide = function(uSelf)
 				origUnhide(uSelf)
-				-- Show sidebar buttons
-				for _, child in ipairs(TabList:GetChildren()) do
-					if child:IsA("Frame") then
-						TweenService:Create(child, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.3}):Play()
-						local icon = child:FindFirstChild("Icon")
-						if icon then
-							TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-						end
+				for _, btn in ipairs(tabButtons) do
+					TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.3}):Play()
+					local icon = btn:FindFirstChild("Icon")
+					if icon then
+						TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
 					end
 				end
 				-- Re-highlight active tab
 				if Window.CurrentTab then
-					for _, child in ipairs(TabList:GetChildren()) do
-						if child:IsA("Frame") and child.Name == Window.CurrentTab then
-							child.BackgroundTransparency = 0
-							child.BackgroundColor3 = KV.Accent
-							local icon = child:FindFirstChild("Icon")
+					for _, btn in ipairs(tabButtons) do
+						if btn.Name == Window.CurrentTab then
+							btn.BackgroundTransparency = 0
+							btn.BackgroundColor3 = KV.Accent
+							local icon = btn:FindFirstChild("Icon")
 							if icon then icon.ImageColor3 = KV.Black end
 						end
 					end
