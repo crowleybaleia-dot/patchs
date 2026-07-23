@@ -248,20 +248,21 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end)
 
-    -- ── sidebar full-height (64px) ────────────────────────────────────────
+    -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
-        Position             = UDim2.new(0,0,0,0),
-        Size                 = UDim2.new(0,64,1,0),
+        Position             = UDim2.new(0,4,0,4),
+        Size                 = UDim2.new(0,56,1,-8),
         BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ClipsDescendants     = false,
         ZIndex               = 3,
     })
+    Corner(sidebar, 6)
     -- cobre cantos direitos da sidebar pra não arredondar o lado interno
     Frame(sidebar, {
-        Position             = UDim2.new(1,-12,0,0),
-        Size                 = UDim2.new(0,12,1,0),
+        Position             = UDim2.new(1,-10,0,0),
+        Size                 = UDim2.new(0,10,1,0),
         BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ZIndex               = 3,
@@ -379,11 +380,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local currentToast = nil
 
     -- animate in: grow + fade
-    main.Size = UDim2.new(0, 496, 0, 268)
+    main.Size = UDim2.new(0, 492, 0, 264)
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, 824, 0, 464), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -488,12 +489,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         dbc = true
         if visible then
             main.Visible = true
-            main.Size = UDim2.new(0, 496, 0, 268)
+            main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, 824, 0, 464), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
         else
-            tw(main, {Size = UDim2.new(0, 783, 0, 441), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(main, {Size = UDim2.new(0, 779, 0, 437), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
         end
@@ -857,8 +858,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         -- workarea container (invisível, só posiciona as duas colunas)
         local workarea = Frame(main, {
             Name                 = "wa_" .. name,
-            Position             = UDim2.new(0,56,0,0),
-            Size                 = UDim2.new(1,-56,1,0),
+            Position             = UDim2.new(0,64,0,0),
+            Size                 = UDim2.new(1,-64,1,0),
             BackgroundTransparency = 1,
             BorderSizePixel      = 0,
             ZIndex               = 2,
@@ -929,17 +930,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             for _, w in ipairs(workareas) do w.Visible = false end
 
             -- workarea container: scale + fade
-            local basePos  = UDim2.new(0, 56, 0, 0)
-            local baseSize = UDim2.new(1, -56, 1, 0)
+            local basePos  = UDim2.new(0, 64, 0, 0)
+            local baseSize = UDim2.new(1, -64, 1, 0)
             local scaleOff = 8
 
-            workarea.Position = UDim2.new(0, 56 + scaleOff, 0, scaleOff)
-            workarea.Size     = UDim2.new(1, -56 - scaleOff*2, 1, -scaleOff*2)
+            workarea.Position = UDim2.new(0, 64 + scaleOff, 0, scaleOff)
+            workarea.Size     = UDim2.new(1, -64 - scaleOff*2, 1, -scaleOff*2)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
-                Position             = UDim2.new(0, 56, 0, 0),
-                Size                 = UDim2.new(1, -56, 1, 0),
+                Position             = UDim2.new(0, 64, 0, 0),
+                Size                 = UDim2.new(1, -64, 1, 0),
                 BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
