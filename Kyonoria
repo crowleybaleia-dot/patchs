@@ -9,19 +9,8 @@ local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
 
--- Mobile detection (TESTE - forçado true)
-local IsMobile = true;
-
--- Touch-aware cursor position
-local LastTouchPos = Vector2.new(0, 0);
-if IsMobile then
-    InputService.TouchMoved:Connect(function(touch) LastTouchPos = Vector2.new(touch.Position.X, touch.Position.Y) end);
-    InputService.TouchStarted:Connect(function(touch) LastTouchPos = Vector2.new(touch.Position.X, touch.Position.Y) end);
-end;
-local function GetCursorPos()
-    if IsMobile then return LastTouchPos end;
-    return InputService:GetMouseLocation();
-end;
+-- Mobile detection
+local IsMobile = InputService.TouchEnabled and not InputService.KeyboardEnabled;
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
 
@@ -273,34 +262,43 @@ function Library:AddToolTip(InfoStr, HoverInstance)
 
     local IsHovering = false
 
-    if not IsMobile then
-        HoverInstance.MouseEnter:Connect(function()
-            if Library:MouseIsOverOpenedFrame() then
-                return
-            end
+    -- estado inicial invisível para o fade-in
+    Tooltip.BackgroundTransparency = 1;
+    Label.TextTransparency = 1;
 
-            IsHovering = true
+    HoverInstance.MouseEnter:Connect(function()
+        if Library:MouseIsOverOpenedFrame() then
+            return
+        end
 
-            local pos = GetCursorPos();
-            Tooltip.Position = UDim2.fromOffset(pos.X + 15, pos.Y + 12)
-            Tooltip.Visible = true
+        IsHovering = true
 
-            while IsHovering do
-                RunService.Heartbeat:Wait()
-                local p = GetCursorPos();
-                Tooltip.Position = UDim2.fromOffset(p.X + 15, p.Y + 12)
-            end
-        end)
+        Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+        Tooltip.Visible = true
 
-        HoverInstance.MouseLeave:Connect(function()
-            IsHovering = false
-            Tooltip.Visible = false
-        end)
-    end
+        -- fade-in suave de 0.1s
+        TweenService:Create(Tooltip, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0;
+        }):Play();
+        TweenService:Create(Label, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TextTransparency = 0;
+        }):Play();
+
+        while IsHovering do
+            RunService.Heartbeat:Wait()
+            Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+        end
+    end)
+
+    HoverInstance.MouseLeave:Connect(function()
+        IsHovering = false
+        Tooltip.BackgroundTransparency = 1;
+        Label.TextTransparency = 1;
+        Tooltip.Visible = false
+    end)
 end
 
 function Library:OnHighlight(HighlightInstance, Instance, Properties, PropertiesDefault)
-    if IsMobile then return end;
     HighlightInstance.MouseEnter:Connect(function()
         local Reg = Library.RegistryMap[Instance];
 
@@ -327,12 +325,11 @@ function Library:OnHighlight(HighlightInstance, Instance, Properties, Properties
 end;
 
 function Library:MouseIsOverOpenedFrame()
-    local pos = GetCursorPos();
     for Frame, _ in next, Library.OpenedFrames do
         local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
 
-        if pos.X >= AbsPos.X and pos.X <= AbsPos.X + AbsSize.X
-            and pos.Y >= AbsPos.Y and pos.Y <= AbsPos.Y + AbsSize.Y then
+        if Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
+            and Mouse.Y >= AbsPos.Y and Mouse.Y <= AbsPos.Y + AbsSize.Y then
 
             return true;
         end;
@@ -340,11 +337,10 @@ function Library:MouseIsOverOpenedFrame()
 end;
 
 function Library:IsMouseOverFrame(Frame)
-    local pos = GetCursorPos();
     local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
 
-    if pos.X >= AbsPos.X and pos.X <= AbsPos.X + AbsSize.X
-        and pos.Y >= AbsPos.Y and pos.Y <= AbsPos.Y + AbsSize.Y then
+    if Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
+        and Mouse.Y >= AbsPos.Y and Mouse.Y <= AbsPos.Y + AbsSize.Y then
 
         return true;
     end;
@@ -1047,15 +1043,6 @@ do
             end
         end);
 
-        if IsMobile then
-            DisplayFrame.TouchLongPress:Connect(function()
-                if not Library:MouseIsOverOpenedFrame() then
-                    ContextMenu:Show()
-                    ColorPicker:Hide()
-                end
-            end);
-        end;
-
         if TransparencyBoxInner then
             local TranspDragging = false;
             local function updateTransp(posX)
@@ -1094,11 +1081,10 @@ do
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
             if (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch) then
-                local pos = GetCursorPos();
                 local AbsPos, AbsSize = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize;
 
-                if pos.X < AbsPos.X or pos.X > AbsPos.X + AbsSize.X
-                    or pos.Y < (AbsPos.Y - 20 - 1) or pos.Y > AbsPos.Y + AbsSize.Y then
+                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
+                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
 
                     ColorPicker:Hide();
                 end;
@@ -2053,12 +2039,29 @@ do
             Library:AddToolTip(Info.Tooltip, ToggleRegion)
         end
 
+        -- UIScale para o bounce do toggle
+        local ToggleScale = Library:Create('UIScale', {
+            Scale = 1;
+            Parent = ToggleOuter;
+        });
+
         function Toggle:Display()
             ToggleInner.BackgroundColor3 = Toggle.Value and Library.AccentColor or Library.MainColor;
             ToggleInner.BorderColor3 = Toggle.Value and Library.AccentColorDark or Library.OutlineColor;
 
             Library.RegistryMap[ToggleInner].Properties.BackgroundColor3 = Toggle.Value and 'AccentColor' or 'MainColor';
             Library.RegistryMap[ToggleInner].Properties.BorderColor3 = Toggle.Value and 'AccentColorDark' or 'OutlineColor';
+
+            -- micro-bounce: encolhe ligeiramente e volta com overshoot
+            ToggleScale.Scale = 1;
+            TweenService:Create(ToggleScale, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Scale = 0.82;
+            }):Play();
+            task.delay(0.08, function()
+                TweenService:Create(ToggleScale, TweenInfo.new(0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Scale = 1;
+                }):Play();
+            end);
         end;
 
         function Toggle:OnChanged(Func)
@@ -2288,6 +2291,46 @@ do
             Library:SafeCallback(Slider.Changed, Slider.Value);
         end;
 
+        -- badge flutuante acima do thumb durante o drag
+        local ValueBadge = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            AnchorPoint = Vector2.new(0.5, 1);
+            Size = UDim2.fromOffset(36, 16);
+            Position = UDim2.new(0, 0, 0, -4);
+            ZIndex = 20;
+            Visible = false;
+            Parent = SliderOuter;
+        });
+
+        Library:ApplyCorner(ValueBadge, 4);
+
+        Library:AddToRegistry(ValueBadge, {
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
+        });
+
+        local ValueBadgeLabel = Library:CreateLabel({
+            Size = UDim2.new(1, 0, 1, 0);
+            TextSize = 11;
+            Text = '';
+            ZIndex = 21;
+            Parent = ValueBadge;
+        });
+
+        local function UpdateBadgePosition()
+            local fillX = Fill.Size.X.Offset;
+            local pct = (Slider.MaxSize > 0) and (fillX / Slider.MaxSize) or 0;
+            local badgeX = math.clamp(fillX, 18, Slider.MaxSize - 18);
+            ValueBadge.Position = UDim2.new(0, badgeX, 0, -4);
+            ValueBadgeLabel.Text = tostring(Slider.Value);
+
+            -- ajuste dinâmico de largura para valores longos
+            local txtW = Library:GetTextBounds(tostring(Slider.Value), Library.Font, 11);
+            ValueBadge.Size = UDim2.fromOffset(math.max(36, txtW + 10), 16);
+        end;
+
         local SliderDragging = false;
         local sliderStartMouseX = 0;
         local sliderStartGPos = 0;
@@ -2301,6 +2344,14 @@ do
                 sliderStartMouseX = Input.Position.X;
                 sliderStartGPos = Fill.Size.X.Offset;
                 sliderDiff = sliderStartMouseX - (Fill.AbsolutePosition.X + sliderStartGPos);
+
+                -- mostra badge com fade-in
+                ValueBadge.Visible = true;
+                ValueBadge.BackgroundTransparency = 1;
+                ValueBadgeLabel.TextTransparency = 1;
+                UpdateBadgePosition();
+                TweenService:Create(ValueBadge, TweenInfo.new(0.1, Enum.EasingStyle.Quad), { BackgroundTransparency = 0 }):Play();
+                TweenService:Create(ValueBadgeLabel, TweenInfo.new(0.1, Enum.EasingStyle.Quad), { TextTransparency = 0 }):Play();
             end;
         end);
 
@@ -2315,6 +2366,7 @@ do
                 Slider.Value = nValue;
 
                 Slider:Display();
+                UpdateBadgePosition();
 
                 if nValue ~= OldValue then
                     Library:SafeCallback(Slider.Callback, Slider.Value);
@@ -2329,6 +2381,11 @@ do
                 if SliderDragging then
                     SliderDragging = false;
                     Library:AttemptSave();
+
+                    -- esconde badge com fade-out
+                    TweenService:Create(ValueBadge, TweenInfo.new(0.1, Enum.EasingStyle.Quad), { BackgroundTransparency = 1 }):Play();
+                    TweenService:Create(ValueBadgeLabel, TweenInfo.new(0.1, Enum.EasingStyle.Quad), { TextTransparency = 1 }):Play();
+                    task.delay(0.1, function() ValueBadge.Visible = false; end);
                 end;
             end;
         end));
@@ -2956,80 +3013,79 @@ do
 
 
 
-    if not IsMobile then
-        local KeybindOuter = Library:Create('Frame', {
-            AnchorPoint = Vector2.new(0, 0.5);
-            BorderColor3 = Color3.new(0, 0, 0);
-            Position = UDim2.new(0, 10, 0.5, 0);
-            Size = UDim2.new(0, 210, 0, 20);
-            Visible = false;
-            ZIndex = 100;
-            Parent = ScreenGui;
-        });
+    local KeybindOuter = Library:Create('Frame', {
+        AnchorPoint = Vector2.new(0, 0.5);
+        BorderColor3 = Color3.new(0, 0, 0);
+        Position = UDim2.new(0, 10, 0.5, 0);
+        Size = UDim2.new(0, 210, 0, 20);
+        Visible = false;
+        ZIndex = 100;
+        Parent = ScreenGui;
+    });
 
-        Library:ApplyCorner(KeybindOuter, 7);
+    Library:ApplyCorner(KeybindOuter, 7);
 
-        local KeybindInner = Library:Create('Frame', {
-            BackgroundColor3 = Library.MainColor;
-            BorderColor3 = Library.OutlineColor;
-            BorderMode = Enum.BorderMode.Inset;
-            Size = UDim2.new(1, 0, 1, 0);
-            ZIndex = 101;
-            Parent = KeybindOuter;
-        });
+    local KeybindInner = Library:Create('Frame', {
+        BackgroundColor3 = Library.MainColor;
+        BorderColor3 = Library.OutlineColor;
+        BorderMode = Enum.BorderMode.Inset;
+        Size = UDim2.new(1, 0, 1, 0);
+        ZIndex = 101;
+        Parent = KeybindOuter;
+    });
 
-        Library:ApplyCorner(KeybindInner, 7);
+    Library:ApplyCorner(KeybindInner, 7);
 
-        Library:AddToRegistry(KeybindInner, {
-            BackgroundColor3 = 'MainColor';
-            BorderColor3 = 'OutlineColor';
-        }, true);
+    Library:AddToRegistry(KeybindInner, {
+        BackgroundColor3 = 'MainColor';
+        BorderColor3 = 'OutlineColor';
+    }, true);
 
-        local ColorFrame = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
-            BorderSizePixel = 0;
-            Size = UDim2.new(1, 0, 0, 2);
-            ZIndex = 102;
-            Parent = KeybindInner;
-        });
+    local ColorFrame = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, 0, 0, 2);
+        ZIndex = 102;
+        Parent = KeybindInner;
+    });
 
-        Library:AddToRegistry(ColorFrame, {
-            BackgroundColor3 = 'AccentColor';
-        }, true);
+    Library:AddToRegistry(ColorFrame, {
+        BackgroundColor3 = 'AccentColor';
+    }, true);
 
-        local KeybindLabel = Library:CreateLabel({
-            Size = UDim2.new(1, 0, 0, 20);
-            Position = UDim2.fromOffset(5, 2),
-            TextXAlignment = Enum.TextXAlignment.Left,
+    local KeybindLabel = Library:CreateLabel({
+        Size = UDim2.new(1, 0, 0, 20);
+        Position = UDim2.fromOffset(5, 2),
+        TextXAlignment = Enum.TextXAlignment.Left,
 
-            Text = 'Keybinds';
-            ZIndex = 104;
-            Parent = KeybindInner;
-        });
+        Text = 'Keybinds';
+        ZIndex = 104;
+        Parent = KeybindInner;
+    });
 
-        local KeybindContainer = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Size = UDim2.new(1, 0, 1, -20);
-            Position = UDim2.new(0, 0, 0, 20);
-            ZIndex = 1;
-            Parent = KeybindInner;
-        });
+    local KeybindContainer = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Size = UDim2.new(1, 0, 1, -20);
+        Position = UDim2.new(0, 0, 0, 20);
+        ZIndex = 1;
+        Parent = KeybindInner;
+    });
 
-        Library:Create('UIListLayout', {
-            FillDirection = Enum.FillDirection.Vertical;
-            SortOrder = Enum.SortOrder.LayoutOrder;
-            Parent = KeybindContainer;
-        });
+    Library:Create('UIListLayout', {
+        FillDirection = Enum.FillDirection.Vertical;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = KeybindContainer;
+    });
 
-        Library:Create('UIPadding', {
-            PaddingLeft = UDim.new(0, 5),
-            Parent = KeybindContainer,
-        })
+    Library:Create('UIPadding', {
+        PaddingLeft = UDim.new(0, 5),
+        Parent = KeybindContainer,
+    })
 
-        Library.KeybindFrame = KeybindOuter;
-        Library.KeybindContainer = KeybindContainer;
-        Library:MakeDraggable(KeybindOuter);
-    end;
+    Library.KeybindFrame = KeybindOuter;
+    Library.KeybindContainer = KeybindContainer;
+    Library:MakeDraggable(KeybindOuter);
+end;
 
 function Library:SetWatermarkVisibility(Bool)
     Library.Watermark.Visible = Bool;
@@ -3043,7 +3099,21 @@ function Library:SetWatermark(Text)
     Library.WatermarkText.Text = Text;
 end;
 
-function Library:Notify(Text, Time)
+-- Tipos de notificação: 'info' (padrão), 'success', 'warn', 'error'
+local NotifyTypeConfig = {
+    info    = { Color = nil,                              Icon = 'ℹ' };  -- nil usa AccentColor
+    success = { Color = Color3.fromRGB(60, 200, 100),    Icon = '✓' };
+    warn    = { Color = Color3.fromRGB(240, 185, 50),    Icon = '!' };
+    error   = { Color = Color3.fromRGB(220, 60, 60),     Icon = '✕' };
+};
+
+function Library:Notify(Text, Time, NotifyType)
+    local TypeCfg = NotifyTypeConfig[NotifyType or 'info'] or NotifyTypeConfig['info'];
+    local BarColor = TypeCfg.Color or Library.AccentColor;
+    local Icon = TypeCfg.Icon;
+
+    -- largura extra para o ícone (12px) + gap (4px)
+    local IconPad = 16;
     local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14);
 
     YSize = YSize + 7
@@ -3102,9 +3172,24 @@ function Library:Notify(Text, Time)
         end
     });
 
+    -- ícone de status à esquerda do texto
+    local IconLabel = Library:CreateLabel({
+        Position = UDim2.new(0, 5, 0, 0);
+        Size = UDim2.fromOffset(12, YSize);
+        Text = Icon;
+        TextColor3 = BarColor;
+        TextSize = 12;
+        TextXAlignment = Enum.TextXAlignment.Center;
+        ZIndex = 104;
+        Parent = InnerFrame;
+    });
+
+    Library:RemoveFromRegistry(IconLabel);
+    IconLabel.TextColor3 = BarColor;
+
     local NotifyLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 4, 0, 0);
-        Size = UDim2.new(1, -4, 1, 0);
+        Position = UDim2.new(0, 4 + IconPad, 0, 0);
+        Size = UDim2.new(1, -(4 + IconPad), 1, 0);
         Text = Text;
         TextXAlignment = Enum.TextXAlignment.Left;
         TextSize = 14;
@@ -3113,7 +3198,7 @@ function Library:Notify(Text, Time)
     });
 
     local LeftColor = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
+        BackgroundColor3 = BarColor;
         BorderSizePixel = 0;
         Position = UDim2.new(0, -1, 0, -1);
         Size = UDim2.new(0, 3, 1, 2);
@@ -3121,11 +3206,14 @@ function Library:Notify(Text, Time)
         Parent = NotifyOuter;
     });
 
-    Library:AddToRegistry(LeftColor, {
-        BackgroundColor3 = 'AccentColor';
-    }, true);
+    -- barra lateral usa a cor do tipo, não o registry de accent
+    if NotifyType == nil or NotifyType == 'info' then
+        Library:AddToRegistry(LeftColor, {
+            BackgroundColor3 = 'AccentColor';
+        }, true);
+    end;
 
-    pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
+    pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + IconPad + 8 + 4, 0, YSize), 'Out', 'Quad', 0.4, true);
 
     task.spawn(function()
         task.wait(Time or 5);
@@ -3208,6 +3296,56 @@ function Library:CreateWindow(...)
         BackgroundColor3 = 'MainColor';
         BorderColor3 = 'AccentColor';
     });
+
+    -- accent bar com shimmer no topo da titlebar
+    local AccentBar = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, 0, 0, 2);
+        ZIndex = 10;
+        ClipsDescendants = true;
+        Parent = Inner;
+    });
+
+    Library:AddToRegistry(AccentBar, {
+        BackgroundColor3 = 'AccentColor';
+    });
+
+    -- shimmer: highlight branco que percorre a barra da esquerda para direita
+    local AccentBarShimmer = Library:Create('Frame', {
+        BackgroundTransparency = 0.6;
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Size = UDim2.new(0.3, 0, 1, 0);
+        Position = UDim2.new(-0.3, 0, 0, 0);
+        ZIndex = 11;
+        Parent = AccentBar;
+    });
+
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1,1,1));
+            ColorSequenceKeypoint.new(0.5, Color3.new(1,1,1));
+            ColorSequenceKeypoint.new(1, Color3.new(1,1,1));
+        });
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1);
+            NumberSequenceKeypoint.new(0.5, 0.55);
+            NumberSequenceKeypoint.new(1, 1);
+        });
+        Parent = AccentBarShimmer;
+    });
+
+    -- loop do shimmer
+    task.spawn(function()
+        while Outer.Parent do
+            AccentBarShimmer.Position = UDim2.new(-0.35, 0, 0, 0);
+            TweenService:Create(AccentBarShimmer, TweenInfo.new(2.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Position = UDim2.new(1.05, 0, 0, 0);
+            }):Play();
+            task.wait(3.5);
+        end;
+    end);
 
     local LogoW   = Config.Logo and 35 or 0;
     local LogoH   = Config.Logo and 40 or 0;
@@ -3578,8 +3716,28 @@ end;
                 BackgroundColor3 = 'AccentColor';
             });
 
+            -- pip colorido no canto direito do header
+            local HeaderPip = Library:Create('Frame', {
+                BackgroundColor3 = Library.AccentColor;
+                BorderSizePixel = 0;
+                AnchorPoint = Vector2.new(1, 0.5);
+                Position = UDim2.new(1, -6, 0, 11);
+                Size = UDim2.fromOffset(5, 5);
+                ZIndex = 6;
+                Parent = BoxInner;
+            });
+
+            Library:Create('UICorner', {
+                CornerRadius = UDim.new(1, 0);
+                Parent = HeaderPip;
+            });
+
+            Library:AddToRegistry(HeaderPip, {
+                BackgroundColor3 = 'AccentColor';
+            });
+
             local GroupboxLabel = Library:CreateLabel({
-                Size = UDim2.new(1, 0, 0, 16);
+                Size = UDim2.new(1, -16, 0, 16);
                 Position = Info.Icon and UDim2.new(0, 22, 0, 2) or UDim2.new(0, 4, 0, 2);
                 TextSize = 15;
                 Text = Info.Name;
@@ -3890,7 +4048,6 @@ end;
             -- A bit scuffed, but if we're going from not toggled -> toggled we want to show the frame immediately so that the fade is visible.
             Outer.Visible = true;
 
-            if not IsMobile then
             task.spawn(function()
                 -- TODO: add cursor fade?
                 local State = InputService.MouseIconEnabled;
@@ -3929,7 +4086,6 @@ end;
                 Cursor:Remove();
                 CursorOutline:Remove();
             end);
-        end;
         end;
 
         for _, Desc in next, Outer:GetDescendants() do
@@ -4002,42 +4158,7 @@ end;
         MobileCorner.CornerRadius = UDim.new(0, 10);
         MobileCorner.Parent = MobileToggleBtn;
 
-        -- Drag support
-        local Dragging = false;
-        local DragOffsetX, DragOffsetY = 0, 0;
-        local DidDrag = false;
-        local DragInput = nil;
-
-        MobileToggleBtn.InputBegan:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.Touch then
-                Dragging = true;
-                DidDrag = false;
-                DragInput = Input;
-                DragOffsetX = Input.Position.X - MobileToggleBtn.AbsolutePosition.X;
-                DragOffsetY = Input.Position.Y - MobileToggleBtn.AbsolutePosition.Y;
-            end;
-        end);
-
-        MobileToggleBtn.InputEnded:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.Touch then
-                Dragging = false;
-                DragInput = nil;
-            end;
-        end);
-
-        InputService.InputChanged:Connect(function(Input)
-            if Dragging and Input == DragInput and Input.UserInputType == Enum.UserInputType.Touch then
-                DidDrag = true;
-                local VP = workspace.CurrentCamera.ViewportSize;
-                local BtnSize = 48;
-                local newX = math.clamp(Input.Position.X - DragOffsetX, 0, VP.X - BtnSize);
-                local newY = math.clamp(Input.Position.Y - DragOffsetY, 0, VP.Y - BtnSize);
-                MobileToggleBtn.Position = UDim2.fromOffset(newX, newY);
-            end;
-        end);
-
         MobileToggleBtn.MouseButton1Click:Connect(function()
-            if DidDrag then DidDrag = false; return end;
             task.spawn(Library.Toggle)
         end);
     end;
