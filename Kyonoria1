@@ -2956,80 +2956,80 @@ do
 
 
 
-    local KeybindOuter = Library:Create('Frame', {
-        AnchorPoint = Vector2.new(0, 0.5);
-        BorderColor3 = Color3.new(0, 0, 0);
-        Position = UDim2.new(0, 10, 0.5, 0);
-        Size = UDim2.new(0, 210, 0, 20);
-        Visible = false;
-        ZIndex = 100;
-        Parent = ScreenGui;
-    });
-    if IsMobile then KeybindOuter.Parent = nil end;
+    if not IsMobile then
+        local KeybindOuter = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0, 0.5);
+            BorderColor3 = Color3.new(0, 0, 0);
+            Position = UDim2.new(0, 10, 0.5, 0);
+            Size = UDim2.new(0, 210, 0, 20);
+            Visible = false;
+            ZIndex = 100;
+            Parent = ScreenGui;
+        });
 
-    Library:ApplyCorner(KeybindOuter, 7);
+        Library:ApplyCorner(KeybindOuter, 7);
 
-    local KeybindInner = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderColor3 = Library.OutlineColor;
-        BorderMode = Enum.BorderMode.Inset;
-        Size = UDim2.new(1, 0, 1, 0);
-        ZIndex = 101;
-        Parent = KeybindOuter;
-    });
+        local KeybindInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.new(1, 0, 1, 0);
+            ZIndex = 101;
+            Parent = KeybindOuter;
+        });
 
-    Library:ApplyCorner(KeybindInner, 7);
+        Library:ApplyCorner(KeybindInner, 7);
 
-    Library:AddToRegistry(KeybindInner, {
-        BackgroundColor3 = 'MainColor';
-        BorderColor3 = 'OutlineColor';
-    }, true);
+        Library:AddToRegistry(KeybindInner, {
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
+        }, true);
 
-    local ColorFrame = Library:Create('Frame', {
-        BackgroundColor3 = Library.AccentColor;
-        BorderSizePixel = 0;
-        Size = UDim2.new(1, 0, 0, 2);
-        ZIndex = 102;
-        Parent = KeybindInner;
-    });
+        local ColorFrame = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, 0, 0, 2);
+            ZIndex = 102;
+            Parent = KeybindInner;
+        });
 
-    Library:AddToRegistry(ColorFrame, {
-        BackgroundColor3 = 'AccentColor';
-    }, true);
+        Library:AddToRegistry(ColorFrame, {
+            BackgroundColor3 = 'AccentColor';
+        }, true);
 
-    local KeybindLabel = Library:CreateLabel({
-        Size = UDim2.new(1, 0, 0, 20);
-        Position = UDim2.fromOffset(5, 2),
-        TextXAlignment = Enum.TextXAlignment.Left,
+        local KeybindLabel = Library:CreateLabel({
+            Size = UDim2.new(1, 0, 0, 20);
+            Position = UDim2.fromOffset(5, 2),
+            TextXAlignment = Enum.TextXAlignment.Left,
 
-        Text = 'Keybinds';
-        ZIndex = 104;
-        Parent = KeybindInner;
-    });
+            Text = 'Keybinds';
+            ZIndex = 104;
+            Parent = KeybindInner;
+        });
 
-    local KeybindContainer = Library:Create('Frame', {
-        BackgroundTransparency = 1;
-        Size = UDim2.new(1, 0, 1, -20);
-        Position = UDim2.new(0, 0, 0, 20);
-        ZIndex = 1;
-        Parent = KeybindInner;
-    });
+        local KeybindContainer = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 1, -20);
+            Position = UDim2.new(0, 0, 0, 20);
+            ZIndex = 1;
+            Parent = KeybindInner;
+        });
 
-    Library:Create('UIListLayout', {
-        FillDirection = Enum.FillDirection.Vertical;
-        SortOrder = Enum.SortOrder.LayoutOrder;
-        Parent = KeybindContainer;
-    });
+        Library:Create('UIListLayout', {
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = KeybindContainer;
+        });
 
-    Library:Create('UIPadding', {
-        PaddingLeft = UDim.new(0, 5),
-        Parent = KeybindContainer,
-    })
+        Library:Create('UIPadding', {
+            PaddingLeft = UDim.new(0, 5),
+            Parent = KeybindContainer,
+        })
 
-    Library.KeybindFrame = KeybindOuter;
-    Library.KeybindContainer = KeybindContainer;
-    Library:MakeDraggable(KeybindOuter);
-end;
+        Library.KeybindFrame = KeybindOuter;
+        Library.KeybindContainer = KeybindContainer;
+        Library:MakeDraggable(KeybindOuter);
+    end;
 
 function Library:SetWatermarkVisibility(Bool)
     Library.Watermark.Visible = Bool;
@@ -4006,11 +4006,13 @@ end;
         local Dragging = false;
         local DragOffsetX, DragOffsetY = 0, 0;
         local DidDrag = false;
+        local DragInput = nil;
 
         MobileToggleBtn.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = true;
                 DidDrag = false;
+                DragInput = Input;
                 DragOffsetX = Input.Position.X - MobileToggleBtn.AbsolutePosition.X;
                 DragOffsetY = Input.Position.Y - MobileToggleBtn.AbsolutePosition.Y;
             end;
@@ -4019,11 +4021,12 @@ end;
         MobileToggleBtn.InputEnded:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = false;
+                DragInput = nil;
             end;
         end);
 
-        InputService.TouchMoved:Connect(function(Input)
-            if Dragging then
+        InputService.InputChanged:Connect(function(Input)
+            if Dragging and Input == DragInput and Input.UserInputType == Enum.UserInputType.Touch then
                 DidDrag = true;
                 local VP = workspace.CurrentCamera.ViewportSize;
                 local BtnSize = 48;
