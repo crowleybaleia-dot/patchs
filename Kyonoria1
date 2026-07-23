@@ -1873,8 +1873,13 @@ local function RestyleUI()
 	-- Main window
 	SmartWindow.BackgroundColor3 = KV.MainBg
 	SmartWindow.BackgroundTransparency = 0
+	SmartWindow.ClipsDescendants = true
 	if SmartWindow:FindFirstChildOfClass("UICorner") then
 		SmartWindow:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
+	else
+		local SWCorner = Instance.new("UICorner")
+		SWCorner.CornerRadius = UDim.new(0, 12)
+		SWCorner.Parent = SmartWindow
 	end
 
 	-- Remove top bar line
@@ -1906,6 +1911,16 @@ local function RestyleUI()
 	-- Sidebar / Navigation
 	if Navigation then
 		Navigation.BackgroundColor3 = KV.CardBg
+		Navigation.ClipsDescendants = true
+
+		-- Add UICorner to Navigation if not present
+		if not Navigation:FindFirstChildOfClass("UICorner") then
+			local NavCorner = Instance.new("UICorner")
+			NavCorner.CornerRadius = UDim.new(0, 12)
+			NavCorner.Parent = Navigation
+		else
+			Navigation:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
+		end
 
 		-- Hide sidebar line
 		local NavLine = Navigation:FindFirstChild("Line")
@@ -7396,11 +7411,26 @@ do
 	Luna.CreateWindow = function(self, WindowSettings)
 		local Window = origCreateWindow(self, WindowSettings)
 
-		-- Hide all original template tab buttons (they're invisible anyway)
+		-- Nuke everything in Navigation.Tabs (Home, InActive Template, etc.)
 		for _, child in ipairs(Navigation.Tabs:GetChildren()) do
-			if child:IsA("Frame") then
-				child.Visible = false
-			end
+			child:Destroy()
+		end
+
+		-- Hide Player info
+		local PlayerInfo = Navigation:FindFirstChild("Player")
+		if PlayerInfo then PlayerInfo.Visible = false end
+
+		-- Hide Navigation.Line
+		local NavLine = Navigation:FindFirstChild("Line")
+		if NavLine then NavLine.BackgroundTransparency = 1 end
+
+		-- Ensure Navigation styling
+		Navigation.BackgroundColor3 = KV.CardBg
+		Navigation.ClipsDescendants = true
+		if not Navigation:FindFirstChildOfClass("UICorner") then
+			local c = Instance.new("UICorner")
+			c.CornerRadius = UDim.new(0, 12)
+			c.Parent = Navigation
 		end
 
 		-- Create sidebar container inside Navigation
@@ -7416,25 +7446,34 @@ do
 		local Layout = Instance.new("UIListLayout")
 		Layout.SortOrder = Enum.SortOrder.LayoutOrder
 		Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		Layout.Padding = UDim.new(0, 14)
+		Layout.Padding = UDim.new(0, 10)
 		Layout.Parent = Sidebar
 
 		local Padding = Instance.new("UIPadding")
-		Padding.PaddingTop = UDim.new(0, 32)
-		Padding.PaddingBottom = UDim.new(0, 16)
+		Padding.PaddingTop = UDim.new(0, 28)
+		Padding.PaddingBottom = UDim.new(0, 12)
+		Padding.PaddingLeft = UDim.new(0, 6)
+		Padding.PaddingRight = UDim.new(0, 6)
 		Padding.Parent = Sidebar
 
 		local tabOrder = 0
+
+		-- Helper to reset all sidebar buttons to inactive state
+		local function deactivateAll()
+			for _, child in ipairs(Sidebar:GetChildren()) do
+				if child:IsA("Frame") then
+					child.BackgroundColor3 = KV.CardBg
+					child.BackgroundTransparency = 1
+					local icon = child:FindFirstChild("Icon")
+					if icon then icon.ImageColor3 = Color3.fromRGB(160, 160, 160) end
+				end
+			end
+		end
 
 		-- Override CreateTab to build styled sidebar buttons
 		local origCreateTab = Window.CreateTab
 		Window.CreateTab = function(tabSelf, tabSettings)
 			local Tab = origCreateTab(tabSelf, tabSettings)
-
-			-- Hide the original cloned button
-			local origButton = Navigation.Tabs:FindFirstChild(tabSettings.Name)
-			if origButton then origButton.Visible = false end
-
 			tabOrder += 1
 
 			-- Create styled sidebar button
@@ -7442,14 +7481,14 @@ do
 			Btn.Name = tabSettings.Name
 			Btn.BackgroundColor3 = KV.Accent
 			Btn.BackgroundTransparency = 1
-			Btn.Size = UDim2.new(0, 42, 0, 42)
+			Btn.Size = UDim2.new(1, -12, 0, 40)
 			Btn.BorderSizePixel = 0
 			Btn.LayoutOrder = tabOrder
 			Btn.ZIndex = 3
 			Btn.Parent = Sidebar
 
 			local BtnCorner = Instance.new("UICorner")
-			BtnCorner.CornerRadius = UDim.new(0, 12)
+			BtnCorner.CornerRadius = UDim.new(0, 10)
 			BtnCorner.Parent = Btn
 
 			local Icon = Instance.new("ImageLabel")
@@ -7473,7 +7512,7 @@ do
 			-- Hover
 			Interact.MouseEnter:Connect(function()
 				if Window.CurrentTab ~= tabSettings.Name then
-					tween(Btn, {BackgroundTransparency = 0.85, BackgroundColor3 = Color3.fromRGB(40, 40, 40)})
+					tween(Btn, {BackgroundTransparency = 0.85, BackgroundColor3 = Color3.fromRGB(35, 35, 35)})
 					tween(Icon, {ImageColor3 = Color3.fromRGB(238, 238, 238)})
 				end
 			end)
@@ -7494,18 +7533,10 @@ do
 			local origActivate = Tab.Activate
 			Tab.Activate = function(...)
 				origActivate(...)
+				deactivateAll()
 				Btn.BackgroundTransparency = 0
 				Btn.BackgroundColor3 = KV.Accent
 				Icon.ImageColor3 = KV.Black
-				for _, child in ipairs(Sidebar:GetChildren()) do
-					if child:IsA("Frame") and child ~= Btn then
-						child.BackgroundTransparency = 1
-						local otherIcon = child:FindFirstChild("Icon")
-						if otherIcon then
-							otherIcon.ImageColor3 = Color3.fromRGB(160, 160, 160)
-						end
-					end
-				end
 			end
 
 			-- If this is the first tab, it was auto-activated
@@ -7516,6 +7547,52 @@ do
 			end
 
 			return Tab
+		end
+
+		-- Override Hide/Unhide to handle our custom sidebar buttons
+		local origHide = Window.Hide
+		if origHide then
+			Window.Hide = function(hSelf, hBind)
+				origHide(hSelf, hBind)
+				-- Hide sidebar buttons
+				for _, child in ipairs(Sidebar:GetChildren()) do
+					if child:IsA("Frame") then
+						TweenService:Create(child, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+						local icon = child:FindFirstChild("Icon")
+						if icon then
+							TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+						end
+					end
+				end
+			end
+		end
+
+		local origUnhide = Window.Unhide
+		if origUnhide then
+			Window.Unhide = function(uSelf)
+				origUnhide(uSelf)
+				-- Show sidebar buttons
+				for _, child in ipairs(Sidebar:GetChildren()) do
+					if child:IsA("Frame") then
+						TweenService:Create(child, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.3}):Play()
+						local icon = child:FindFirstChild("Icon")
+						if icon then
+							TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+						end
+					end
+				end
+				-- Re-highlight active tab
+				if Window.CurrentTab then
+					for _, child in ipairs(Sidebar:GetChildren()) do
+						if child:IsA("Frame") and child.Name == Window.CurrentTab then
+							child.BackgroundTransparency = 0
+							child.BackgroundColor3 = KV.Accent
+							local icon = child:FindFirstChild("Icon")
+							if icon then icon.ImageColor3 = KV.Black end
+						end
+					end
+				end
+			end
 		end
 
 		return Window
