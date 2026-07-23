@@ -230,11 +230,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Stroke(main, C.border, 1, 0)
 
 
-    -- ── drag (move o outer que contém tudo) ───────────────────────────────────
+    -- ── drag — funciona em toda a sidebar ────────────────────────────────────
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
-        if (i.Position.Y - main.AbsolutePosition.Y) > 60 then return end
+        if (i.Position.X - main.AbsolutePosition.X) > 56 then return end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
             if i.UserInputState == Enum.UserInputState.End then drag = false end
@@ -248,141 +248,98 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end)
 
-    -- ── titlebar  (60px) ───────────────────────────────────────────────────
-    local titlebar = Frame(main, {
-        Name                 = "titlebar",
-        Size                 = UDim2.new(1, 0, 0, 60),
+    -- ── sidebar full-height (56px) ────────────────────────────────────────
+    local sidebar = Frame(main, {
+        Name                 = "sidebar",
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(0,56,1,0),
         BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
-        ZIndex               = 4,
+        ClipsDescendants     = false,
+        ZIndex               = 3,
     })
-    -- ── TitleHolder (logo + título lado a lado via UIListLayout) ─────────────
-    local iconSize = logoSize or UDim2.new(0, 92, 0, 92)
+    -- cobre cantos direitos da sidebar pra não arredondar o lado interno
+    Frame(sidebar, {
+        Position             = UDim2.new(1,-10,0,0),
+        Size                 = UDim2.new(0,10,1,0),
+        BackgroundColor3     = C.sidebar,
+        BackgroundTransparency = 0,
+        ZIndex               = 3,
+    })
 
-    local titleHolder = Frame(titlebar, {
-        Position             = UDim2.new(0, -10, 0, 0),
-        Size                 = UDim2.new(0, 300, 1, 0),
+    -- ── logo no topo da sidebar ───────────────────────────────────────────
+    local logoBlock = Frame(sidebar, {
+        Position             = UDim2.new(0,0,0,0),
+        Size                 = UDim2.new(1,0,0,56),
         BackgroundTransparency = 1,
         ZIndex               = 4,
     })
-    local titleLayout = Instance.new("UIListLayout")
-    titleLayout.FillDirection         = Enum.FillDirection.Horizontal
-    titleLayout.HorizontalAlignment   = Enum.HorizontalAlignment.Left
-    titleLayout.VerticalAlignment     = Enum.VerticalAlignment.Center
-    titleLayout.Padding               = UDim.new(0, -10)
-    titleLayout.SortOrder             = Enum.SortOrder.LayoutOrder
-    titleLayout.Parent                = titleHolder
-
-    -- ícone ou fallback letra
     if logoAsset and logoAsset ~= "" then
-        Image(titleHolder, {
-            Size              = iconSize,
+        Image(logoBlock, {
+            AnchorPoint       = Vector2.new(0.5,0.5),
+            Position          = UDim2.new(0.5,0,0.5,0),
+            Size              = UDim2.new(0,32,0,32),
             Image             = logoAsset,
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
             ScaleType         = Enum.ScaleType.Fit,
             ZIndex            = 4,
-            LayoutOrder       = 1,
         })
     else
-        Label(titleHolder, {
-            Size           = iconSize,
-            Text           = string.upper((title or "V"):sub(1, 1)),
+        Label(logoBlock, {
+            AnchorPoint    = Vector2.new(0.5,0.5),
+            Position       = UDim2.new(0.5,0,0.5,0),
+            Size           = UDim2.new(0,32,0,32),
+            Text           = string.upper((title or "V"):sub(1,1)),
             TextColor3     = C.hi,
-            TextSize       = iconSize.Y.Offset * 0.6,
-            TextScaled     = false,
+            TextSize       = 18,
             Font           = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 4,
-            LayoutOrder    = 1,
         })
     end
 
-    -- bloco de texto (title + subtitle empilhados)
-    local textBlock = Frame(titleHolder, {
-        Size                 = UDim2.new(0, 220, 1, 0),
-        BackgroundTransparency = 1,
+    -- separador abaixo do logo
+    Frame(sidebar, {
+        Position             = UDim2.new(0,8,0,56),
+        Size                 = UDim2.new(1,-16,0,1),
+        BackgroundColor3     = C.border,
+        BackgroundTransparency = 0,
         ZIndex               = 4,
-        LayoutOrder          = 2,
-    })
-    local textLayout = Instance.new("UIListLayout")
-    textLayout.FillDirection       = Enum.FillDirection.Vertical
-    textLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    textLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
-    textLayout.Padding             = UDim.new(0, 2)
-    textLayout.SortOrder           = Enum.SortOrder.LayoutOrder
-    textLayout.Parent              = textBlock
-
-    Label(textBlock, {
-        Size           = UDim2.new(1, 0, 0, 14),
-        Text           = string.upper(title or "VANTA"),
-        TextColor3     = C.hi,
-        TextSize       = 11,
-        Font           = Enum.Font.GothamMedium,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex         = 4,
-        LayoutOrder    = 1,
     })
 
-    Label(textBlock, {
-        Size           = UDim2.new(1, 0, 0, 11),
-        Text           = subtitle or "",
-        TextColor3     = C.hi,
-        TextSize       = 9,
-        Font           = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex         = 4,
-        LayoutOrder    = 2,
-    })
-
-    Corner(titlebar, 14)
-
-    -- dots estilo macOS no canto superior direito
+    -- ── dots macOS empilhados verticalmente abaixo do logo ───────────────
     local dotColors = {
-        Color3.fromRGB(255, 95,  86),  -- vermelho
-        Color3.fromRGB(255, 189, 46),  -- amarelo
-        Color3.fromRGB(39,  201, 63),  -- verde
+        Color3.fromRGB(255, 95,  86),
+        Color3.fromRGB(255, 189, 46),
+        Color3.fromRGB(39,  201, 63),
     }
-    for i, col in ipairs(dotColors) do
-        local d = Frame(titlebar, {
-            Position         = UDim2.new(1, -14 - (i-1)*16, 0.5, -4),
-            Size             = UDim2.new(0, 8, 0, 8),
+    for idx, col in ipairs(dotColors) do
+        local d = Frame(sidebar, {
+            AnchorPoint      = Vector2.new(0.5,0),
+            Position         = UDim2.new(0.5,0,0, 65 + (idx-1)*14),
+            Size             = UDim2.new(0,7,0,7),
             BackgroundColor3 = col,
             BackgroundTransparency = 0.2,
-            ZIndex           = 6,
+            ZIndex           = 5,
         })
         Corner(d, 4)
     end
-    -- hiders dos cantos inferiores do titlebar (nao devem ser arredondados)
-    Frame(titlebar, {
-        Position             = UDim2.new(0,0,1,-14),
-        Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.sidebar,
-        BackgroundTransparency = 0,
-        ZIndex               = 5,
-    })
-    Frame(titlebar, {
-        Position             = UDim2.new(1,-14,1,-14),
-        Size                 = UDim2.new(0,14,0,14),
-        BackgroundColor3     = C.sidebar,
-        BackgroundTransparency = 0,
-        ZIndex               = 5,
-    })
-    -- (botões de fechar/minimizar removidos — use visibleKey para toggle)
 
-    -- ── sidebar  (168px wide) ──────────────────────────────────────────────
-    local sidebar = Frame(main, {
-        Name                 = "sidebar",
-        Position             = UDim2.new(0,0,0,60),
-        Size                 = UDim2.new(0,168,1,-16),
-        BackgroundColor3     = C.sidebar,
+    -- separador abaixo dos dots
+    Frame(sidebar, {
+        Position             = UDim2.new(0,8,0,110),
+        Size                 = UDim2.new(1,-16,0,1),
+        BackgroundColor3     = C.border,
         BackgroundTransparency = 0,
-        ZIndex               = 3,
+        ZIndex               = 4,
     })
-    -- sidebar scroll (começa do topo, sem header)
+
+    -- ── scroll dos tab buttons ────────────────────────────────────────────
     local sidebarScroll = Instance.new("ScrollingFrame")
     sidebarScroll.Name                = "sidebarScroll"
-    sidebarScroll.Position            = UDim2.new(0,0,0,8)
-    sidebarScroll.Size                = UDim2.new(1,0,1,-8)
+    sidebarScroll.Position            = UDim2.new(0,0,0,118)
+    sidebarScroll.Size                = UDim2.new(1,0,1,-118)
     sidebarScroll.BackgroundTransparency = 1
     sidebarScroll.BorderSizePixel     = 0
     sidebarScroll.ScrollBarThickness  = 0
@@ -391,24 +348,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     sidebarScroll.CanvasSize          = UDim2.new(0,0,0,0)
     sidebarScroll.ZIndex              = 3
     sidebarScroll.Parent              = sidebar
-    ListLayout(sidebarScroll, {Padding = UDim.new(0,1)})
+    ListLayout(sidebarScroll, {
+        Padding                  = UDim.new(0,4),
+        HorizontalAlignment      = Enum.HorizontalAlignment.Center,
+    })
+    Padding(sidebarScroll, 6,6,0,0)
 
     -- searchBox dummy (mantido pra não quebrar o filtro de tabs)
     local searchBox = Instance.new("TextBox")
-    searchBox.Text   = ""
-    searchBox.Parent = sidebarScroll
+    searchBox.Text    = ""
+    searchBox.Parent  = sidebarScroll
     searchBox.Visible = false
 
-    -- ── pill indicator (viaja entre os tabs) ──────────────────────────────
+    -- ── pill — barra vertical de 3px na borda esquerda da sidebar ────────
     local pill = Frame(sidebar, {
         Name                 = "pill",
-        Position             = UDim2.new(0, 0, 0, 8),
-        Size                 = UDim2.new(1, 0, 0, 32),
-        BackgroundColor3     = C.accentBg,
+        Position             = UDim2.new(0,0,0,118),
+        Size                 = UDim2.new(0,3,0,36),
+        BackgroundColor3     = C.accent,
         BackgroundTransparency = 0,
-        ZIndex               = 2,
+        ZIndex               = 6,
     })
-    Corner(pill, 12)
+    Corner(pill, 2)
 
     -- ── state ─────────────────────────────────────────────────────────────
     local sections     = {}
@@ -417,12 +378,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local dbc          = false
     local currentToast = nil
 
-    -- animate in: grow + fade in a partir de 60%
+    -- animate in: grow + fade
     main.Size = UDim2.new(0, 492, 0, 264)
     main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Visible = true
-    tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     -- ═════════════════════════════════════════════════════════════════════
     local window = {}
@@ -529,10 +490,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             main.Visible = true
             main.Size = UDim2.new(0, 492, 0, 264)
             main.BackgroundTransparency = 1
-            tw(main, {Size = UDim2.new(0, 820, 0, 440), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw(main, {Size = UDim2.new(0, 820, 0, 460), BackgroundTransparency = 0}, 0.55, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             task.delay(0.55, function() dbc = false end)
         else
-            tw(main, {Size = UDim2.new(0, 779, 0, 418), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw(main, {Size = UDim2.new(0, 779, 0, 437), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
             task.delay(0.28, function() main.Visible = false end)
             task.delay(0.25, function() dbc = false end)
         end
@@ -856,22 +817,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ═════════════════════════════════════════════════════════════════════
     function window:Section(name, iconAsset)
 
-        -- sidebar tab
+        -- sidebar tab — 36x36px, centralizado, só ícone ou letra inicial
         local tabBtn = Button(sidebarScroll, {
             Name                 = "tab_" .. name,
-            Size                 = UDim2.new(1,0,0,32),
+            Size                 = UDim2.new(0,36,0,36),
             BackgroundColor3     = C.white,
             BackgroundTransparency = 1,
             Text                 = "",
             ZIndex               = 3,
             LayoutOrder          = #sidebarScroll:GetChildren() + 1,
         })
-        Corner(tabBtn, 12)
+        Corner(tabBtn, 8)
 
-        -- ícone do sidebar (sempre criado; invisível se sem asset)
+        -- ícone centralizado
         local tabIcon = Image(tabBtn, {
-            Position          = UDim2.new(0, 14, 0.5, -8),
-            Size              = UDim2.new(0, 16, 0, 16),
+            AnchorPoint       = Vector2.new(0.5,0.5),
+            Position          = UDim2.new(0.5,0,0.5,0),
+            Size              = UDim2.new(0,18,0,18),
             Image             = iconAsset or "",
             ImageColor3       = C.low,
             ImageTransparency = iconAsset and 0.5 or 1,
@@ -879,22 +841,24 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ZIndex            = 4,
         })
 
+        -- letra inicial como fallback quando sem ícone
         local tabLabel = Label(tabBtn, {
-            Position       = UDim2.new(0, iconAsset and 36 or 14, 0, 0),
-            Size           = UDim2.new(1, -(iconAsset and 50 or 28), 1, 0),
-            Text           = name,
+            AnchorPoint    = Vector2.new(0.5,0.5),
+            Position       = UDim2.new(0.5,0,0.5,0),
+            Size           = UDim2.new(1,0,1,0),
+            Text           = (not iconAsset or iconAsset == "") and name:sub(1,1):upper() or "",
             TextColor3     = C.low,
-            TextSize       = 11,
-            Font           = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
+            TextSize       = 12,
+            Font           = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex         = 4,
         })
 
         -- workarea container (invisível, só posiciona as duas colunas)
         local workarea = Frame(main, {
             Name                 = "wa_" .. name,
-            Position             = UDim2.new(0,168,0,60),
-            Size                 = UDim2.new(1,-168,1,-84),
+            Position             = UDim2.new(0,56,0,0),
+            Size                 = UDim2.new(1,-56,1,0),
             BackgroundTransparency = 1,
             BorderSizePixel      = 0,
             ZIndex               = 2,
@@ -951,29 +915,31 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 if ic then tw(ic, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.18) end
             end
 
-            -- pill viaja até a posição do tab ativo
-            local targetY = 8 + tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y
-            tw(pill, {Position = UDim2.new(0, 0, 0, targetY)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            -- pill viaja verticalmente até o centro do tab ativo
+            local targetY = tabBtn.AbsolutePosition.Y - sidebarScroll.AbsolutePosition.Y + sidebarScroll.CanvasPosition.Y + (36 - 36) / 2 + 118
+            tw(pill, {Position = UDim2.new(0, 0, 0, targetY), Size = UDim2.new(0, 3, 0, 36)}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
             -- ativa o tab atual
             tw(tabLabel, {TextColor3 = C.accent}, 0.18)
-            tabLabel.Font = Enum.Font.GothamMedium
-            if iconAsset then tw(tabIcon, {ImageColor3 = C.accent, ImageTransparency = 0}, 0.18) end
+            tabLabel.Font = Enum.Font.GothamBold
+            if iconAsset and iconAsset ~= "" then
+                tw(tabIcon, {ImageColor3 = C.accent, ImageTransparency = 0}, 0.18)
+            end
 
             for _, w in ipairs(workareas) do w.Visible = false end
 
             -- workarea container: scale + fade
-            local basePos  = UDim2.new(0, 168, 0, 60)
-            local baseSize = UDim2.new(1, -168, 1, -84)
+            local basePos  = UDim2.new(0, 56, 0, 0)
+            local baseSize = UDim2.new(1, -56, 1, 0)
             local scaleOff = 8
 
-            workarea.Position = UDim2.new(0, 168 + scaleOff, 0, 60 + scaleOff)
-            workarea.Size     = UDim2.new(1, -168 - scaleOff*2, 1, -84 - scaleOff*2)
+            workarea.Position = UDim2.new(0, 56 + scaleOff, 0, scaleOff)
+            workarea.Size     = UDim2.new(1, -56 - scaleOff*2, 1, -scaleOff*2)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
-                Position             = UDim2.new(0, 168, 0, 60),
-                Size                 = UDim2.new(1, -168, 1, -84),
+                Position             = UDim2.new(0, 56, 0, 0),
+                Size                 = UDim2.new(1, -56, 1, 0),
                 BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
@@ -998,15 +964,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         tabBtn.MouseButton1Click:Connect(function() sec:Select() end)
         tabBtn.MouseEnter:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 0.94}, 0.1)
-            tw(tabLabel,{TextColor3 = C.hi},             0.1)
-            if iconAsset then tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.3}, 0.1) end
+            tw(tabBtn,   {BackgroundTransparency = 0.92}, 0.1)
+            tw(tabLabel, {TextColor3 = C.hi},             0.1)
+            if iconAsset and iconAsset ~= "" then
+                tw(tabIcon, {ImageColor3 = C.mid, ImageTransparency = 0.2}, 0.1)
+            end
         end)
         tabBtn.MouseLeave:Connect(function()
             if workarea.Visible then return end
-            tw(tabBtn,  {BackgroundTransparency = 1},   0.1)
-            tw(tabLabel,{TextColor3 = C.low},            0.1)
-            if iconAsset then tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1) end
+            tw(tabBtn,   {BackgroundTransparency = 1},  0.1)
+            tw(tabLabel, {TextColor3 = C.low},           0.1)
+            if iconAsset and iconAsset ~= "" then
+                tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1)
+            end
         end)
 
         if #sections == 1 then sec:Select() end
