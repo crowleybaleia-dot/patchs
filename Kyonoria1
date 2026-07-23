@@ -4425,7 +4425,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				local GroupBoxV = { Settings = GroupBoxSettings }
 
-				-- Outer wrapper parented into the section like any other element
+				-- Outer wrapper: título flutuante acima + box abaixo
 				local Wrapper = Instance.new("Frame")
 				Wrapper.Name = GroupBoxSettings.Name .. "_GroupBox"
 				Wrapper.BackgroundTransparency = 1
@@ -4434,72 +4434,59 @@ function Luna:CreateWindow(WindowSettings)
 				Wrapper.ClipsDescendants = false
 				Wrapper.Parent = _sectionTarget
 
-				-- Visible bordered box
+				-- Título flutuante acima do box (igual à referência)
+				local TitleLabel = Instance.new("TextLabel")
+				TitleLabel.Name = "Title"
+				TitleLabel.BackgroundTransparency = 1
+				TitleLabel.Size = UDim2.new(1, 0, 0, 16)
+				TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+				TitleLabel.Font = Enum.Font.GothamMedium
+				TitleLabel.TextSize = 10
+				TitleLabel.TextColor3 = Color3.fromRGB(110, 115, 110)
+				TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+				TitleLabel.Text = string.upper(GroupBoxSettings.Name)
+				TitleLabel.TextTransparency = 1
+				TitleLabel.Parent = Wrapper
+
+				-- Seta de collapse ao lado do título
+				local Arrow = Instance.new("ImageLabel")
+				Arrow.Name = "Arrow"
+				Arrow.BackgroundTransparency = 1
+				Arrow.Size = UDim2.new(0, 10, 0, 10)
+				Arrow.Position = UDim2.new(1, -14, 0, 3)
+				Arrow.Image = "rbxassetid://6031094687"
+				Arrow.ImageColor3 = Color3.fromRGB(110, 115, 110)
+				Arrow.ImageTransparency = 1
+				Arrow.Visible = GroupBoxSettings.Collapsible
+				Arrow.Parent = Wrapper
+
+				-- Box sem borda, fundo levemente distinto (igual referência)
 				local Box = Instance.new("Frame")
 				Box.Name = "Box"
-				Box.BackgroundColor3 = Color3.fromRGB(18, 20, 18)
-				Box.BackgroundTransparency = 0.35
+				Box.BackgroundColor3 = Color3.fromRGB(22, 24, 22)
+				Box.BackgroundTransparency = 0.45
 				Box.BorderSizePixel = 0
+				Box.Position = UDim2.new(0, 0, 0, 18)
 				Box.Size = UDim2.new(1, 0, 0, 0)
 				Box.AutomaticSize = Enum.AutomaticSize.Y
 				Box.ClipsDescendants = false
 				Box.Parent = Wrapper
 
 				local BoxCorner = Instance.new("UICorner")
-				BoxCorner.CornerRadius = UDim.new(0, 6)
+				BoxCorner.CornerRadius = UDim.new(0, 5)
 				BoxCorner.Parent = Box
 
+				-- Stroke bem sutil só pra dar contorno fino
 				local BoxStroke = Instance.new("UIStroke")
-				BoxStroke.Color = Color3.fromRGB(55, 58, 55)
+				BoxStroke.Color = Color3.fromRGB(40, 43, 40)
 				BoxStroke.Thickness = 1
 				BoxStroke.Transparency = 1
 				BoxStroke.Parent = Box
-
-				-- Title bar
-				local TitleBar = Instance.new("Frame")
-				TitleBar.Name = "TitleBar"
-				TitleBar.BackgroundTransparency = 1
-				TitleBar.Size = UDim2.new(1, 0, 0, 26)
-				TitleBar.Parent = Box
-
-				local TitleLabel = Instance.new("TextLabel")
-				TitleLabel.Name = "Title"
-				TitleLabel.BackgroundTransparency = 1
-				TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-				TitleLabel.Size = UDim2.new(1, -30, 1, 0)
-				TitleLabel.Font = Enum.Font.GothamMedium
-				TitleLabel.TextSize = 10
-				TitleLabel.TextColor3 = Color3.fromRGB(160, 165, 160)
-				TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-				TitleLabel.Text = string.upper(GroupBoxSettings.Name)
-				TitleLabel.TextTransparency = 1
-				TitleLabel.Parent = TitleBar
-
-				local Arrow = Instance.new("ImageLabel")
-				Arrow.Name = "Arrow"
-				Arrow.BackgroundTransparency = 1
-				Arrow.Size = UDim2.new(0, 12, 0, 12)
-				Arrow.Position = UDim2.new(1, -20, 0.5, -6)
-				Arrow.Image = "rbxassetid://6031094687"
-				Arrow.ImageColor3 = Color3.fromRGB(120, 125, 120)
-				Arrow.ImageTransparency = 1
-				Arrow.Visible = GroupBoxSettings.Collapsible
-				Arrow.Parent = TitleBar
-
-				local TitleLine = Instance.new("Frame")
-				TitleLine.Name = "TitleLine"
-				TitleLine.BackgroundColor3 = Color3.fromRGB(55, 58, 55)
-				TitleLine.BackgroundTransparency = 1
-				TitleLine.BorderSizePixel = 0
-				TitleLine.Position = UDim2.new(0, 8, 1, 0)
-				TitleLine.Size = UDim2.new(1, -16, 0, 1)
-				TitleLine.Parent = TitleBar
 
 				-- Content area
 				local ContentFrame = Instance.new("Frame")
 				ContentFrame.Name = "Content"
 				ContentFrame.BackgroundTransparency = 1
-				ContentFrame.Position = UDim2.new(0, 0, 0, 27)
 				ContentFrame.Size = UDim2.new(1, 0, 0, 0)
 				ContentFrame.AutomaticSize = Enum.AutomaticSize.Y
 				ContentFrame.ClipsDescendants = false
@@ -4507,20 +4494,19 @@ function Luna:CreateWindow(WindowSettings)
 
 				local ContentLayout = Instance.new("UIListLayout")
 				ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-				ContentLayout.Padding = UDim.new(0, 4)
+				ContentLayout.Padding = UDim.new(0, 2)
 				ContentLayout.Parent = ContentFrame
 
 				local ContentPad = Instance.new("UIPadding")
-				ContentPad.PaddingLeft = UDim.new(0, 8)
-				ContentPad.PaddingRight = UDim.new(0, 8)
-				ContentPad.PaddingTop = UDim.new(0, 6)
-				ContentPad.PaddingBottom = UDim.new(0, 8)
+				ContentPad.PaddingLeft = UDim.new(0, 6)
+				ContentPad.PaddingRight = UDim.new(0, 6)
+				ContentPad.PaddingTop = UDim.new(0, 5)
+				ContentPad.PaddingBottom = UDim.new(0, 6)
 				ContentPad.Parent = ContentFrame
 
 				-- Animate in
 				tween(TitleLabel, {TextTransparency = 0})
-				tween(BoxStroke, {Transparency = 0.3})
-				tween(TitleLine, {BackgroundTransparency = 0.6})
+				tween(BoxStroke, {Transparency = 0.82})
 				if GroupBoxSettings.Collapsible then
 					tween(Arrow, {ImageTransparency = 0})
 				end
@@ -4550,17 +4536,17 @@ function Luna:CreateWindow(WindowSettings)
 					local TitleBtn = Instance.new("TextButton")
 					TitleBtn.Name = "Interact"
 					TitleBtn.BackgroundTransparency = 1
-					TitleBtn.Size = UDim2.new(1, 0, 1, 0)
+					TitleBtn.Size = UDim2.new(1, 0, 0, 16)
 					TitleBtn.Text = ""
 					TitleBtn.ZIndex = 5
-					TitleBtn.Parent = TitleBar
+					TitleBtn.Parent = Wrapper
 					TitleBtn.MouseButton1Click:Connect(toggleCollapse)
 
-					TitleBar.MouseEnter:Connect(function()
-						tween(BoxStroke, {Color = Color3.fromRGB(80, 83, 80)})
+					TitleBtn.MouseEnter:Connect(function()
+						tween(TitleLabel, {TextColor3 = Color3.fromRGB(150, 155, 150)})
 					end)
-					TitleBar.MouseLeave:Connect(function()
-						tween(BoxStroke, {Color = Color3.fromRGB(55, 58, 55)})
+					TitleBtn.MouseLeave:Connect(function()
+						tween(TitleLabel, {TextColor3 = Color3.fromRGB(110, 115, 110)})
 					end)
 				end
 
