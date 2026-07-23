@@ -1906,7 +1906,6 @@ local function RestyleUI()
 	-- Sidebar / Navigation
 	if Navigation then
 		Navigation.BackgroundColor3 = KV.SidebarBg
-		Navigation.Size = UDim2.new(0, 75, 1, 0)
 
 		-- Right border line (extremely subtle)
 		local NavLine = Navigation:FindFirstChild("Line")
@@ -1926,79 +1925,32 @@ local function RestyleUI()
 		-- Tabs container
 		local Tabs = Navigation:FindFirstChild("Tabs")
 		if Tabs then
-			-- Remove any existing padding from Tabs
-			local tabsPadding = Tabs:FindFirstChildOfClass("UIPadding")
-			if tabsPadding then tabsPadding:Destroy() end
-
-			-- Add top spacing for breathing room
-			local topSpacer = Instance.new("Frame")
-			topSpacer.Name = "TopSpacer"
-			topSpacer.BackgroundTransparency = 1
-			topSpacer.Size = UDim2.new(1, 0, 0, 12)
-			topSpacer.LayoutOrder = -1
-			topSpacer.Parent = Tabs
-
-			-- Update existing tab buttons
+			-- Update existing tab buttons - COLORS ONLY
 			for _, child in ipairs(Tabs:GetChildren()) do
-				if child:IsA("Frame") and child.Name ~= "InActive Template" and child.Name ~= "TopSpacer" then
-					child.BackgroundColor3 = KV.Accent
-					child.BackgroundTransparency = 1
-					child.Size = UDim2.new(1, 0, 0, 40)
-					child.Position = UDim2.new(0, 0, child.Position.Y.Scale, child.Position.Y.Offset)
-					child.AnchorPoint = Vector2.new(0, 0)
-					child.ClipsDescendants = false
-					if child:FindFirstChildOfClass("UICorner") then
-						child:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
-					end
+				if child:IsA("Frame") and child.Name ~= "InActive Template" then
+					child.BackgroundTransparency = 1 -- inactive tabs transparent bg
+					-- Hide UIStroke
 					local stroke = child:FindFirstChildOfClass("UIStroke")
 					if stroke then stroke.Transparency = 1 end
-					-- Center icon
+					-- Icon color
 					local img = child:FindFirstChild("ImageLabel")
 					if img then
 						img.ImageColor3 = Color3.fromRGB(120, 120, 120)
-						img.Size = UDim2.new(0, 20, 0, 20)
-						img.AnchorPoint = Vector2.new(0.5, 0.5)
-						img.Position = UDim2.new(0.5, 0, 0.5, 0)
 					end
-					-- Hide text label completely
+					-- Hide text label
 					local txt = child:FindFirstChild("TextLabel")
-					if txt then
-						txt.TextTransparency = 1
-						txt.Visible = false
-					end
+					if txt then txt.TextTransparency = 1 end
 					-- Hide DropShadowHolder
 					local dsh = child:FindFirstChild("DropShadowHolder")
 					if dsh then dsh.Visible = false end
 				end
 			end
 
-			-- Update InActive Template
+			-- Update InActive Template - COLORS ONLY
 			local template = Tabs:FindFirstChild("InActive Template")
 			if template then
-				template.Size = UDim2.new(1, 0, 0, 40)
-				template.Position = UDim2.new(0, 0, 0, 0)
-				template.ClipsDescendants = false
-				if template:FindFirstChildOfClass("UICorner") then
-					template:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
-				end
 				local stroke = template:FindFirstChildOfClass("UIStroke")
 				if stroke then stroke.Transparency = 1 end
-				-- Center icon in template too
-				local img = template:FindFirstChild("ImageLabel")
-				if img then
-					img.AnchorPoint = Vector2.new(0.5, 0.5)
-					img.Position = UDim2.new(0.5, 0, 0.5, 0)
-					img.Size = UDim2.new(0, 20, 0, 20)
-				end
-				-- Hide text in template
-				local txt = template:FindFirstChild("TextLabel")
-				if txt then
-					txt.TextTransparency = 1
-					txt.Visible = false
-				end
-				-- Hide shadow in template
-				local dsh = template:FindFirstChild("DropShadowHolder")
-				if dsh then dsh.Visible = false end
 			end
 		end
 	end
@@ -2721,12 +2673,6 @@ function Luna:CreateWindow(WindowSettings)
 
 		local HomeTabButton = Navigation.Tabs.Home
 		HomeTabButton.Visible = true
-		HomeTabButton.ClipsDescendants = false
-		HomeTabButton.Size = UDim2.new(1, 0, 0, 40)
-		HomeTabButton.Position = UDim2.new(0, 0, HomeTabButton.Position.Y.Scale, HomeTabButton.Position.Y.Offset)
-		HomeTabButton.ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-		HomeTabButton.ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		HomeTabButton.ImageLabel.Size = UDim2.new(0, 20, 0, 20)
 		if HomeTabSettings.Icon == 2 then
 			HomeTabButton.ImageLabel.Image = GetIcon("dashboard", "Material")
 		end
@@ -2898,14 +2844,8 @@ function Luna:CreateWindow(WindowSettings)
 
 		TabButton.Name = TabSettings.Name
 		TabButton.TextLabel.Text = TabSettings.Name
-		TabButton.TextLabel.Visible = false
-		TabButton.TextLabel.TextTransparency = 1
-		TabButton.ClipsDescendants = false
 		TabButton.Parent = Navigation.Tabs
 		TabButton.ImageLabel.Image = GetIcon(TabSettings.Icon, TabSettings.ImageSource)
-		TabButton.ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-		TabButton.ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabButton.ImageLabel.Size = UDim2.new(0, 20, 0, 20)
 
 		TabButton.Visible = true
 
@@ -7115,8 +7055,6 @@ function Luna:CreateWindow(WindowSettings)
 
 	Elements.Parent.Visible = true
 	Elements.Parent.BackgroundColor3 = KV.MainBg
-	Elements.Parent.Position = UDim2.new(0, 75, 0, 0)
-	Elements.Parent.Size = UDim2.new(1, -75, 1, 0)
 	tween(Elements.Parent, {BackgroundTransparency = 0})
 	Navigation.Visible = true
 	Navigation.BackgroundColor3 = KV.SidebarBg
