@@ -234,7 +234,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     local drag, dragStart, startPos
     main.InputBegan:Connect(function(i)
         if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then return end
-        if (i.Position.X - main.AbsolutePosition.X) > 64 then return end
+        if (i.Position.X - main.AbsolutePosition.X) > 72 then return end
         drag = true; dragStart = i.Position; startPos = main.Position
         i.Changed:Connect(function()
             if i.UserInputState == Enum.UserInputState.End then drag = false end
@@ -251,8 +251,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
-        Position             = UDim2.new(0,4,0,4),
-        Size                 = UDim2.new(0,56,1,-8),
+        Position             = UDim2.new(0,8,0,8),
+        Size                 = UDim2.new(0,56,1,-16),
         BackgroundColor3     = C.sidebar,
         BackgroundTransparency = 0,
         ClipsDescendants     = false,
@@ -858,8 +858,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         -- workarea container (invisível, só posiciona as duas colunas)
         local workarea = Frame(main, {
             Name                 = "wa_" .. name,
-            Position             = UDim2.new(0,64,0,0),
-            Size                 = UDim2.new(1,-64,1,0),
+            Position             = UDim2.new(0,72,0,0),
+            Size                 = UDim2.new(1,-72,1,0),
             BackgroundTransparency = 1,
             BorderSizePixel      = 0,
             ZIndex               = 2,
@@ -930,17 +930,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             for _, w in ipairs(workareas) do w.Visible = false end
 
             -- workarea container: scale + fade
-            local basePos  = UDim2.new(0, 64, 0, 0)
-            local baseSize = UDim2.new(1, -64, 1, 0)
+            local basePos  = UDim2.new(0, 72, 0, 0)
+            local baseSize = UDim2.new(1, -72, 1, 0)
             local scaleOff = 8
 
-            workarea.Position = UDim2.new(0, 64 + scaleOff, 0, scaleOff)
-            workarea.Size     = UDim2.new(1, -64 - scaleOff*2, 1, -scaleOff*2)
+            workarea.Position = UDim2.new(0, 72 + scaleOff, 0, scaleOff)
+            workarea.Size     = UDim2.new(1, -72 - scaleOff*2, 1, -scaleOff*2)
             workarea.Visible  = true
 
             local overlay = Frame(main, {
-                Position             = UDim2.new(0, 64, 0, 0),
-                Size                 = UDim2.new(1, -64, 1, 0),
+                Position             = UDim2.new(0, 72, 0, 0),
+                Size                 = UDim2.new(1, -72, 1, 0),
                 BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 50,
