@@ -25,7 +25,7 @@ Deity/dp4pv/x64x70 | Certain Scripting and Testing ig
 
 local Release = "Prerelease Beta 6.1"
 
-local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(180, 240, 40)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(155, 210, 20))} }
+local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(196, 255, 53))} }
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -43,6 +43,26 @@ local website = "github.com/Nebula-Softworks"
 if RunService:IsStudio() then
 	isStudio = true
 end
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- KyoLunar Visual Identity - Modern Dark Theme with Lime Green Accent
+-- ═══════════════════════════════════════════════════════════════════════════
+local KV = {
+	Accent       = Color3.fromRGB(196, 255, 53),
+	Black        = Color3.new(0, 0, 0),
+	SidebarBg    = Color3.fromRGB(22, 25, 22),
+	SidebarLine  = Color3.fromRGB(40, 45, 40),
+	MainBg       = Color3.fromRGB(18, 20, 18),
+	CardBg       = Color3.fromRGB(28, 33, 28),
+	DropdownBg   = Color3.fromRGB(40, 45, 40),
+	TrackOff     = Color3.fromRGB(55, 60, 55),
+	TextPrimary  = Color3.fromRGB(240, 240, 240),
+	TextSec      = Color3.fromRGB(140, 145, 140),
+	TextSection  = Color3.fromRGB(120, 130, 120),
+	SliderTrack  = Color3.fromRGB(45, 50, 45),
+	GreenDark    = Color3.fromRGB(150, 200, 40),
+	NotifBg      = Color3.fromRGB(22, 25, 22),
+}
 
 -- Credits To Latte Softworks And qweery for Lucide And Material Icons Respectively.
 local IconModule = {
@@ -1838,6 +1858,170 @@ end
 -- Interface Management
 local LunaUI = isStudio and script.Parent:WaitForChild("Luna UI") or game:GetObjects("rbxassetid://86467455075715")[1]
 
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Restyle: apply new visual identity to the loaded template
+-- ═══════════════════════════════════════════════════════════════════════════
+local function RestyleUI()
+	local SmartWindow = LunaUI:FindFirstChild("SmartWindow")
+	if not SmartWindow then return end
+
+	local Navigation = SmartWindow:FindFirstChild("Navigation")
+	local Elements = SmartWindow:FindFirstChild("Elements")
+	local Controls = SmartWindow:FindFirstChild("Controls")
+	local Drag = SmartWindow:FindFirstChild("Drag")
+
+	-- Main window
+	SmartWindow.BackgroundColor3 = KV.MainBg
+	SmartWindow.BackgroundTransparency = 0
+	if SmartWindow:FindFirstChildOfClass("UICorner") then
+		SmartWindow:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
+	end
+
+	-- Remove top bar line
+	local Line = SmartWindow:FindFirstChild("Line")
+	if Line then Line.BackgroundTransparency = 1 end
+
+	-- Hide title and subtitle
+	local TitleFrame = SmartWindow:FindFirstChild("Title")
+	if TitleFrame then
+		local t = TitleFrame:FindFirstChild("Title")
+		if t then t.TextTransparency = 1 end
+		local s = TitleFrame:FindFirstChild("subtitle")
+		if s then s.TextTransparency = 1 end
+	end
+
+	-- Hide Logo
+	local Logo = SmartWindow:FindFirstChild("Logo")
+	if Logo then Logo.ImageTransparency = 1 end
+
+	-- Hide all controls (Close, ToggleSize, Theme)
+	if Controls then
+		for _, child in ipairs(Controls:GetChildren()) do
+			if child:IsA("Frame") or child:IsA("ImageButton") then
+				child.Visible = false
+			end
+		end
+	end
+
+	-- Sidebar / Navigation
+	if Navigation then
+		Navigation.BackgroundColor3 = KV.SidebarBg
+		Navigation.Size = UDim2.new(0, 75, 1, 0)
+
+		-- Right border line
+		local NavLine = Navigation:FindFirstChild("Line")
+		if NavLine then
+			NavLine.BackgroundColor3 = KV.SidebarLine
+			NavLine.BackgroundTransparency = 0
+			NavLine.Size = UDim2.new(0, 1, 1, 0)
+			NavLine.Position = UDim2.new(1, -1, 0, 0)
+		end
+
+		-- Player info (hide completely)
+		local PlayerInfo = Navigation:FindFirstChild("Player")
+		if PlayerInfo then
+			PlayerInfo.Visible = false
+		end
+
+		-- Tabs container
+		local Tabs = Navigation:FindFirstChild("Tabs")
+		if Tabs then
+			-- Update existing tab buttons
+			for _, child in ipairs(Tabs:GetChildren()) do
+				if child:IsA("Frame") and child.Name ~= "InActive Template" then
+					child.BackgroundColor3 = KV.Accent
+					child.BackgroundTransparency = 1 -- inactive tabs transparent
+					child.Size = UDim2.new(1, -10, 0, 40)
+					child.Position = UDim2.new(0, 5, child.Position.Y.Scale, child.Position.Y.Offset)
+					child.AnchorPoint = Vector2.new(0, 0)
+					if child:FindFirstChildOfClass("UICorner") then
+						child:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 8)
+					end
+					-- Remove UIStroke
+					local stroke = child:FindFirstChildOfClass("UIStroke")
+					if stroke then stroke.Transparency = 1 end
+					-- Icon color
+					local img = child:FindFirstChild("ImageLabel")
+					if img then
+						img.ImageColor3 = Color3.fromRGB(120, 120, 120)
+						img.Size = UDim2.new(0, 20, 0, 20)
+					end
+					-- Hide text label
+					local txt = child:FindFirstChild("TextLabel")
+					if txt then txt.TextTransparency = 1 end
+					-- Hide DropShadowHolder
+					local dsh = child:FindFirstChild("DropShadowHolder")
+					if dsh then dsh.Visible = false end
+				end
+			end
+
+			-- Update InActive Template
+			local template = Tabs:FindFirstChild("InActive Template")
+			if template then
+				template.Size = UDim2.new(1, -10, 0, 40)
+				template.Position = UDim2.new(0, 5, 0, 0)
+				if template:FindFirstChildOfClass("UICorner") then
+					template:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 8)
+				end
+				local stroke = template:FindFirstChildOfClass("UIStroke")
+				if stroke then stroke.Transparency = 1 end
+			end
+		end
+	end
+
+	-- Elements content area
+	if Elements then
+		Elements.BackgroundColor3 = KV.MainBg
+		Elements.BackgroundTransparency = 0
+	end
+
+	-- Main background
+	SmartWindow.BackgroundColor3 = KV.MainBg
+
+	-- Shadow holder
+	local ShadowHolder = SmartWindow:FindFirstChild("ShadowHolder") or (SmartWindow.Parent and SmartWindow.Parent:FindFirstChild("ShadowHolder"))
+	if ShadowHolder then
+		ShadowHolder.BackgroundTransparency = 1
+		for _, img in ipairs(ShadowHolder:GetDescendants()) do
+			if img:IsA("ImageLabel") then
+				img.ImageTransparency = 1
+			end
+		end
+	end
+
+	-- Drag bar
+	if Drag then
+		Drag.BackgroundTransparency = 1
+		local dragInteract = Drag:FindFirstChild("Interact")
+		if dragInteract then dragInteract.BackgroundTransparency = 1 end
+		local dragCosmetic = Drag:FindFirstChild("Drag")
+		if dragCosmetic then
+			dragCosmetic.BackgroundTransparency = 1
+		end
+	end
+
+	-- Loading frame
+	local LoadingFrame = SmartWindow:FindFirstChild("LoadingFrame")
+	if LoadingFrame then
+		LoadingFrame.BackgroundColor3 = KV.MainBg
+	end
+
+	-- KeySystem
+	local KeySystem = SmartWindow:FindFirstChild("KeySystem")
+	if KeySystem then
+		KeySystem.BackgroundColor3 = KV.MainBg
+	end
+
+	-- Mobile support
+	local MobileSupport = LunaUI:FindFirstChild("MobileSupport")
+	if MobileSupport then
+		MobileSupport.BackgroundColor3 = KV.SidebarBg
+	end
+end
+
+-- Apply restyling immediately after load
+RestyleUI()
+
 local SizeBleh = nil
 
 local function Hide(Window, bind, notif)
@@ -1857,9 +2041,6 @@ local function Hide(Window, bind, notif)
 
 	for _, TopbarButton in ipairs(Window.Controls:GetChildren()) do
 		if TopbarButton.ClassName == "Frame" then
-			tween(TopbarButton, {BackgroundTransparency = 1})
-			tween(TopbarButton.UIStroke, {Transparency = 1})
-			tween(TopbarButton.ImageLabel, {ImageTransparency = 1})
 			TopbarButton.Visible = false
 		end
 	end
@@ -1867,8 +2048,9 @@ local function Hide(Window, bind, notif)
 		if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "InActive Template" then
 			TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 			TweenService:Create(tabbtn.ImageLabel, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
-			TweenService:Create(tabbtn.DropShadowHolder.DropShadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
-			TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			if tabbtn:FindFirstChild("DropShadowHolder") then
+				TweenService:Create(tabbtn.DropShadowHolder.DropShadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+			end
 		end
 	end
 
@@ -2127,7 +2309,7 @@ function Luna:Notification(data) -- action e.g open messages
 		TweenService:Create(newNotification, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, bounds)}):Play()
 
 		task.wait(0.15)
-		TweenService:Create(newNotification, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.45}):Play()
+		TweenService:Create(newNotification, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 		TweenService:Create(newNotification.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
 		task.wait(0.05)
@@ -2136,8 +2318,8 @@ function Luna:Notification(data) -- action e.g open messages
 
 		task.wait(0.05)
 		TweenService:Create(newNotification.Description, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.35}):Play()
-		TweenService:Create(newNotification.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 0.95}):Play()
-		TweenService:Create(newNotification.Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.82}):Play()
+		TweenService:Create(newNotification.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+		TweenService:Create(newNotification.Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
 
 		local waitDuration = math.min(math.max((#newNotification.Description.Text * 0.1) + 2.5, 3), 10)
 		task.wait(data.Duration or waitDuration)
@@ -2167,28 +2349,27 @@ local function Unhide(Window, currentTab)
 	task.wait()
 	tween(Window, {BackgroundTransparency = 1})
 	tween(Window.Elements, {BackgroundTransparency = 1})
-	tween(Window.Line, {BackgroundTransparency = 0})
-	tween(Window.Title.Title, {TextTransparency = 0})
-	tween(Window.Title.subtitle, {TextTransparency = 0})
-	tween(Window.Logo, {ImageTransparency = 0})
+	tween(Window.Line, {BackgroundTransparency = 1})
+	tween(Window.Title.Title, {TextTransparency = 1})
+	tween(Window.Title.subtitle, {TextTransparency = 1})
+	tween(Window.Logo, {ImageTransparency = 1})
 	tween(Window.Navigation.Line, {BackgroundTransparency = 0})
 
 	for _, TopbarButton in ipairs(Window.Controls:GetChildren()) do
 		if TopbarButton.ClassName == "Frame" and TopbarButton.Name ~= "Theme" then
-			TopbarButton.Visible = true
-			tween(TopbarButton, {BackgroundTransparency = 0.25})
-			tween(TopbarButton.UIStroke, {Transparency = 0.5})
-			tween(TopbarButton.ImageLabel, {ImageTransparency = 0.25})
+			TopbarButton.Visible = false
 		end
 	end
 	for _, tabbtn in ipairs(Window.Navigation.Tabs:GetChildren()) do
 		if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "InActive Template" then
 			if tabbtn.Name == currentTab then
 				TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-				TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.41}):Play()
+				TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.Accent}):Play()
 			end
 			TweenService:Create(tabbtn.ImageLabel, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-			TweenService:Create(tabbtn.DropShadowHolder.DropShadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+			if tabbtn:FindFirstChild("DropShadowHolder") then
+				TweenService:Create(tabbtn.DropShadowHolder.DropShadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+			end
 		end
 	end
 
@@ -2476,12 +2657,10 @@ function Luna:CreateWindow(WindowSettings)
 
 	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = MainSize}):Play()
 	TweenService:Create(Main.Parent.ShadowHolder, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = MainSize}):Play()
-	TweenService:Create(Main.Title.Title, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-	TweenService:Create(Main.Title.subtitle, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-	TweenService:Create(Main.Logo, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
-	TweenService:Create(Navigation.Player.icon.ImageLabel, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
-	TweenService:Create(Navigation.Player.icon.UIStroke, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Transparency = 0}):Play()
-	TweenService:Create(Main.Line, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Main.Title.Title, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
+	TweenService:Create(Main.Title.subtitle, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
+	TweenService:Create(Main.Logo, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play()
+	TweenService:Create(Main.Line, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 	wait(0.4)
 	LoadingFrame.Visible = false
 
@@ -2516,9 +2695,9 @@ function Luna:CreateWindow(WindowSettings)
 		HomeTabPage.Visible = true
 
 		function HomeTab:Activate()
-			tween(HomeTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(255,255,255)})
+			tween(HomeTabButton.ImageLabel, {ImageColor3 = KV.Black})
 			tween(HomeTabButton, {BackgroundTransparency = 0})
-			tween(HomeTabButton.UIStroke, {Transparency = 0.41})
+			HomeTabButton.BackgroundColor3 = KV.Accent
 
 			Elements.UIPageLayout:JumpTo(HomeTabPage)
 
@@ -2526,9 +2705,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= HomeTabButton then
-					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(221,221,221)})
+					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(120,120,120)})
 					tween(OtherTabButton, {BackgroundTransparency = 1})
-					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
 
 			end
@@ -2707,9 +2885,9 @@ function Luna:CreateWindow(WindowSettings)
 		TabPage.Parent = Elements
 
 		function Tab:Activate()
-			tween(TabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(255,255,255)})
+			tween(TabButton.ImageLabel, {ImageColor3 = KV.Black})
 			tween(TabButton, {BackgroundTransparency = 0})
-			tween(TabButton.UIStroke, {Transparency = 0.41})
+			TabButton.BackgroundColor3 = KV.Accent
 
 			Elements.UIPageLayout:JumpTo(TabPage)
 
@@ -2717,9 +2895,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			for _, OtherTabButton in ipairs(Navigation.Tabs:GetChildren()) do
 				if OtherTabButton.Name ~= "InActive Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= TabButton then
-					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(221,221,221)})
+					tween(OtherTabButton.ImageLabel, {ImageColor3 = Color3.fromRGB(120,120,120)})
 					tween(OtherTabButton, {BackgroundTransparency = 1})
-					tween(OtherTabButton.UIStroke, {Transparency = 1})
 				end
 
 			end
@@ -2752,8 +2929,8 @@ function Luna:CreateWindow(WindowSettings)
 
 			local Sectiont = Elements.Template.Section:Clone()
 			Sectiont.Text = string.upper(name)
-			Sectiont.TextSize = 10
-			Sectiont.TextColor3 = Color3.fromRGB(110, 115, 110)
+			Sectiont.TextSize = 11
+			Sectiont.TextColor3 = KV.TextSection
 			Sectiont.Font = Enum.Font.GothamMedium
 			Sectiont.Visible = true
 			Sectiont.Parent = TabPage
@@ -2858,12 +3035,15 @@ function Luna:CreateWindow(WindowSettings)
 
 				Button.UIStroke.Transparency = 1
 				Button.Title.TextTransparency = 1
+				Button.Title.TextColor3 = KV.TextPrimary
 				if ButtonSettings.Description ~= nil and ButtonSettings.Description ~= "" then
 					Button.Desc.TextTransparency = 1
+					Button.Desc.TextColor3 = KV.TextSec
 				end
 
-				TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-				TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				Button.BackgroundColor3 = KV.CardBg
+				TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+				TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Button.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 				if ButtonSettings.Description ~= nil and ButtonSettings.Description ~= "" then
 					TweenService:Create(Button.Desc, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
@@ -2875,33 +3055,27 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						Button.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..ButtonSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Button.Title.Text = ButtonSettings.Name
-						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					else
-						tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
-						wait(0.2)
-						if ButtonV.Hover then
-							tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
-						else
-							tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
-						end
+						tween(Button, {BackgroundColor3 = KV.Accent})
+						wait(0.15)
+						tween(Button, {BackgroundColor3 = KV.CardBg})
 					end
 				end)
 
 				Button["MouseEnter"]:Connect(function()
 					ButtonV.Hover = true
-					tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Button["MouseLeave"]:Connect(function()
 					ButtonV.Hover = false
-					tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Button, {BackgroundColor3 = KV.CardBg})
 				end)
 
 				function ButtonV:Set(ButtonSettings2)
@@ -2959,13 +3133,14 @@ function Luna:CreateWindow(WindowSettings)
 				Label.BackgroundTransparency = 1
 				Label.UIStroke.Transparency = 1
 				Label.Text.TextTransparency = 1
+				Label.Text.TextColor3 = KV.TextPrimary
 
 				if LabelSettings.Style ~= 1 then
 					TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.8}):Play()
 				else
 					TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 				end
-				TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Label.Text, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 				function LabelV:Set(NewLabel)
@@ -3006,9 +3181,11 @@ function Luna:CreateWindow(WindowSettings)
 				Paragraph.UIStroke.Transparency = 1
 				Paragraph.Title.TextTransparency = 1
 				Paragraph.Text.TextTransparency = 1
+				Paragraph.Title.TextColor3 = KV.TextPrimary
+				Paragraph.Text.TextColor3 = KV.TextSec
 
 				TweenService:Create(Paragraph, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
-				TweenService:Create(Paragraph.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				TweenService:Create(Paragraph.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Paragraph.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 				TweenService:Create(Paragraph.Text, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
@@ -3064,16 +3241,20 @@ function Luna:CreateWindow(WindowSettings)
 				local Slider = Elements.Template.Slider:Clone()
 				Slider.Name = SliderSettings.Name .. " - Slider"
 				Slider.Title.Text = SliderSettings.Name
+				Slider.Title.TextColor3 = KV.TextPrimary
 				Slider.Visible = true
 				Slider.Parent = _sectionTarget
 
-				Slider.BackgroundTransparency = 1
+				Slider.BackgroundColor3 = KV.CardBg
+				Slider.BackgroundTransparency = 0
 				Slider.UIStroke.Transparency = 1
 				Slider.Title.TextTransparency = 1
 
-				TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-				TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+				TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
+
+				Slider.Value.TextColor3 = KV.TextSec
 
 				Slider.Main.Progress.Size =	UDim2.new(0, Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue + SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * (SliderSettings.CurrentValue / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)
 
@@ -3083,11 +3264,11 @@ function Luna:CreateWindow(WindowSettings)
 				SliderSettings.Callback(SliderSettings.CurrentValue)
 
 				Slider["MouseEnter"]:Connect(function()
-					tween(Slider.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Slider, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Slider["MouseLeave"]:Connect(function()
-					tween(Slider.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Slider, {BackgroundColor3 = KV.CardBg})
 				end)
 
 				Slider.Interact.InputBegan:Connect(function(Input)
@@ -3148,8 +3329,8 @@ function Luna:CreateWindow(WindowSettings)
 									wait(0.5)
 									Slider.Title.Text = SliderSettings.Name
 									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-									TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+									TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+									TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 								end
 
 								SliderSettings.CurrentValue = NewValue
@@ -3175,14 +3356,12 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						Slider.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Slider.Title.Text = SliderSettings.Name
-						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 
 					SliderSettings.CurrentValue = NewVal
@@ -3271,41 +3450,44 @@ function Luna:CreateWindow(WindowSettings)
 
 				Toggle.Name = ToggleSettings.Name .. " - Toggle"
 				Toggle.Title.Text = ToggleSettings.Name
+				Toggle.Title.TextColor3 = KV.TextPrimary
 				if ToggleSettings.Description ~= nil and ToggleSettings.Description ~= "" then
 					Toggle.Desc.Text = ToggleSettings.Description
+					Toggle.Desc.TextColor3 = KV.TextSec
 				end
 
+				Toggle.BackgroundColor3 = KV.CardBg
 				Toggle.UIStroke.Transparency = 1
 				Toggle.Title.TextTransparency = 1
 				if ToggleSettings.Description ~= nil and ToggleSettings.Description ~= "" then
 					Toggle.Desc.TextTransparency = 1
 				end
 
-				TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
+				TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				if ToggleSettings.Description ~= nil and ToggleSettings.Description ~= "" then
 					TweenService:Create(Toggle.Desc, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 				end
-				TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 				local function Set(bool)
 					if bool then
-						Toggle.toggle.color.Enabled = true
+						Toggle.toggle.BackgroundColor3 = KV.Accent
 						tween(Toggle.toggle, {BackgroundTransparency = 0})
 
 						Toggle.toggle.UIStroke.color.Enabled = true
-						tween(Toggle.toggle.UIStroke, {Color = Color3.new(255,255,255)})
+						tween(Toggle.toggle.UIStroke, {Color = KV.Accent})
 
-						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.fromRGB(255,255,255), Position = UDim2.new(1,-23,0.5,0), BackgroundTransparency = 0.45})
+						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.new(1,1,1), Position = UDim2.new(1,-23,0.5,0), BackgroundTransparency = 0.1})
 					else
-						Toggle.toggle.color.Enabled = false
+						Toggle.toggle.BackgroundColor3 = KV.TrackOff
 						Toggle.toggle.UIStroke.color.Enabled = false
 
-						Toggle.toggle.UIStroke.Color = Color3.fromRGB(97,97,97)
+						Toggle.toggle.UIStroke.Color = KV.TrackOff
 
-						tween(Toggle.toggle, {BackgroundTransparency = 1})
+						tween(Toggle.toggle, {BackgroundTransparency = 0})
 
-						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.fromRGB(97,97,97), Position = UDim2.new(0,5,0.5,0), BackgroundTransparency = 0})
+						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.new(1,1,1), Position = UDim2.new(0,5,0.5,0), BackgroundTransparency = 0})
 					end
 
 					ToggleV.CurrentValue = bool
@@ -3321,23 +3503,21 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						Toggle.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 				end)
 
 				Toggle["MouseEnter"]:Connect(function()
-					tween(Toggle.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Toggle, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Toggle["MouseLeave"]:Connect(function()
-					tween(Toggle.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Toggle, {BackgroundColor3 = KV.CardBg})
 				end)
 
 				if ToggleSettings.CurrentValue then
@@ -3348,14 +3528,12 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						Toggle.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 				end
 
@@ -3397,9 +3575,8 @@ function Luna:CreateWindow(WindowSettings)
 						print("Luna Interface Suite | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Toggle.Title.Text = ToggleSettings.Name
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 				end
 
@@ -3462,14 +3639,18 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Bind.Title.TextTransparency = 1
+				Bind.Title.TextColor3 = KV.TextPrimary
 				if BindSettings.Description ~= nil and BindSettings.Description ~= "" then
 					Bind.Desc.TextTransparency = 1
+					Bind.Desc.TextColor3 = KV.TextSec
 				end
+
+				Bind.BackgroundColor3 = KV.CardBg
 				Bind.BindFrame.BackgroundTransparency = 1
 				Bind.BindFrame.UIStroke.Transparency = 1
 				Bind.BindFrame.BindBox.TextTransparency = 1
 
-				TweenService:Create(Bind, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
+				TweenService:Create(Bind, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Bind.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 				if BindSettings.Description ~= nil and BindSettings.Description ~= "" then
 					TweenService:Create(Bind.Desc, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
@@ -3495,11 +3676,11 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Bind["MouseEnter"]:Connect(function()
-					tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Bind["MouseLeave"]:Connect(function()
-					tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Bind, {BackgroundColor3 = KV.CardBg})
 				end)
 				UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -3515,14 +3696,12 @@ function Luna:CreateWindow(WindowSettings)
 							if not Success then
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 								Bind.Title.Text = "Callback Error"
 								print("Luna Interface Suite | "..BindSettings.Name.." Callback Error " ..tostring(Response))
 								wait(0.5)
 								Bind.Title.Text = BindSettings.Name
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 							end
 							Bind.BindFrame.BindBox:ReleaseFocus()
 						end
@@ -3544,14 +3723,12 @@ function Luna:CreateWindow(WindowSettings)
 							if not Success then
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 								Bind.Title.Text = "Callback Error"
 								print("Luna Interface Suite | "..BindSettings.Name.." Callback Error " ..tostring(Response))
 								wait(0.5)
 								Bind.Title.Text = BindSettings.Name
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-								TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+								TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 							end
 						else
 							wait(0.1)
@@ -3570,8 +3747,8 @@ function Luna:CreateWindow(WindowSettings)
 											wait(0.5)
 											Bind.Title.Text = BindSettings.Name
 											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 										end 
 										Loop:Disconnect()
 									else
@@ -3587,8 +3764,8 @@ function Luna:CreateWindow(WindowSettings)
 											wait(0.5)
 											Bind.Title.Text = BindSettings.Name
 											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+											TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+											TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 										end
 									end
 								end)	
@@ -3682,19 +3859,21 @@ function Luna:CreateWindow(WindowSettings)
 				Input.Visible = true
 				Input.Parent = _sectionTarget
 
-				Input.BackgroundTransparency = 1
+				Input.BackgroundColor3 = KV.CardBg
+				Input.BackgroundTransparency = 0
 				Input.UIStroke.Transparency = 1
 				Input.Title.TextTransparency = 1
-				if descriptionbool then Input.Desc.TextTransparency = 1 end
+				Input.Title.TextColor3 = KV.TextPrimary
+				if descriptionbool then Input.Desc.TextTransparency = 1; Input.Desc.TextColor3 = KV.TextSec end
 				Input.InputFrame.BackgroundTransparency = 1
 				Input.InputFrame.UIStroke.Transparency = 1
 				Input.InputFrame.InputBox.TextTransparency = 1
 
-				TweenService:Create(Input, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-				TweenService:Create(Input.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				TweenService:Create(Input, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+				TweenService:Create(Input.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Input.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 				if descriptionbool then TweenService:Create(Input.Desc, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play() end
-				TweenService:Create(Input.InputFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.9}):Play()
+				TweenService:Create(Input.InputFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Input.InputFrame.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
 				TweenService:Create(Input.InputFrame.InputBox, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
@@ -3712,14 +3891,12 @@ function Luna:CreateWindow(WindowSettings)
 							if not Success then
 								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-								TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 								Input.Title.Text = "Callback Error"
 								print("Luna Interface Suite | "..InputSettings.Name.." Callback Error " ..tostring(Response))
 								wait(0.5)
 								Input.Title.Text = InputSettings.Name
-								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-								TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+								TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 							end
 						end
 					end
@@ -3759,19 +3936,19 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Input.Title.Text = InputSettings.Name
 							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						end
 					end
 					InputV.CurrentValue = Input.InputFrame.InputBox.Text				
 				end)
 
 				Input["MouseEnter"]:Connect(function()
-					tween(Input.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Input, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Input["MouseLeave"]:Connect(function()
-					tween(Input.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Input, {BackgroundColor3 = KV.CardBg})
 				end)
 
 
@@ -3855,6 +4032,8 @@ function Luna:CreateWindow(WindowSettings)
 
 				Dropdown.Parent = _sectionTarget
 				Dropdown.Visible = true
+				Dropdown.Title.TextColor3 = KV.TextPrimary
+				if descriptionbool then Dropdown.Desc.TextColor3 = KV.TextSec end
 
 				local function Toggle()
 					opened = not opened
@@ -3874,14 +4053,12 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						Dropdown.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..DropdownSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						Dropdown.Title.Text = DropdownSettings.Name
-						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 					if Success and c2 then
 						c2()
@@ -3977,7 +4154,7 @@ function Luna:CreateWindow(WindowSettings)
 							if Option.BackgroundTransparency == 0.95 then
 								return
 							else
-								tween(Option, {TextColor3 = Color3.fromRGB(240,240,240)})
+								tween(Option, {TextColor3 = KV.TextPrimary})
 							end
 						end)
 						Option.MouseLeave:Connect(function()
@@ -3985,7 +4162,7 @@ function Luna:CreateWindow(WindowSettings)
 							if Option.BackgroundTransparency == 0.95 then
 								return
 							else
-								tween(Option, {TextColor3 = Color3.fromRGB(200,200,200)})
+								tween(Option, {TextColor3 = KV.TextSec})
 							end
 						end)	
 					end
@@ -4006,11 +4183,11 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Dropdown["MouseEnter"]:Connect(function()
-					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 
 				Dropdown["MouseLeave"]:Connect(function()
-					tween(Dropdown.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(Dropdown, {BackgroundColor3 = KV.CardBg})
 				end)
 
 				if DropdownSettings.SpecialType == "Player" then
@@ -4203,10 +4380,10 @@ function Luna:CreateWindow(WindowSettings)
 				Display.BackgroundTransparency = 0
 
 				ColorPicker["MouseEnter"]:Connect(function()
-					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+					tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 				end)
 				ColorPicker["MouseLeave"]:Connect(function()
-					tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+					tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
 				end)
 
 				local function SafeCallback(param, c2)
@@ -4216,14 +4393,12 @@ function Luna:CreateWindow(WindowSettings)
 					if not Success then
 						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-						TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						ColorPicker.Title.Text = "Callback Error"
 						print("Luna Interface Suite | "..ColorPickerSettings.Name.." Callback Error " ..tostring(Response))
 						wait(0.5)
 						ColorPicker.Title.Text = ColorPickerSettings.Name
-						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 					end
 					if Success and c2 then
 						c2()
@@ -4442,7 +4617,7 @@ function Luna:CreateWindow(WindowSettings)
 				TitleLabel.Position = UDim2.new(0, 0, 0, 0)
 				TitleLabel.Font = Enum.Font.GothamMedium
 				TitleLabel.TextSize = 10
-				TitleLabel.TextColor3 = Color3.fromRGB(110, 115, 110)
+				TitleLabel.TextColor3 = KV.TextSection
 				TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 				TitleLabel.Text = string.upper(GroupBoxSettings.Name)
 				TitleLabel.TextTransparency = 1
@@ -4455,7 +4630,7 @@ function Luna:CreateWindow(WindowSettings)
 				Arrow.Size = UDim2.new(0, 10, 0, 10)
 				Arrow.Position = UDim2.new(1, -14, 0, 3)
 				Arrow.Image = "rbxassetid://6031094687"
-				Arrow.ImageColor3 = Color3.fromRGB(110, 115, 110)
+				Arrow.ImageColor3 = KV.TextSection
 				Arrow.ImageTransparency = 1
 				Arrow.Visible = GroupBoxSettings.Collapsible
 				Arrow.Parent = Wrapper
@@ -4463,8 +4638,8 @@ function Luna:CreateWindow(WindowSettings)
 				-- Box sem borda, fundo levemente distinto (igual referência)
 				local Box = Instance.new("Frame")
 				Box.Name = "Box"
-				Box.BackgroundColor3 = Color3.fromRGB(22, 24, 22)
-				Box.BackgroundTransparency = 0.45
+				Box.BackgroundColor3 = KV.CardBg
+				Box.BackgroundTransparency = 0
 				Box.BorderSizePixel = 0
 				Box.Position = UDim2.new(0, 0, 0, 18)
 				Box.Size = UDim2.new(1, 0, 0, 0)
@@ -4473,12 +4648,12 @@ function Luna:CreateWindow(WindowSettings)
 				Box.Parent = Wrapper
 
 				local BoxCorner = Instance.new("UICorner")
-				BoxCorner.CornerRadius = UDim.new(0, 5)
+				BoxCorner.CornerRadius = UDim.new(0, 12)
 				BoxCorner.Parent = Box
 
 				-- Stroke bem sutil só pra dar contorno fino
 				local BoxStroke = Instance.new("UIStroke")
-				BoxStroke.Color = Color3.fromRGB(40, 43, 40)
+				BoxStroke.Color = KV.CardBg
 				BoxStroke.Thickness = 1
 				BoxStroke.Transparency = 1
 				BoxStroke.Parent = Box
@@ -4498,10 +4673,10 @@ function Luna:CreateWindow(WindowSettings)
 				ContentLayout.Parent = ContentFrame
 
 				local ContentPad = Instance.new("UIPadding")
-				ContentPad.PaddingLeft = UDim.new(0, 6)
-				ContentPad.PaddingRight = UDim.new(0, 6)
-				ContentPad.PaddingTop = UDim.new(0, 5)
-				ContentPad.PaddingBottom = UDim.new(0, 6)
+				ContentPad.PaddingLeft = UDim.new(0, 16)
+				ContentPad.PaddingRight = UDim.new(0, 16)
+				ContentPad.PaddingTop = UDim.new(0, 12)
+				ContentPad.PaddingBottom = UDim.new(0, 12)
 				ContentPad.Parent = ContentFrame
 
 				-- Animate in
@@ -4543,10 +4718,10 @@ function Luna:CreateWindow(WindowSettings)
 					TitleBtn.MouseButton1Click:Connect(toggleCollapse)
 
 					TitleBtn.MouseEnter:Connect(function()
-						tween(TitleLabel, {TextColor3 = Color3.fromRGB(150, 155, 150)})
+						tween(TitleLabel, {TextColor3 = KV.TextPrimary})
 					end)
 					TitleBtn.MouseLeave:Connect(function()
-						tween(TitleLabel, {TextColor3 = Color3.fromRGB(110, 115, 110)})
+						tween(TitleLabel, {TextColor3 = KV.TextSection})
 					end)
 				end
 
@@ -4566,30 +4741,21 @@ function Luna:CreateWindow(WindowSettings)
 					-- Imediatamente seta as cores de texto antes dos tweens de entrada
 					local title = elem:FindFirstChild("Title")
 					if title and title:IsA("TextLabel") then
-						title.TextColor3 = Color3.fromRGB(222, 225, 222)
+						title.TextColor3 = KV.TextPrimary
 						title.Font = Enum.Font.GothamBold
 					end
 					local desc = elem:FindFirstChild("Desc")
 					if desc and desc:IsA("TextLabel") then
-						desc.TextColor3 = Color3.fromRGB(138, 142, 138)
+						desc.TextColor3 = KV.TextSec
 					end
 
-					-- Separador fino no fundo do elemento
+					-- Sem separador
 					local sep = Instance.new("Frame")
 					sep.Name = "Separator"
-					sep.BackgroundColor3 = Color3.fromRGB(50, 53, 50)
-					sep.BackgroundTransparency = 0.5
+					sep.BackgroundTransparency = 1
 					sep.BorderSizePixel = 0
 					sep.Size = UDim2.new(1, 8, 0, 1)
 					sep.Position = UDim2.new(0, -4, 1, 0)
-					local sepGrad = Instance.new("UIGradient")
-					sepGrad.Transparency = NumberSequence.new{
-						NumberSequenceKeypoint.new(0, 1),
-						NumberSequenceKeypoint.new(0.08, 0),
-						NumberSequenceKeypoint.new(0.92, 0),
-						NumberSequenceKeypoint.new(1, 1)
-					}
-					sepGrad.Parent = sep
 					sep.Parent = elem
 
 					-- Loop por 0.85s (maior que o tween de entrada de 0.7s)
@@ -4688,7 +4854,7 @@ function Luna:CreateWindow(WindowSettings)
 			end
 
 			TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-			TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Button.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 			if ButtonSettings.Description ~= nil and ButtonSettings.Description ~= "" then
 				TweenService:Create(Button.Desc, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
@@ -4706,27 +4872,27 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Button.Title.Text = ButtonSettings.Name
 					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Button, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Button.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				else
 					tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 					wait(0.2)
 					if ButtonV.Hover then
-						tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+						tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 					else
-						tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+						tween(Button, {BackgroundColor3 = KV.CardBg})
 					end
 				end
 			end)
 
 			Button["MouseEnter"]:Connect(function()
 				ButtonV.Hover = true
-				tween(Button.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Button["MouseLeave"]:Connect(function()
 				ButtonV.Hover = false
-				tween(Button.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Button, {BackgroundColor3 = KV.CardBg})
 			end)
 
 			function ButtonV:Set(ButtonSettings2)
@@ -4788,7 +4954,7 @@ function Luna:CreateWindow(WindowSettings)
 			else
 				TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 			end
-			TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Label.Text, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 			function LabelV:Set(NewLabel)
@@ -4829,7 +4995,7 @@ function Luna:CreateWindow(WindowSettings)
 			Paragraph.Text.TextTransparency = 1
 
 			TweenService:Create(Paragraph, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
-			TweenService:Create(Paragraph.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Paragraph.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Paragraph.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 			TweenService:Create(Paragraph.Text, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
@@ -4891,7 +5057,7 @@ function Luna:CreateWindow(WindowSettings)
 			Slider.Title.TextTransparency = 1
 
 			TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-			TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 			Slider.Main.Progress.Size =	UDim2.new(0, Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue + SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * (SliderSettings.CurrentValue / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)
@@ -4902,11 +5068,11 @@ function Luna:CreateWindow(WindowSettings)
 			SliderSettings.Callback(SliderSettings.CurrentValue)
 
 			Slider["MouseEnter"]:Connect(function()
-				tween(Slider.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Slider, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Slider["MouseLeave"]:Connect(function()
-				tween(Slider.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Slider, {BackgroundColor3 = KV.CardBg})
 			end)
 
 			Slider.Interact.InputBegan:Connect(function(Input)
@@ -4961,14 +5127,12 @@ function Luna:CreateWindow(WindowSettings)
 							if not Success then
 								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 								Slider.Title.Text = "Callback Error"
 								print("Luna Interface Suite | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
 								wait(0.5)
 								Slider.Title.Text = SliderSettings.Name
-								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+								TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
 							end
 
 							SliderSettings.CurrentValue = NewValue
@@ -5000,8 +5164,8 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Slider.Title.Text = SliderSettings.Name
 					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 
 				SliderSettings.CurrentValue = NewVal
@@ -5102,7 +5266,7 @@ function Luna:CreateWindow(WindowSettings)
 			if ToggleSettings.Description ~= nil and ToggleSettings.Description ~= "" then
 				TweenService:Create(Toggle.Desc, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 			end
-			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 			local function Set(bool)
@@ -5144,17 +5308,17 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 			end)
 
 			Toggle["MouseEnter"]:Connect(function()
-				tween(Toggle.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Toggle, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Toggle["MouseLeave"]:Connect(function()
-				tween(Toggle.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Toggle, {BackgroundColor3 = KV.CardBg})
 			end)
 
 			if ToggleSettings.CurrentValue then
@@ -5171,8 +5335,8 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 			end
 
@@ -5215,8 +5379,8 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Toggle.Title.Text = ToggleSettings.Name
 					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 			end
 
@@ -5310,11 +5474,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Bind, {BackgroundColor3 = KV.CardBg})
 			end)
 			UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -5336,8 +5500,8 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						end
 						Bind.BindFrame.BindBox:ReleaseFocus()
 					end
@@ -5365,8 +5529,8 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						end
 					else
 						wait(0.1)
@@ -5385,8 +5549,8 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 									end 
 									Loop:Disconnect()
 								else
@@ -5402,8 +5566,8 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 									end
 								end
 							end)	
@@ -5523,11 +5687,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
-				tween(Bind.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Bind, {BackgroundColor3 = KV.CardBg})
 			end)
 			UserInputService.InputBegan:Connect(function(input, processed)
 
@@ -5563,8 +5727,8 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Bind.Title.Text = BindSettings.Name
 							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+							TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+							TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						end
 					else
 						wait(0.1)
@@ -5583,8 +5747,8 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 									end 
 									Loop:Disconnect()
 								else
@@ -5600,8 +5764,8 @@ function Luna:CreateWindow(WindowSettings)
 										wait(0.5)
 										Bind.Title.Text = BindSettings.Name
 										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+										TweenService:Create(Bind, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+										TweenService:Create(Bind.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 									end
 								end
 							end)	
@@ -5698,7 +5862,7 @@ function Luna:CreateWindow(WindowSettings)
 			Input.InputFrame.InputBox.TextTransparency = 1
 
 			TweenService:Create(Input, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-			TweenService:Create(Input.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			TweenService:Create(Input.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Input.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 			if descriptionbool then TweenService:Create(Input.Desc, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play() end
 			TweenService:Create(Input.InputFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.9}):Play()
@@ -5725,8 +5889,8 @@ function Luna:CreateWindow(WindowSettings)
 							wait(0.5)
 							Input.Title.Text = InputSettings.Name
 							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+							TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+							TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 						end
 					end
 				end
@@ -5766,19 +5930,19 @@ function Luna:CreateWindow(WindowSettings)
 						wait(0.5)
 						Input.Title.Text = InputSettings.Name
 						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-						TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						TweenService:Create(Input, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+						TweenService:Create(Input.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 					end
 				end
 				InputV.CurrentValue = Input.InputFrame.InputBox.Text				
 			end)
 
 			Input["MouseEnter"]:Connect(function()
-				tween(Input.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Input, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Input["MouseLeave"]:Connect(function()
-				tween(Input.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Input, {BackgroundColor3 = KV.CardBg})
 			end)
 
 
@@ -5885,8 +6049,8 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					Dropdown.Title.Text = DropdownSettings.Name
 					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(Dropdown, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 				if Success and c2 then
 					c2()
@@ -6011,11 +6175,11 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Dropdown["MouseEnter"]:Connect(function()
-				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 
 			Dropdown["MouseLeave"]:Connect(function()
-				tween(Dropdown.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(Dropdown, {BackgroundColor3 = KV.CardBg})
 			end)
 
 			if DropdownSettings.SpecialType == "Player" then
@@ -6206,10 +6370,10 @@ function Luna:CreateWindow(WindowSettings)
 			Display.BackgroundTransparency = 0
 
 			ColorPicker["MouseEnter"]:Connect(function()
-				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(70, 72, 70)})
+				tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
 			end)
 			ColorPicker["MouseLeave"]:Connect(function()
-				tween(ColorPicker.UIStroke, {Color = Color3.fromRGB(45, 47, 45)})
+				tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
 			end)
 
 			local function SafeCallback(param, c2)
@@ -6225,8 +6389,8 @@ function Luna:CreateWindow(WindowSettings)
 					wait(0.5)
 					ColorPicker.Title.Text = ColorPickerSettings.Name
 					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
-					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(22, 24, 22)}):Play()
-					TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					TweenService:Create(ColorPicker, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = KV.CardBg}):Play()
+					TweenService:Create(ColorPicker.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				end
 				if Success and c2 then
 					c2()
@@ -6906,14 +7070,13 @@ function Luna:CreateWindow(WindowSettings)
 	Elements.Parent.Visible = true
 	tween(Elements.Parent, {BackgroundTransparency = 1})
 	Navigation.Visible = true
+	Navigation.BackgroundColor3 = KV.SidebarBg
+	Elements.Parent.Size = UDim2.new(1, -75, Elements.Parent.Size.Y.Scale, Elements.Parent.Size.Y.Offset)
 	tween(Navigation.Line, {BackgroundTransparency = 0})
 
 	for _, TopbarButton in ipairs(Main.Controls:GetChildren()) do
 		if TopbarButton.ClassName == "Frame" and TopbarButton.Name ~= "Theme" then
-			TopbarButton.Visible = true
-			tween(TopbarButton, {BackgroundTransparency = 0.25})
-			tween(TopbarButton.UIStroke, {Transparency = 0.5})
-			tween(TopbarButton.ImageLabel, {ImageTransparency = 0.25})
+			TopbarButton.Visible = false
 		end
 	end
 
@@ -6929,7 +7092,7 @@ function Luna:CreateWindow(WindowSettings)
 		tween(Main.Controls.Close.ImageLabel, {ImageColor3 = Color3.new(1,1,1)})
 	end)
 	Main.Controls.Close["MouseLeave"]:Connect(function()
-		tween(Main.Controls.Close.ImageLabel, {ImageColor3 = Color3.fromRGB(195,195,195)})
+		tween(Main.Controls.Close.ImageLabel, {ImageColor3 = KV.TextSec})
 	end)
 
 	UserInputService.InputBegan:Connect(function(input, gpe)
@@ -6944,12 +7107,12 @@ function Luna:CreateWindow(WindowSettings)
 	end)
 
 	Main.Logo.MouseButton1Click:Connect(function()
-		if Navigation.Size.X.Offset == 205 then
-			tween(Elements.Parent, {Size = UDim2.new(1, -55, Elements.Parent.Size.Y.Scale, Elements.Parent.Size.Y.Offset)})
-			tween(Navigation, {Size = UDim2.new(Navigation.Size.X.Scale, 55, Navigation.Size.Y.Scale, Navigation.Size.Y.Offset)})
+		if Navigation.Size.X.Offset == 75 then
+			tween(Elements.Parent, {Size = UDim2.new(1, -75, Elements.Parent.Size.Y.Scale, Elements.Parent.Size.Y.Offset)})
+			tween(Navigation, {Size = UDim2.new(Navigation.Size.X.Scale, 75, Navigation.Size.Y.Scale, Navigation.Size.Y.Offset)})
 		else
-			tween(Elements.Parent, {Size = UDim2.new(1, -205, Elements.Parent.Size.Y.Scale, Elements.Parent.Size.Y.Offset)})
-			tween(Navigation, {Size = UDim2.new(Navigation.Size.X.Scale, 205, Navigation.Size.Y.Scale, Navigation.Size.Y.Offset)})
+			tween(Elements.Parent, {Size = UDim2.new(1, -75, Elements.Parent.Size.Y.Scale, Elements.Parent.Size.Y.Offset)})
+			tween(Navigation, {Size = UDim2.new(Navigation.Size.X.Scale, 75, Navigation.Size.Y.Scale, Navigation.Size.Y.Offset)})
 		end
 	end)
 
@@ -6967,7 +7130,7 @@ function Luna:CreateWindow(WindowSettings)
 		tween(Main.Controls.ToggleSize.ImageLabel, {ImageColor3 = Color3.new(1,1,1)})
 	end)
 	Main.Controls.ToggleSize["MouseLeave"]:Connect(function()
-		tween(Main.Controls.ToggleSize.ImageLabel, {ImageColor3 = Color3.fromRGB(195,195,195)})
+		tween(Main.Controls.ToggleSize.ImageLabel, {ImageColor3 = KV.TextSec})
 	end)
 
 	Main.Controls.Theme.ImageLabel.MouseButton1Click:Connect(function()
@@ -6980,7 +7143,7 @@ function Luna:CreateWindow(WindowSettings)
 		tween(Main.Controls.Theme.ImageLabel, {ImageColor3 = Color3.new(1,1,1)})
 	end)
 	Main.Controls.Theme["MouseLeave"]:Connect(function()
-		tween(Main.Controls.Theme.ImageLabel, {ImageColor3 = Color3.fromRGB(195,195,195)})
+		tween(Main.Controls.Theme.ImageLabel, {ImageColor3 = KV.TextSec})
 	end)	
 
 
