@@ -4557,36 +4557,55 @@ function Luna:CreateWindow(WindowSettings)
 					"CreateInput","CreateDropdown","CreateColorPicker"
 				}
 
-				-- Após criar um elemento dentro do GroupBox, remove o card visual
-				-- (background + stroke) pra ficar flat igual à referência
-				local function flattenLastChild()
-					task.wait() -- aguarda o elemento ser parented
-					-- pega o último filho real do ContentFrame
-					local children = ContentFrame:GetChildren()
-					local last
-					for _, c in ipairs(children) do
-						if c:IsA("GuiObject") and c.Name ~= "UIListLayout" and c.Name ~= "UIPadding" then
-							last = c
-						end
-					end
-					if not last then return end
-					-- remove card background
-					if last:IsA("Frame") then
-						last.BackgroundTransparency = 1
-					end
-					-- remove UIStroke
-					local stroke = last:FindFirstChildOfClass("UIStroke")
-					if stroke then stroke.Transparency = 1 end
-					-- deixa o texto/desc um pouco mais claro pra compensar sem o card
-					local title = last:FindFirstChild("Title")
+				-- Monitora novos elementos no ContentFrame e os aplana após os tweens de entrada
+				-- task.defer roda no próximo frame, depois dos TweenService:Create():Play() iniciais.
+				-- Usamos uma conexão persistente pra capturar qualquer Create* futuro também.
+				local function flattenElement(elem)
+					if not (elem:IsA("Frame") and elem.Parent == ContentFrame) then return end
+
+					-- Imediatamente seta as cores de texto antes dos tweens de entrada
+					local title = elem:FindFirstChild("Title")
 					if title and title:IsA("TextLabel") then
-						title.TextColor3 = Color3.fromRGB(210, 215, 210)
+						title.TextColor3 = Color3.fromRGB(222, 225, 222)
+						title.Font = Enum.Font.GothamBold
 					end
-					local desc = last:FindFirstChild("Desc")
+					local desc = elem:FindFirstChild("Desc")
 					if desc and desc:IsA("TextLabel") then
-						desc.TextColor3 = Color3.fromRGB(130, 135, 130)
+						desc.TextColor3 = Color3.fromRGB(138, 142, 138)
 					end
+
+					-- Separador fino no fundo do elemento
+					local sep = Instance.new("Frame")
+					sep.Name = "Separator"
+					sep.BackgroundColor3 = Color3.fromRGB(50, 53, 50)
+					sep.BackgroundTransparency = 0.5
+					sep.BorderSizePixel = 0
+					sep.Size = UDim2.new(1, 8, 0, 1)
+					sep.Position = UDim2.new(0, -4, 1, 0)
+					local sepGrad = Instance.new("UIGradient")
+					sepGrad.Transparency = NumberSequence.new{
+						NumberSequenceKeypoint.new(0, 1),
+						NumberSequenceKeypoint.new(0.08, 0),
+						NumberSequenceKeypoint.new(0.92, 0),
+						NumberSequenceKeypoint.new(1, 1)
+					}
+					sepGrad.Parent = sep
+					sep.Parent = elem
+
+					-- Loop por 0.85s (maior que o tween de entrada de 0.7s)
+					-- pra garantir que background e stroke fiquem flat
+					local stroke = elem:FindFirstChildOfClass("UIStroke")
+					local elapsed = 0
+					local conn; conn = RunService.RenderStepped:Connect(function(dt)
+						elapsed = elapsed + dt
+						if not elem or not elem.Parent then conn:Disconnect() return end
+						elem.BackgroundTransparency = 1
+						if stroke then stroke.Transparency = 1 end
+						if elapsed >= 0.85 then conn:Disconnect() end
+					end)
 				end
+
+				ContentFrame.ChildAdded:Connect(flattenElement)
 
 				for _, m in ipairs(methodNames) do
 					if Section[m] then
@@ -4598,7 +4617,6 @@ function Luna:CreateWindow(WindowSettings)
 							local result = Section[m](Section, ...)
 							Section._cols = origCols
 							Section._target = origTarget
-							flattenLastChild()
 							return result
 						end
 					end
