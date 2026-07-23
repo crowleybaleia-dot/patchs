@@ -2963,8 +2963,9 @@ do
         Size = UDim2.new(0, 210, 0, 20);
         Visible = false;
         ZIndex = 100;
-        Parent = IsMobile and nil or ScreenGui; -- esconde no mobile
+        Parent = ScreenGui;
     });
+    if IsMobile then KeybindOuter.Parent = nil end;
 
     Library:ApplyCorner(KeybindOuter, 7);
 
@@ -4004,10 +4005,12 @@ end;
         -- Drag support
         local Dragging = false;
         local DragOffsetX, DragOffsetY = 0, 0;
+        local DidDrag = false;
 
         MobileToggleBtn.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = true;
+                DidDrag = false;
                 DragOffsetX = Input.Position.X - MobileToggleBtn.AbsolutePosition.X;
                 DragOffsetY = Input.Position.Y - MobileToggleBtn.AbsolutePosition.Y;
             end;
@@ -4021,6 +4024,7 @@ end;
 
         InputService.TouchMoved:Connect(function(Input)
             if Dragging then
+                DidDrag = true;
                 local VP = workspace.CurrentCamera.ViewportSize;
                 local BtnSize = 48;
                 local newX = math.clamp(Input.Position.X - DragOffsetX, 0, VP.X - BtnSize);
@@ -4030,6 +4034,7 @@ end;
         end);
 
         MobileToggleBtn.MouseButton1Click:Connect(function()
+            if DidDrag then DidDrag = false; return end;
             task.spawn(Library.Toggle)
         end);
     end;
