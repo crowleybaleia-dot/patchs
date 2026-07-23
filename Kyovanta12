@@ -259,6 +259,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ZIndex               = 3,
     })
     Corner(sidebar, 8)
+    Stroke(sidebar, C.border, 1, 0)
 
     -- ── logo no topo da sidebar ───────────────────────────────────────────
     local logoBlock = Frame(sidebar, {
