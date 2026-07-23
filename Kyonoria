@@ -25,7 +25,7 @@ Deity/dp4pv/x64x70 | Certain Scripting and Testing ig
 
 local Release = "Prerelease Beta 6.1"
 
-local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(195, 214, 79)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(195, 214, 79)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(195, 214, 79))} }
+local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(196, 255, 53))} }
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -3046,7 +3046,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Button["MouseEnter"]:Connect(function()
 					ButtonV.Hover = true
-					tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Button, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Button["MouseLeave"]:Connect(function()
@@ -3226,11 +3226,22 @@ function Luna:CreateWindow(WindowSettings)
 				Slider.UIStroke.Transparency = 1
 				Slider.Title.TextTransparency = 1
 
+				-- Trilho do slider
+				Slider.Main.BackgroundColor3 = KV.SliderTrack
+				-- Preenchimento e handle em verde limão
+				if Slider.Main:FindFirstChild("Progress") then
+					Slider.Main.Progress.BackgroundColor3 = KV.Accent
+				end
+				-- Handle em verde limão
+				if Slider.Main:FindFirstChild("UIStroke") then
+					Slider.Main.UIStroke.Transparency = 1
+				end
+
 				TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
-				Slider.Value.TextColor3 = KV.TextSec
+				Slider.Value.TextColor3 = KV.TextPrimary  -- valor alinhado à direita, cor branca
 
 				Slider.Main.Progress.Size =	UDim2.new(0, Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue + SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * (SliderSettings.CurrentValue / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)
 
@@ -3240,7 +3251,7 @@ function Luna:CreateWindow(WindowSettings)
 				SliderSettings.Callback(SliderSettings.CurrentValue)
 
 				Slider["MouseEnter"]:Connect(function()
-					tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Slider, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Slider["MouseLeave"]:Connect(function()
@@ -3451,14 +3462,15 @@ function Luna:CreateWindow(WindowSettings)
 						Toggle.toggle.BackgroundColor3 = KV.Accent
 						tween(Toggle.toggle, {BackgroundTransparency = 0})
 
-						Toggle.toggle.UIStroke.color.Enabled = true
-						tween(Toggle.toggle.UIStroke, {Color = KV.Accent})
-
-						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.new(1,1,1), Position = UDim2.new(1,-23,0.5,0), BackgroundTransparency = 0.1})
-					else
-						Toggle.toggle.BackgroundColor3 = KV.TrackOff
+						-- Sem UIStroke no toggle (design limpo)
+						Toggle.toggle.UIStroke.Transparency = 1
 						Toggle.toggle.UIStroke.color.Enabled = false
 
+						tween(Toggle.toggle.val, {BackgroundColor3 = Color3.new(1,1,1), Position = UDim2.new(1,-23,0.5,0), BackgroundTransparency = 0})
+					else
+						Toggle.toggle.BackgroundColor3 = KV.TrackOff
+						Toggle.toggle.UIStroke.Transparency = 1
+						Toggle.toggle.UIStroke.color.Enabled = false
 						Toggle.toggle.UIStroke.Color = KV.TrackOff
 
 						tween(Toggle.toggle, {BackgroundTransparency = 0})
@@ -3489,7 +3501,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Toggle["MouseEnter"]:Connect(function()
-					tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Toggle, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Toggle["MouseLeave"]:Connect(function()
@@ -3622,17 +3634,19 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Bind.BackgroundColor3 = KV.CardBg
-				Bind.BindFrame.BackgroundTransparency = 1
+				Bind.BindFrame.BackgroundColor3 = KV.DropdownBg
+				Bind.BindFrame.BackgroundTransparency = 0
 				Bind.BindFrame.UIStroke.Transparency = 1
 				Bind.BindFrame.BindBox.TextTransparency = 1
+				Bind.BindFrame.BindBox.TextColor3 = KV.TextPrimary
 
 				TweenService:Create(Bind, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Bind.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 				if BindSettings.Description ~= nil and BindSettings.Description ~= "" then
 					TweenService:Create(Bind.Desc, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 				end
-				TweenService:Create(Bind.BindFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.9}):Play()
-				TweenService:Create(Bind.BindFrame.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
+				TweenService:Create(Bind.BindFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+				TweenService:Create(Bind.BindFrame.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Bind.BindFrame.BindBox, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
 
@@ -3652,7 +3666,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Bind["MouseEnter"]:Connect(function()
-					tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Bind, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Bind["MouseLeave"]:Connect(function()
@@ -3841,16 +3855,18 @@ function Luna:CreateWindow(WindowSettings)
 				Input.Title.TextTransparency = 1
 				Input.Title.TextColor3 = KV.TextPrimary
 				if descriptionbool then Input.Desc.TextTransparency = 1; Input.Desc.TextColor3 = KV.TextSec end
-				Input.InputFrame.BackgroundTransparency = 1
+				Input.InputFrame.BackgroundColor3 = KV.DropdownBg
+				Input.InputFrame.BackgroundTransparency = 0
 				Input.InputFrame.UIStroke.Transparency = 1
 				Input.InputFrame.InputBox.TextTransparency = 1
+				Input.InputFrame.InputBox.TextColor3 = KV.TextPrimary
 
 				TweenService:Create(Input, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Input.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Input.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 				if descriptionbool then TweenService:Create(Input.Desc, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play() end
 				TweenService:Create(Input.InputFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-				TweenService:Create(Input.InputFrame.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
+				TweenService:Create(Input.InputFrame.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 				TweenService:Create(Input.InputFrame.InputBox, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
 				Input.InputFrame.InputBox.PlaceholderText = InputSettings.PlaceholderText
@@ -3920,7 +3936,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Input["MouseEnter"]:Connect(function()
-					tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Input, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Input["MouseLeave"]:Connect(function()
@@ -4008,8 +4024,32 @@ function Luna:CreateWindow(WindowSettings)
 
 				Dropdown.Parent = _sectionTarget
 				Dropdown.Visible = true
+				Dropdown.BackgroundColor3 = KV.CardBg
 				Dropdown.Title.TextColor3 = KV.TextPrimary
 				if descriptionbool then Dropdown.Desc.TextColor3 = KV.TextSec end
+
+				-- Botão de seleção (DropdownBg, sem stroke, branco)
+				if Dropdown:FindFirstChild("DropdownBtn") then
+					Dropdown.DropdownBtn.BackgroundColor3 = KV.DropdownBg
+					Dropdown.DropdownBtn.UIStroke.Transparency = 1
+					if Dropdown.DropdownBtn:FindFirstChild("SelectedLabel") then
+						Dropdown.DropdownBtn.SelectedLabel.TextColor3 = KV.TextPrimary
+					end
+					if Dropdown.DropdownBtn:FindFirstChild("icon") then
+						Dropdown.DropdownBtn.icon.ImageColor3 = KV.TextSec
+					end
+				end
+				-- "Selected" text e icon diretamente no Dropdown
+				if Dropdown:FindFirstChild("Selected") then
+					Dropdown.Selected.TextColor3 = KV.TextPrimary
+				end
+				if Dropdown:FindFirstChild("icon") then
+					Dropdown.icon.ImageColor3 = KV.TextSec
+				end
+				-- Remover UIStroke do Dropdown (sem bordas)
+				if Dropdown:FindFirstChildOfClass("UIStroke") then
+					Dropdown:FindFirstChildOfClass("UIStroke").Transparency = 1
+				end
 
 				local function Toggle()
 					opened = not opened
@@ -4159,7 +4199,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Dropdown["MouseEnter"]:Connect(function()
-					tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Dropdown, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Dropdown["MouseLeave"]:Connect(function()
@@ -4356,7 +4396,7 @@ function Luna:CreateWindow(WindowSettings)
 				Display.BackgroundTransparency = 0
 
 				ColorPicker["MouseEnter"]:Connect(function()
-					tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(ColorPicker, {BackgroundColor3 = KV.HoverBg})
 				end)
 				ColorPicker["MouseLeave"]:Connect(function()
 					tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
@@ -4854,7 +4894,7 @@ function Luna:CreateWindow(WindowSettings)
 					tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 					wait(0.2)
 					if ButtonV.Hover then
-						tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+						tween(Button, {BackgroundColor3 = KV.HoverBg})
 					else
 						tween(Button, {BackgroundColor3 = KV.CardBg})
 					end
@@ -4863,7 +4903,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Button["MouseEnter"]:Connect(function()
 				ButtonV.Hover = true
-				tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Button, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Button["MouseLeave"]:Connect(function()
@@ -5028,11 +5068,17 @@ function Luna:CreateWindow(WindowSettings)
 			Slider.Visible = true
 			Slider.Parent = TabPage
 
-			Slider.BackgroundTransparency = 1
+			Slider.BackgroundColor3 = KV.CardBg
+			Slider.BackgroundTransparency = 0
 			Slider.UIStroke.Transparency = 1
 			Slider.Title.TextTransparency = 1
+			Slider.Title.TextColor3 = KV.TextPrimary
+			Slider.Main.BackgroundColor3 = KV.SliderTrack
+			if Slider.Main:FindFirstChild("Progress") then
+				Slider.Main.Progress.BackgroundColor3 = KV.Accent
+			end
 
-			TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.5}):Play()
+			TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 			TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
@@ -5044,7 +5090,7 @@ function Luna:CreateWindow(WindowSettings)
 			SliderSettings.Callback(SliderSettings.CurrentValue)
 
 			Slider["MouseEnter"]:Connect(function()
-				tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Slider, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Slider["MouseLeave"]:Connect(function()
@@ -5290,7 +5336,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Toggle["MouseEnter"]:Connect(function()
-				tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Toggle, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Toggle["MouseLeave"]:Connect(function()
@@ -5450,7 +5496,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Bind, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5663,7 +5709,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Bind, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5914,7 +5960,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Input["MouseEnter"]:Connect(function()
-				tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Input, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Input["MouseLeave"]:Connect(function()
@@ -6151,7 +6197,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Dropdown["MouseEnter"]:Connect(function()
-				tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Dropdown, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Dropdown["MouseLeave"]:Connect(function()
@@ -6346,7 +6392,7 @@ function Luna:CreateWindow(WindowSettings)
 			Display.BackgroundTransparency = 0
 
 			ColorPicker["MouseEnter"]:Connect(function()
-				tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(ColorPicker, {BackgroundColor3 = KV.HoverBg})
 			end)
 			ColorPicker["MouseLeave"]:Connect(function()
 				tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
