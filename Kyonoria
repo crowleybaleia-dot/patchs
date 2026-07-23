@@ -4413,6 +4413,195 @@ function Luna:CreateWindow(WindowSettings)
 				return ColorPickerV
 			end
 
+			-- GroupBox
+			function Section:CreateGroupBox(GroupBoxSettings)
+				local _sectionTarget = Section:_target()
+
+				GroupBoxSettings = Kwargify({
+					Name = "Group",
+					Collapsible = true,
+					DefaultOpen = true,
+				}, GroupBoxSettings or {})
+
+				local GroupBoxV = { Settings = GroupBoxSettings }
+
+				-- Outer wrapper parented into the section like any other element
+				local Wrapper = Instance.new("Frame")
+				Wrapper.Name = GroupBoxSettings.Name .. "_GroupBox"
+				Wrapper.BackgroundTransparency = 1
+				Wrapper.Size = UDim2.new(1, 0, 0, 0)
+				Wrapper.AutomaticSize = Enum.AutomaticSize.Y
+				Wrapper.ClipsDescendants = false
+				Wrapper.Parent = _sectionTarget
+
+				-- Visible bordered box
+				local Box = Instance.new("Frame")
+				Box.Name = "Box"
+				Box.BackgroundColor3 = Color3.fromRGB(18, 20, 18)
+				Box.BackgroundTransparency = 0.35
+				Box.BorderSizePixel = 0
+				Box.Size = UDim2.new(1, 0, 0, 0)
+				Box.AutomaticSize = Enum.AutomaticSize.Y
+				Box.ClipsDescendants = false
+				Box.Parent = Wrapper
+
+				local BoxCorner = Instance.new("UICorner")
+				BoxCorner.CornerRadius = UDim.new(0, 6)
+				BoxCorner.Parent = Box
+
+				local BoxStroke = Instance.new("UIStroke")
+				BoxStroke.Color = Color3.fromRGB(55, 58, 55)
+				BoxStroke.Thickness = 1
+				BoxStroke.Transparency = 1
+				BoxStroke.Parent = Box
+
+				-- Title bar
+				local TitleBar = Instance.new("Frame")
+				TitleBar.Name = "TitleBar"
+				TitleBar.BackgroundTransparency = 1
+				TitleBar.Size = UDim2.new(1, 0, 0, 26)
+				TitleBar.Parent = Box
+
+				local TitleLabel = Instance.new("TextLabel")
+				TitleLabel.Name = "Title"
+				TitleLabel.BackgroundTransparency = 1
+				TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+				TitleLabel.Size = UDim2.new(1, -30, 1, 0)
+				TitleLabel.Font = Enum.Font.GothamMedium
+				TitleLabel.TextSize = 10
+				TitleLabel.TextColor3 = Color3.fromRGB(160, 165, 160)
+				TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+				TitleLabel.Text = string.upper(GroupBoxSettings.Name)
+				TitleLabel.TextTransparency = 1
+				TitleLabel.Parent = TitleBar
+
+				local Arrow = Instance.new("ImageLabel")
+				Arrow.Name = "Arrow"
+				Arrow.BackgroundTransparency = 1
+				Arrow.Size = UDim2.new(0, 12, 0, 12)
+				Arrow.Position = UDim2.new(1, -20, 0.5, -6)
+				Arrow.Image = "rbxassetid://6031094687"
+				Arrow.ImageColor3 = Color3.fromRGB(120, 125, 120)
+				Arrow.ImageTransparency = 1
+				Arrow.Visible = GroupBoxSettings.Collapsible
+				Arrow.Parent = TitleBar
+
+				local TitleLine = Instance.new("Frame")
+				TitleLine.Name = "TitleLine"
+				TitleLine.BackgroundColor3 = Color3.fromRGB(55, 58, 55)
+				TitleLine.BackgroundTransparency = 1
+				TitleLine.BorderSizePixel = 0
+				TitleLine.Position = UDim2.new(0, 8, 1, 0)
+				TitleLine.Size = UDim2.new(1, -16, 0, 1)
+				TitleLine.Parent = TitleBar
+
+				-- Content area
+				local ContentFrame = Instance.new("Frame")
+				ContentFrame.Name = "Content"
+				ContentFrame.BackgroundTransparency = 1
+				ContentFrame.Position = UDim2.new(0, 0, 0, 27)
+				ContentFrame.Size = UDim2.new(1, 0, 0, 0)
+				ContentFrame.AutomaticSize = Enum.AutomaticSize.Y
+				ContentFrame.ClipsDescendants = false
+				ContentFrame.Parent = Box
+
+				local ContentLayout = Instance.new("UIListLayout")
+				ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				ContentLayout.Padding = UDim.new(0, 4)
+				ContentLayout.Parent = ContentFrame
+
+				local ContentPad = Instance.new("UIPadding")
+				ContentPad.PaddingLeft = UDim.new(0, 8)
+				ContentPad.PaddingRight = UDim.new(0, 8)
+				ContentPad.PaddingTop = UDim.new(0, 6)
+				ContentPad.PaddingBottom = UDim.new(0, 8)
+				ContentPad.Parent = ContentFrame
+
+				-- Animate in
+				tween(TitleLabel, {TextTransparency = 0})
+				tween(BoxStroke, {Transparency = 0.3})
+				tween(TitleLine, {BackgroundTransparency = 0.6})
+				if GroupBoxSettings.Collapsible then
+					tween(Arrow, {ImageTransparency = 0})
+				end
+
+				-- Collapse state
+				local isOpen = GroupBoxSettings.DefaultOpen
+				if not isOpen then
+					if GroupBoxSettings.Collapsible then Arrow.Rotation = -90 end
+					ContentFrame.Visible = false
+				end
+
+				local function toggleCollapse()
+					if not GroupBoxSettings.Collapsible then return end
+					isOpen = not isOpen
+					if isOpen then
+						tween(Arrow, {Rotation = 0})
+						ContentFrame.Visible = true
+					else
+						tween(Arrow, {Rotation = -90})
+						task.delay(0.25, function()
+							if not isOpen then ContentFrame.Visible = false end
+						end)
+					end
+				end
+
+				if GroupBoxSettings.Collapsible then
+					local TitleBtn = Instance.new("TextButton")
+					TitleBtn.Name = "Interact"
+					TitleBtn.BackgroundTransparency = 1
+					TitleBtn.Size = UDim2.new(1, 0, 1, 0)
+					TitleBtn.Text = ""
+					TitleBtn.ZIndex = 5
+					TitleBtn.Parent = TitleBar
+					TitleBtn.MouseButton1Click:Connect(toggleCollapse)
+
+					TitleBar.MouseEnter:Connect(function()
+						tween(BoxStroke, {Color = Color3.fromRGB(80, 83, 80)})
+					end)
+					TitleBar.MouseLeave:Connect(function()
+						tween(BoxStroke, {Color = Color3.fromRGB(55, 58, 55)})
+					end)
+				end
+
+				-- Inner "section-like" object that routes Create* calls into ContentFrame
+				local methodNames = {
+					"CreateDivider","CreateButton","CreateLabel","CreateParagraph",
+					"CreateSlider","CreateToggle","CreateBind","CreateKeybind",
+					"CreateInput","CreateDropdown","CreateColorPicker"
+				}
+
+				for _, m in ipairs(methodNames) do
+					if Section[m] then
+						GroupBoxV[m] = function(self, ...)
+							local origTarget = Section._target
+							local origCols = Section._cols
+							Section._cols = 1
+							Section._target = function() return ContentFrame end
+							local result = Section[m](Section, ...)
+							Section._cols = origCols
+							Section._target = origTarget
+							return result
+						end
+					end
+				end
+
+				function GroupBoxV:SetTitle(newName)
+					GroupBoxSettings.Name = newName
+					TitleLabel.Text = string.upper(newName)
+				end
+
+				function GroupBoxV:Toggle()
+					toggleCollapse()
+				end
+
+				function GroupBoxV:Destroy()
+					Wrapper:Destroy()
+				end
+
+				return GroupBoxV
+			end
+
 			return Section
 
 		end
