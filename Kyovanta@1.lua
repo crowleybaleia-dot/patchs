@@ -221,7 +221,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         AnchorPoint          = Vector2.new(0.5, 0.5),
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 500),
-        BackgroundColor3     = Color3.fromRGB(10, 10, 13),
+        BackgroundColor3     = Color3.fromRGB(31, 31, 31),
         BackgroundTransparency = 0.02,
         ClipsDescendants     = true,
         ZIndex               = 1,
