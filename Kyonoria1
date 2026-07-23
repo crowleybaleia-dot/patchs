@@ -25,7 +25,7 @@ Deity/dp4pv/x64x70 | Certain Scripting and Testing ig
 
 local Release = "Prerelease Beta 6.1"
 
-local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(196, 255, 53)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(196, 255, 53))} }
+local Luna = { Folder = "Luna", Options = {}, ThemeGradient = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(195, 214, 79)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(195, 214, 79)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(195, 214, 79))} }
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -48,20 +48,20 @@ end
 -- KyoLunar Visual Identity - Modern Dark Theme with Lime Green Accent
 -- ═══════════════════════════════════════════════════════════════════════════
 local KV = {
-	Accent       = Color3.fromRGB(196, 255, 53),
+	Accent       = Color3.fromRGB(195, 214, 79),
 	Black        = Color3.new(0, 0, 0),
-	SidebarBg    = Color3.fromRGB(22, 25, 22),
-	SidebarLine  = Color3.fromRGB(40, 45, 40),
-	MainBg       = Color3.fromRGB(18, 20, 18),
-	CardBg       = Color3.fromRGB(28, 33, 28),
-	DropdownBg   = Color3.fromRGB(40, 45, 40),
-	TrackOff     = Color3.fromRGB(55, 60, 55),
-	TextPrimary  = Color3.fromRGB(240, 240, 240),
-	TextSec      = Color3.fromRGB(140, 145, 140),
-	TextSection  = Color3.fromRGB(120, 130, 120),
-	SliderTrack  = Color3.fromRGB(45, 50, 45),
-	GreenDark    = Color3.fromRGB(150, 200, 40),
-	NotifBg      = Color3.fromRGB(22, 25, 22),
+	SidebarBg    = Color3.fromRGB(22, 22, 22),
+	SidebarLine  = Color3.fromRGB(40, 40, 40),
+	MainBg       = Color3.fromRGB(22, 22, 22),
+	CardBg       = Color3.fromRGB(27, 27, 27),
+	DropdownBg   = Color3.fromRGB(36, 36, 36),
+	TrackOff     = Color3.fromRGB(50, 50, 50),
+	TextPrimary  = Color3.fromRGB(238, 238, 238),
+	TextSec      = Color3.fromRGB(140, 140, 140),
+	TextSection  = Color3.fromRGB(100, 100, 100),
+	SliderTrack  = Color3.fromRGB(40, 40, 40),
+	NotifBg      = Color3.fromRGB(22, 22, 22),
+	HoverBg      = Color3.fromRGB(31, 31, 31),
 }
 
 -- Credits To Latte Softworks And qweery for Lucide And Material Icons Respectively.
@@ -1908,10 +1908,10 @@ local function RestyleUI()
 		Navigation.BackgroundColor3 = KV.SidebarBg
 		Navigation.Size = UDim2.new(0, 75, 1, 0)
 
-		-- Right border line
+		-- Right border line (extremely subtle)
 		local NavLine = Navigation:FindFirstChild("Line")
 		if NavLine then
-			NavLine.BackgroundColor3 = KV.SidebarLine
+			NavLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 			NavLine.BackgroundTransparency = 0
 			NavLine.Size = UDim2.new(0, 1, 1, 0)
 			NavLine.Position = UDim2.new(1, -1, 0, 0)
@@ -1935,7 +1935,7 @@ local function RestyleUI()
 					child.Position = UDim2.new(0, 5, child.Position.Y.Scale, child.Position.Y.Offset)
 					child.AnchorPoint = Vector2.new(0, 0)
 					if child:FindFirstChildOfClass("UICorner") then
-						child:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 8)
+						child:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
 					end
 					-- Remove UIStroke
 					local stroke = child:FindFirstChildOfClass("UIStroke")
@@ -1961,7 +1961,7 @@ local function RestyleUI()
 				template.Size = UDim2.new(1, -10, 0, 40)
 				template.Position = UDim2.new(0, 5, 0, 0)
 				if template:FindFirstChildOfClass("UICorner") then
-					template:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 8)
+					template:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
 				end
 				local stroke = template:FindFirstChildOfClass("UIStroke")
 				if stroke then stroke.Transparency = 1 end
@@ -3070,7 +3070,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Button["MouseEnter"]:Connect(function()
 					ButtonV.Hover = true
-					tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Button["MouseLeave"]:Connect(function()
@@ -3264,7 +3264,7 @@ function Luna:CreateWindow(WindowSettings)
 				SliderSettings.Callback(SliderSettings.CurrentValue)
 
 				Slider["MouseEnter"]:Connect(function()
-					tween(Slider, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Slider["MouseLeave"]:Connect(function()
@@ -3513,7 +3513,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Toggle["MouseEnter"]:Connect(function()
-					tween(Toggle, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Toggle["MouseLeave"]:Connect(function()
@@ -3676,7 +3676,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Bind["MouseEnter"]:Connect(function()
-					tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Bind["MouseLeave"]:Connect(function()
@@ -3944,7 +3944,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Input["MouseEnter"]:Connect(function()
-					tween(Input, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Input["MouseLeave"]:Connect(function()
@@ -4092,7 +4092,7 @@ function Luna:CreateWindow(WindowSettings)
 					end
 
 					Toggle()
-					tween(Dropdown.List[name], {BackgroundTransparency = 0.95, TextColor3 = Color3.fromRGB(240,240,240)})
+					tween(Dropdown.List[name], {BackgroundTransparency = 0.95, TextColor3 = Color3.fromRGB(238,238,238)})
 				end
 
 				local function Refresh()
@@ -4116,7 +4116,7 @@ function Luna:CreateWindow(WindowSettings)
 								else
 									table.insert(DropdownSettings.CurrentOption, v)
 									DropdownV.CurrentOption = DropdownSettings.CurrentOption
-									tween(Option, {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+									tween(Option, {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 								end
 								bleh = DropdownSettings.CurrentOption
 							else
@@ -4183,7 +4183,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Dropdown["MouseEnter"]:Connect(function()
-					tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 
 				Dropdown["MouseLeave"]:Connect(function()
@@ -4223,10 +4223,10 @@ function Luna:CreateWindow(WindowSettings)
 				if ind == 1 then bleh = DropdownSettings.CurrentOption[1] else bleh = DropdownSettings.CurrentOption end
 				SafeCallback(bleh)
 				if type(bleh) == "string" then 
-					tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+					tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 				else
 					for i,v in pairs(bleh) do
-						tween(Dropdown.List[v], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+						tween(Dropdown.List[v], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 					end
 				end
 
@@ -4299,7 +4299,7 @@ function Luna:CreateWindow(WindowSettings)
 							tween(Option, {TextColor3 = Color3.fromRGB(200,200,200), BackgroundTransparency = 0.98})
 						end
 					end
-					tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+					tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 
 					if DropdownSettings.MultipleOptions then
 						if DropdownSettings.CurrentOption and type(DropdownSettings.CurrentOption) == "table" then
@@ -4380,7 +4380,7 @@ function Luna:CreateWindow(WindowSettings)
 				Display.BackgroundTransparency = 0
 
 				ColorPicker["MouseEnter"]:Connect(function()
-					tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+					tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 				end)
 				ColorPicker["MouseLeave"]:Connect(function()
 					tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
@@ -4878,7 +4878,7 @@ function Luna:CreateWindow(WindowSettings)
 					tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 					wait(0.2)
 					if ButtonV.Hover then
-						tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+						tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 					else
 						tween(Button, {BackgroundColor3 = KV.CardBg})
 					end
@@ -4887,7 +4887,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Button["MouseEnter"]:Connect(function()
 				ButtonV.Hover = true
-				tween(Button, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Button["MouseLeave"]:Connect(function()
@@ -5068,7 +5068,7 @@ function Luna:CreateWindow(WindowSettings)
 			SliderSettings.Callback(SliderSettings.CurrentValue)
 
 			Slider["MouseEnter"]:Connect(function()
-				tween(Slider, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Slider["MouseLeave"]:Connect(function()
@@ -5314,7 +5314,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Toggle["MouseEnter"]:Connect(function()
-				tween(Toggle, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Toggle["MouseLeave"]:Connect(function()
@@ -5474,7 +5474,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5687,7 +5687,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5938,7 +5938,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Input["MouseEnter"]:Connect(function()
-				tween(Input, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Input["MouseLeave"]:Connect(function()
@@ -6084,7 +6084,7 @@ function Luna:CreateWindow(WindowSettings)
 				end
 
 				Toggle()
-				tween(Dropdown.List[name], {BackgroundTransparency = 0.95, TextColor3 = Color3.fromRGB(240,240,240)})
+				tween(Dropdown.List[name], {BackgroundTransparency = 0.95, TextColor3 = Color3.fromRGB(238,238,238)})
 			end
 
 			local function Refresh()
@@ -6108,7 +6108,7 @@ function Luna:CreateWindow(WindowSettings)
 							else
 								table.insert(DropdownSettings.CurrentOption, v)
 								DropdownV.CurrentOption = DropdownSettings.CurrentOption
-								tween(Option, {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+								tween(Option, {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 							end
 							bleh = DropdownSettings.CurrentOption
 						else
@@ -6146,7 +6146,7 @@ function Luna:CreateWindow(WindowSettings)
 						if Option.BackgroundTransparency == 0.95 then
 							return
 						else
-							tween(Option, {TextColor3 = Color3.fromRGB(240,240,240)})
+							tween(Option, {TextColor3 = Color3.fromRGB(238,238,238)})
 						end
 					end)
 					Option.MouseLeave:Connect(function()
@@ -6175,7 +6175,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Dropdown["MouseEnter"]:Connect(function()
-				tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 
 			Dropdown["MouseLeave"]:Connect(function()
@@ -6215,10 +6215,10 @@ function Luna:CreateWindow(WindowSettings)
 			if ind == 1 then bleh = DropdownSettings.CurrentOption[1] else bleh = DropdownSettings.CurrentOption end
 			SafeCallback(bleh)
 			if type(bleh) == "string" then 
-				tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+				tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 			else
 				for i,v in pairs(bleh) do
-					tween(Dropdown.List[v], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+					tween(Dropdown.List[v], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 				end
 			end
 
@@ -6291,7 +6291,7 @@ function Luna:CreateWindow(WindowSettings)
 						tween(Option, {TextColor3 = Color3.fromRGB(200,200,200), BackgroundTransparency = 0.98})
 					end
 				end
-				tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(240,240,240), BackgroundTransparency = 0.95})
+				tween(Dropdown.List[bleh], {TextColor3 = Color3.fromRGB(238,238,238), BackgroundTransparency = 0.95})
 
 				if DropdownSettings.MultipleOptions then
 					if DropdownSettings.CurrentOption and type(DropdownSettings.CurrentOption) == "table" then
@@ -6370,7 +6370,7 @@ function Luna:CreateWindow(WindowSettings)
 			Display.BackgroundTransparency = 0
 
 			ColorPicker["MouseEnter"]:Connect(function()
-				tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(33, 38, 33)})
+				tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
 			end)
 			ColorPicker["MouseLeave"]:Connect(function()
 				tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
