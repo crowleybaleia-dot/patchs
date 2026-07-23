@@ -48,20 +48,20 @@ end
 -- KyoLunar Visual Identity - Modern Dark Theme with Lime Green Accent
 -- ═══════════════════════════════════════════════════════════════════════════
 local KV = {
-	Accent       = Color3.fromRGB(195, 214, 79),
+	Accent       = Color3.fromRGB(196, 255, 53),
 	Black        = Color3.new(0, 0, 0),
-	SidebarBg    = Color3.fromRGB(22, 22, 22),
-	SidebarLine  = Color3.fromRGB(40, 40, 40),
-	MainBg       = Color3.fromRGB(22, 22, 22),
-	CardBg       = Color3.fromRGB(27, 27, 27),
-	DropdownBg   = Color3.fromRGB(36, 36, 36),
-	TrackOff     = Color3.fromRGB(50, 50, 50),
-	TextPrimary  = Color3.fromRGB(238, 238, 238),
-	TextSec      = Color3.fromRGB(140, 140, 140),
-	TextSection  = Color3.fromRGB(100, 100, 100),
-	SliderTrack  = Color3.fromRGB(40, 40, 40),
-	NotifBg      = Color3.fromRGB(22, 22, 22),
-	HoverBg      = Color3.fromRGB(31, 31, 31),
+	SidebarBg    = Color3.fromRGB(22, 25, 22),
+	SidebarLine  = Color3.fromRGB(40, 45, 40),
+	MainBg       = Color3.fromRGB(18, 20, 18),
+	CardBg       = Color3.fromRGB(28, 33, 28),
+	DropdownBg   = Color3.fromRGB(40, 45, 40),
+	TrackOff     = Color3.fromRGB(55, 60, 55),
+	TextPrimary  = Color3.fromRGB(240, 240, 240),
+	TextSec      = Color3.fromRGB(140, 145, 140),
+	TextSection  = Color3.fromRGB(120, 130, 120),
+	SliderTrack  = Color3.fromRGB(45, 50, 45),
+	NotifBg      = Color3.fromRGB(22, 25, 22),
+	HoverBg      = Color3.fromRGB(35, 40, 35),
 }
 
 -- Credits To Latte Softworks And qweery for Lucide And Material Icons Respectively.
@@ -1866,81 +1866,73 @@ local function RestyleUI()
 	if not SmartWindow then return end
 
 	local Navigation = SmartWindow:FindFirstChild("Navigation")
-	local Elements = SmartWindow:FindFirstChild("Elements")
-	local Controls = SmartWindow:FindFirstChild("Controls")
-	local Drag = SmartWindow:FindFirstChild("Drag")
+	local Elements   = SmartWindow:FindFirstChild("Elements")
+	local Controls   = SmartWindow:FindFirstChild("Controls")
+	local Drag       = SmartWindow:FindFirstChild("Drag")
 
-	-- Main window
+	-- Main window: flat dark background, no border, no corner
 	SmartWindow.BackgroundColor3 = KV.MainBg
 	SmartWindow.BackgroundTransparency = 0
 	SmartWindow.ClipsDescendants = true
-	if SmartWindow:FindFirstChildOfClass("UICorner") then
-		SmartWindow:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
-	else
-		local SWCorner = Instance.new("UICorner")
-		SWCorner.CornerRadius = UDim.new(0, 12)
-		SWCorner.Parent = SmartWindow
-	end
+	-- Remove any UICorner from SmartWindow (no outer border)
+	local swCorner = SmartWindow:FindFirstChildOfClass("UICorner")
+	if swCorner then swCorner:Destroy() end
+	-- Remove UIStroke if present
+	local swStroke = SmartWindow:FindFirstChildOfClass("UIStroke")
+	if swStroke then swStroke:Destroy() end
 
-	-- Remove top bar line
+	-- Hide top bar line
 	local Line = SmartWindow:FindFirstChild("Line")
 	if Line then Line.BackgroundTransparency = 1 end
 
-	-- Hide title and subtitle
+	-- Hide title bar completely
 	local TitleFrame = SmartWindow:FindFirstChild("Title")
-	if TitleFrame then
-		local t = TitleFrame:FindFirstChild("Title")
-		if t then t.TextTransparency = 1 end
-		local s = TitleFrame:FindFirstChild("subtitle")
-		if s then s.TextTransparency = 1 end
-	end
+	if TitleFrame then TitleFrame.Visible = false end
 
-	-- Hide Logo
+	-- Hide logo in top bar
 	local Logo = SmartWindow:FindFirstChild("Logo")
-	if Logo then Logo.ImageTransparency = 1 end
+	if Logo then Logo.Visible = false end
 
-	-- Hide all controls (Close, ToggleSize, Theme)
+	-- Hide all window controls
 	if Controls then
-		for _, child in ipairs(Controls:GetChildren()) do
-			if child:IsA("Frame") or child:IsA("ImageButton") then
-				child.Visible = false
-			end
-		end
+		Controls.Visible = false
 	end
 
 	-- Sidebar / Navigation
 	if Navigation then
-		Navigation.BackgroundColor3 = KV.CardBg
+		Navigation.BackgroundColor3 = KV.SidebarBg
+		Navigation.BorderSizePixel = 0
 		Navigation.ClipsDescendants = true
 
-		-- Add UICorner to Navigation if not present
-		if not Navigation:FindFirstChildOfClass("UICorner") then
-			local NavCorner = Instance.new("UICorner")
-			NavCorner.CornerRadius = UDim.new(0, 12)
-			NavCorner.Parent = Navigation
-		else
-			Navigation:FindFirstChildOfClass("UICorner").CornerRadius = UDim.new(0, 12)
-		end
+		-- Remove any UICorner (sidebar is flat, fills height)
+		local navCorner = Navigation:FindFirstChildOfClass("UICorner")
+		if navCorner then navCorner:Destroy() end
 
-		-- Hide sidebar line
+		-- Remove any UIStroke
+		local navStroke = Navigation:FindFirstChildOfClass("UIStroke")
+		if navStroke then navStroke:Destroy() end
+
+		-- Replace original Line with a thin right-border line
 		local NavLine = Navigation:FindFirstChild("Line")
 		if NavLine then
-			NavLine.BackgroundTransparency = 1
+			NavLine.BackgroundColor3 = KV.SidebarLine
+			NavLine.BackgroundTransparency = 0
+			NavLine.BorderSizePixel = 0
+			NavLine.Size = UDim2.new(0, 1, 1, 0)
+			NavLine.Position = UDim2.new(1, -1, 0, 0)
+			NavLine.AnchorPoint = Vector2.new(1, 0)
+			NavLine.ZIndex = 10
 		end
 
-		-- Player info (hide completely)
+		-- Hide player info
 		local PlayerInfo = Navigation:FindFirstChild("Player")
-		if PlayerInfo then
-			PlayerInfo.Visible = false
-		end
+		if PlayerInfo then PlayerInfo.Visible = false end
 
-		-- Hide all original tab buttons - our sidebar builder creates replacements
+		-- Hide original tab buttons
 		local Tabs = Navigation:FindFirstChild("Tabs")
 		if Tabs then
 			for _, child in ipairs(Tabs:GetChildren()) do
-				if child:IsA("Frame") then
-					child.Visible = false
-				end
+				if child:IsA("Frame") then child.Visible = false end
 			end
 		end
 	end
@@ -1949,31 +1941,24 @@ local function RestyleUI()
 	if Elements then
 		Elements.BackgroundColor3 = KV.MainBg
 		Elements.BackgroundTransparency = 0
+		local elCorner = Elements:FindFirstChildOfClass("UICorner")
+		if elCorner then elCorner:Destroy() end
 	end
 
-	-- Main background
-	SmartWindow.BackgroundColor3 = KV.MainBg
-
-	-- Shadow holder
-	local ShadowHolder = SmartWindow:FindFirstChild("ShadowHolder") or (SmartWindow.Parent and SmartWindow.Parent:FindFirstChild("ShadowHolder"))
+	-- Kill shadow completely
+	local ShadowHolder = SmartWindow.Parent and SmartWindow.Parent:FindFirstChild("ShadowHolder")
+	if not ShadowHolder then ShadowHolder = SmartWindow:FindFirstChild("ShadowHolder") end
 	if ShadowHolder then
-		ShadowHolder.BackgroundTransparency = 1
-		for _, img in ipairs(ShadowHolder:GetDescendants()) do
-			if img:IsA("ImageLabel") then
-				img.ImageTransparency = 1
-			end
-		end
+		ShadowHolder.Visible = false
 	end
 
-	-- Drag bar
+	-- Drag bar invisible
 	if Drag then
 		Drag.BackgroundTransparency = 1
 		local dragInteract = Drag:FindFirstChild("Interact")
 		if dragInteract then dragInteract.BackgroundTransparency = 1 end
 		local dragCosmetic = Drag:FindFirstChild("Drag")
-		if dragCosmetic then
-			dragCosmetic.BackgroundTransparency = 1
-		end
+		if dragCosmetic then dragCosmetic.BackgroundTransparency = 1 end
 	end
 
 	-- Loading frame
@@ -1991,7 +1976,7 @@ local function RestyleUI()
 	-- Mobile support
 	local MobileSupport = LunaUI:FindFirstChild("MobileSupport")
 	if MobileSupport then
-		MobileSupport.BackgroundColor3 = KV.CardBg
+		MobileSupport.BackgroundColor3 = KV.SidebarBg
 	end
 end
 
@@ -3046,7 +3031,7 @@ function Luna:CreateWindow(WindowSettings)
 
 				Button["MouseEnter"]:Connect(function()
 					ButtonV.Hover = true
-					tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Button, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Button["MouseLeave"]:Connect(function()
@@ -3225,6 +3210,13 @@ function Luna:CreateWindow(WindowSettings)
 				Slider.BackgroundTransparency = 0
 				Slider.UIStroke.Transparency = 1
 				Slider.Title.TextTransparency = 1
+				-- Track and progress colors
+				if Slider.Main then
+					Slider.Main.BackgroundColor3 = KV.SliderTrack
+					if Slider.Main:FindFirstChild("Progress") then
+						Slider.Main.Progress.BackgroundColor3 = KV.Accent
+					end
+				end
 
 				TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 				TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
@@ -3240,7 +3232,7 @@ function Luna:CreateWindow(WindowSettings)
 				SliderSettings.Callback(SliderSettings.CurrentValue)
 
 				Slider["MouseEnter"]:Connect(function()
-					tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Slider, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Slider["MouseLeave"]:Connect(function()
@@ -3489,7 +3481,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Toggle["MouseEnter"]:Connect(function()
-					tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Toggle, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Toggle["MouseLeave"]:Connect(function()
@@ -3652,7 +3644,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Bind["MouseEnter"]:Connect(function()
-					tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Bind, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Bind["MouseLeave"]:Connect(function()
@@ -3920,7 +3912,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Input["MouseEnter"]:Connect(function()
-					tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Input, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Input["MouseLeave"]:Connect(function()
@@ -4159,7 +4151,7 @@ function Luna:CreateWindow(WindowSettings)
 				end)
 
 				Dropdown["MouseEnter"]:Connect(function()
-					tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(Dropdown, {BackgroundColor3 = KV.HoverBg})
 				end)
 
 				Dropdown["MouseLeave"]:Connect(function()
@@ -4356,7 +4348,7 @@ function Luna:CreateWindow(WindowSettings)
 				Display.BackgroundTransparency = 0
 
 				ColorPicker["MouseEnter"]:Connect(function()
-					tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+					tween(ColorPicker, {BackgroundColor3 = KV.HoverBg})
 				end)
 				ColorPicker["MouseLeave"]:Connect(function()
 					tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
@@ -4854,7 +4846,7 @@ function Luna:CreateWindow(WindowSettings)
 					tween(Button.UIStroke, {Color = Color3.fromRGB(136, 131, 163)})
 					wait(0.2)
 					if ButtonV.Hover then
-						tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+						tween(Button, {BackgroundColor3 = KV.HoverBg})
 					else
 						tween(Button, {BackgroundColor3 = KV.CardBg})
 					end
@@ -4863,7 +4855,7 @@ function Luna:CreateWindow(WindowSettings)
 
 			Button["MouseEnter"]:Connect(function()
 				ButtonV.Hover = true
-				tween(Button, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Button, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Button["MouseLeave"]:Connect(function()
@@ -5044,7 +5036,7 @@ function Luna:CreateWindow(WindowSettings)
 			SliderSettings.Callback(SliderSettings.CurrentValue)
 
 			Slider["MouseEnter"]:Connect(function()
-				tween(Slider, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Slider, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Slider["MouseLeave"]:Connect(function()
@@ -5290,7 +5282,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Toggle["MouseEnter"]:Connect(function()
-				tween(Toggle, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Toggle, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Toggle["MouseLeave"]:Connect(function()
@@ -5450,7 +5442,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Bind, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5663,7 +5655,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Bind["MouseEnter"]:Connect(function()
-				tween(Bind, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Bind, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Bind["MouseLeave"]:Connect(function()
@@ -5914,7 +5906,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Input["MouseEnter"]:Connect(function()
-				tween(Input, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Input, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Input["MouseLeave"]:Connect(function()
@@ -6151,7 +6143,7 @@ function Luna:CreateWindow(WindowSettings)
 			end)
 
 			Dropdown["MouseEnter"]:Connect(function()
-				tween(Dropdown, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(Dropdown, {BackgroundColor3 = KV.HoverBg})
 			end)
 
 			Dropdown["MouseLeave"]:Connect(function()
@@ -6346,7 +6338,7 @@ function Luna:CreateWindow(WindowSettings)
 			Display.BackgroundTransparency = 0
 
 			ColorPicker["MouseEnter"]:Connect(function()
-				tween(ColorPicker, {BackgroundColor3 = Color3.fromRGB(31, 31, 31)})
+				tween(ColorPicker, {BackgroundColor3 = KV.HoverBg})
 			end)
 			ColorPicker["MouseLeave"]:Connect(function()
 				tween(ColorPicker, {BackgroundColor3 = KV.CardBg})
@@ -7412,103 +7404,147 @@ do
 		local Window = origCreateWindow(self, WindowSettings)
 
 		-- Hide everything in Navigation.Tabs but keep InActive Template alive (CreateTab needs it)
+		-- Hide all original tab buttons
 		for _, child in ipairs(Navigation.Tabs:GetChildren()) do
-			if child:IsA("Frame") then
-				child.Visible = false
-			end
+			if child:IsA("Frame") then child.Visible = false end
 		end
 
-		-- Hide Player info
+		-- Hide player info
 		local PlayerInfo = Navigation:FindFirstChild("Player")
 		if PlayerInfo then PlayerInfo.Visible = false end
 
-		-- Hide Navigation.Line
-		local NavLine = Navigation:FindFirstChild("Line")
-		if NavLine then NavLine.BackgroundTransparency = 1 end
-
-		-- Ensure Navigation styling
-		Navigation.BackgroundColor3 = KV.CardBg
+		-- Style Navigation as flat sidebar
+		Navigation.BackgroundColor3 = KV.SidebarBg
+		Navigation.BorderSizePixel = 0
 		Navigation.ClipsDescendants = true
-		if not Navigation:FindFirstChildOfClass("UICorner") then
-			local c = Instance.new("UICorner")
-			c.CornerRadius = UDim.new(0, 12)
-			c.Parent = Navigation
+		local navCorner = Navigation:FindFirstChildOfClass("UICorner")
+		if navCorner then navCorner:Destroy() end
+
+		-- Right border line
+		local NavLine = Navigation:FindFirstChild("Line")
+		if NavLine then
+			NavLine.BackgroundColor3 = KV.SidebarLine
+			NavLine.BackgroundTransparency = 0
+			NavLine.BorderSizePixel = 0
+			NavLine.Size = UDim2.new(0, 1, 1, 0)
+			NavLine.Position = UDim2.new(1, -1, 0, 0)
+			NavLine.AnchorPoint = Vector2.new(1, 0)
+			NavLine.ZIndex = 10
 		end
 
-		-- Create sidebar background
-		local Sidebar = Instance.new("Frame")
-		Sidebar.Name = "KyoSidebar"
-		Sidebar.BackgroundColor3 = KV.CardBg
-		Sidebar.BackgroundTransparency = 0
-		Sidebar.Size = UDim2.new(1, 0, 1, 0)
-		Sidebar.BorderSizePixel = 0
-		Sidebar.ZIndex = 2
-		Sidebar.Parent = Navigation
+		-- ── Logo no topo ──────────────────────────────────────────────
+		local LogoHolder = Instance.new("Frame")
+		LogoHolder.Name = "KyoLogo"
+		LogoHolder.BackgroundTransparency = 1
+		LogoHolder.Size = UDim2.new(1, 0, 0, 64)
+		LogoHolder.Position = UDim2.new(0, 0, 0, 0)
+		LogoHolder.ZIndex = 4
+		LogoHolder.Parent = Navigation
 
-		local SidebarCorner = Instance.new("UICorner")
-		SidebarCorner.CornerRadius = UDim.new(0, 12)
-		SidebarCorner.Parent = Sidebar
+		local LogoImg = Instance.new("ImageLabel")
+		LogoImg.BackgroundTransparency = 1
+		LogoImg.Size = UDim2.new(0, 36, 0, 36)
+		LogoImg.AnchorPoint = Vector2.new(0.5, 0.5)
+		LogoImg.Position = UDim2.new(0.5, 0, 0.5, 0)
+		LogoImg.Image = "rbxassetid://" .. (Window.Settings and Window.Settings.LogoID or "6031097225")
+		LogoImg.ImageColor3 = KV.Accent
+		LogoImg.ZIndex = 5
+		LogoImg.Parent = LogoHolder
+
+		-- ── Container central dos tabs ─────────────────────────────────
+		local TabList = Instance.new("Frame")
+		TabList.Name = "KyoTabList"
+		TabList.BackgroundTransparency = 1
+		TabList.AnchorPoint = Vector2.new(0.5, 0.5)
+		TabList.Position = UDim2.new(0.5, 0, 0.5, 32) -- offset de 32 pelo logo
+		TabList.Size = UDim2.new(1, -16, 0, 0)
+		TabList.AutomaticSize = Enum.AutomaticSize.Y
+		TabList.BorderSizePixel = 0
+		TabList.ZIndex = 3
+		TabList.Parent = Navigation
+
+		local TabLayout = Instance.new("UIListLayout")
+		TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		TabLayout.FillDirection = Enum.FillDirection.Vertical
+		TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		TabLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+		TabLayout.Padding = UDim.new(0, 6)
+		TabLayout.Parent = TabList
+
+		-- ── Active indicator bar (left edge) ──────────────────────────
+		local ActiveBar = Instance.new("Frame")
+		ActiveBar.Name = "KyoActiveBar"
+		ActiveBar.BackgroundColor3 = KV.Accent
+		ActiveBar.BorderSizePixel = 0
+		ActiveBar.Size = UDim2.new(0, 3, 0, 24)
+		ActiveBar.Position = UDim2.new(0, 0, 0, 0)
+		ActiveBar.ZIndex = 10
+		ActiveBar.Visible = false
+		local ActiveBarCorner = Instance.new("UICorner")
+		ActiveBarCorner.CornerRadius = UDim.new(0, 2)
+		ActiveBarCorner.Parent = ActiveBar
+		ActiveBar.Parent = Navigation
 
 		local tabOrder = 0
 		local tabButtons = {}
 
-		-- Recalculate all button sizes/positions to distribute evenly
-		local function redistributeTabs()
-			local n = #tabButtons
-			if n == 0 then return end
-			for i, btn in ipairs(tabButtons) do
-				btn.Size = UDim2.new(1, -12, 1/n, -8)
-				btn.Position = UDim2.new(0, 6, (i-1)/n, 4)
-			end
+		-- Move the active bar to sit beside the given button
+		local function moveActiveBar(btn)
+			ActiveBar.Visible = true
+			local barY = btn.Position.Y.Offset + (btn.AbsoluteSize.Y / 2) - 12
+			-- Use AbsolutePosition for accuracy after layout settles
+			task.defer(function()
+				local absY = btn.AbsolutePosition.Y - Navigation.AbsolutePosition.Y + (btn.AbsoluteSize.Y / 2) - 12
+				ActiveBar.Position = UDim2.new(0, 0, 0, absY)
+			end)
 		end
 
-		-- Helper to reset all sidebar buttons to inactive state
+		-- Reset all buttons to inactive
 		local function deactivateAll()
 			for _, btn in ipairs(tabButtons) do
-				btn.BackgroundColor3 = KV.CardBg
-				btn.BackgroundTransparency = 1
+				tween(btn, {BackgroundTransparency = 1, BackgroundColor3 = KV.SidebarBg})
 				local icon = btn:FindFirstChild("Icon")
-				if icon then icon.ImageColor3 = Color3.fromRGB(160, 160, 160) end
+				if icon then tween(icon, {ImageColor3 = KV.TextSec}) end
 			end
 		end
 
-		-- Override CreateTab to build styled sidebar buttons
+		-- Override CreateTab
 		local origCreateTab = Window.CreateTab
 		Window.CreateTab = function(tabSelf, tabSettings)
 			local Tab = origCreateTab(tabSelf, tabSettings)
 			tabOrder += 1
 
-			-- Hide the original cloned button from template
 			local clonedBtn = Navigation.Tabs:FindFirstChild(tabSettings.Name)
 			if clonedBtn then clonedBtn.Visible = false end
 
-			-- Create styled sidebar button
+			-- Button frame
 			local Btn = Instance.new("Frame")
 			Btn.Name = tabSettings.Name
-			Btn.BackgroundColor3 = KV.Accent
+			Btn.BackgroundColor3 = KV.SidebarBg
 			Btn.BackgroundTransparency = 1
+			Btn.Size = UDim2.new(1, 0, 0, 44)
 			Btn.BorderSizePixel = 0
+			Btn.LayoutOrder = tabOrder
 			Btn.ZIndex = 3
-			Btn.Parent = Sidebar
-
-			table.insert(tabButtons, Btn)
-			redistributeTabs()
+			Btn.Parent = TabList
 
 			local BtnCorner = Instance.new("UICorner")
-			BtnCorner.CornerRadius = UDim.new(0, 10)
+			BtnCorner.CornerRadius = UDim.new(0, 8)
 			BtnCorner.Parent = Btn
 
+			-- Icon
 			local Icon = Instance.new("ImageLabel")
 			Icon.Name = "Icon"
 			Icon.BackgroundTransparency = 1
-			Icon.Size = UDim2.new(0, 20, 0, 20)
+			Icon.Size = UDim2.new(0, 22, 0, 22)
 			Icon.AnchorPoint = Vector2.new(0.5, 0.5)
 			Icon.Position = UDim2.new(0.5, 0, 0.5, 0)
 			Icon.Image = GetIcon(tabSettings.Icon, tabSettings.ImageSource)
-			Icon.ImageColor3 = Color3.fromRGB(160, 160, 160)
+			Icon.ImageColor3 = KV.TextSec
 			Icon.ZIndex = 4
 			Icon.Parent = Btn
 
+			-- Interact
 			local Interact = Instance.new("TextButton")
 			Interact.BackgroundTransparency = 1
 			Interact.Size = UDim2.new(1, 0, 1, 0)
@@ -7519,15 +7555,14 @@ do
 			-- Hover
 			Interact.MouseEnter:Connect(function()
 				if Window.CurrentTab ~= tabSettings.Name then
-					tween(Btn, {BackgroundTransparency = 0.85, BackgroundColor3 = Color3.fromRGB(35, 35, 35)})
-					tween(Icon, {ImageColor3 = Color3.fromRGB(238, 238, 238)})
+					tween(Btn, {BackgroundTransparency = 0.85, BackgroundColor3 = KV.HoverBg})
+					tween(Icon, {ImageColor3 = KV.TextPrimary})
 				end
 			end)
-
 			Interact.MouseLeave:Connect(function()
 				if Window.CurrentTab ~= tabSettings.Name then
 					tween(Btn, {BackgroundTransparency = 1})
-					tween(Icon, {ImageColor3 = Color3.fromRGB(160, 160, 160)})
+					tween(Icon, {ImageColor3 = KV.TextSec})
 				end
 			end)
 
@@ -7536,37 +7571,37 @@ do
 				Tab:Activate()
 			end)
 
-			-- Override Activate to also update sidebar visuals
+			-- Activate override
 			local origActivate = Tab.Activate
 			Tab.Activate = function(...)
 				origActivate(...)
 				deactivateAll()
-				Btn.BackgroundTransparency = 0
-				Btn.BackgroundColor3 = KV.Accent
-				Icon.ImageColor3 = KV.Black
+				tween(Btn, {BackgroundTransparency = 0, BackgroundColor3 = KV.Accent})
+				tween(Icon, {ImageColor3 = KV.Black})
+				moveActiveBar(Btn)
 			end
 
-			-- If this is the first tab, it was auto-activated
+			-- First tab auto-activated
 			if Window.CurrentTab == tabSettings.Name then
-				Btn.BackgroundTransparency = 0
-				Btn.BackgroundColor3 = KV.Accent
-				Icon.ImageColor3 = KV.Black
+				tween(Btn, {BackgroundTransparency = 0, BackgroundColor3 = KV.Accent})
+				tween(Icon, {ImageColor3 = KV.Black})
+				moveActiveBar(Btn)
 			end
 
+			table.insert(tabButtons, Btn)
 			return Tab
 		end
 
-		-- Override Hide/Unhide to handle our custom sidebar buttons
+		-- Hide/Unhide overrides
 		local origHide = Window.Hide
 		if origHide then
 			Window.Hide = function(hSelf, hBind)
 				origHide(hSelf, hBind)
+				ActiveBar.Visible = false
 				for _, btn in ipairs(tabButtons) do
 					TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 					local icon = btn:FindFirstChild("Icon")
-					if icon then
-						TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
-					end
+					if icon then TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play() end
 				end
 			end
 		end
@@ -7576,21 +7611,14 @@ do
 			Window.Unhide = function(uSelf)
 				origUnhide(uSelf)
 				for _, btn in ipairs(tabButtons) do
-					TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.3}):Play()
 					local icon = btn:FindFirstChild("Icon")
-					if icon then
-						TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-					end
-				end
-				-- Re-highlight active tab
-				if Window.CurrentTab then
-					for _, btn in ipairs(tabButtons) do
-						if btn.Name == Window.CurrentTab then
-							btn.BackgroundTransparency = 0
-							btn.BackgroundColor3 = KV.Accent
-							local icon = btn:FindFirstChild("Icon")
-							if icon then icon.ImageColor3 = KV.Black end
-						end
+					if icon then TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play() end
+					if btn.Name == Window.CurrentTab then
+						TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0, BackgroundColor3 = KV.Accent}):Play()
+						if icon then TweenService:Create(icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageColor3 = KV.Black}):Play() end
+						moveActiveBar(btn)
+					else
+						TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 					end
 				end
 			end
