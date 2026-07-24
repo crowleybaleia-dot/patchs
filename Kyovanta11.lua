@@ -1011,7 +1011,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         function sec:Group(groupName, iconAsset, side)
             local col = (side == "right") and workareaR or workareaL
 
-            -- wrapper externo: sem fundo, sem borda
+            -- wrapper externo: corner, sem stroke
             local gboxOuter = Frame(col, {
                 Name                 = "grp_" .. groupName,
                 Size                 = UDim2.new(1,0,0,0),
@@ -1020,37 +1020,48 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ZIndex               = 3,
                 LayoutOrder          = #col:GetChildren(),
             })
+            Corner(gboxOuter, 9)
 
-            -- gbox transparente (mantido para compatibilidade com o resto do código)
+            -- frame interno com cor de fundo
             local gbox = Frame(gboxOuter, {
                 Size                 = UDim2.new(1,0,0,0),
                 AutomaticSize        = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
+                BackgroundColor3     = C.element,
+                BackgroundTransparency = 0,
+                ClipsDescendants     = true,
                 ZIndex               = 3,
             })
+            Corner(gbox, 9)
 
-            -- header: só label simples em caps, sem frame de fundo
-            Label(gbox, {
-                Size           = UDim2.new(1,0,0,22),
+            -- header: transparente, só label em caps sem linha separadora
+            local header = Frame(gbox, {
+                Size                 = UDim2.new(1,0,0,28),
+                BackgroundTransparency = 1,
+                ZIndex               = 4,
+            })
+
+            Label(header, {
+                Position       = UDim2.new(0,10,0,0),
+                Size           = UDim2.new(1,-20,1,0),
                 Text           = string.upper(groupName or ""),
                 TextColor3     = C.low,
                 TextSize       = 9,
                 Font           = Enum.Font.GothamBold,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex         = 4,
+                ZIndex         = 5,
             })
 
             -- body
             local body = Frame(gbox, {
                 Name             = "body",
-                Position         = UDim2.new(0,0,0,22),
+                Position         = UDim2.new(0,0,0,28),
                 Size             = UDim2.new(1,0,0,0),
                 AutomaticSize    = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 ZIndex           = 4,
             })
             ListLayout(body, {Padding = UDim.new(0, 5)})
-            Padding(body, 4, 8, 0, 0)
+            Padding(body, 6, 8, 10, 10)
 
             -- ── base row ─────────────────────────────────────────────────
             local function baseRow(lbl, h, desc)
