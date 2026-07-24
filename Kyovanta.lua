@@ -894,31 +894,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ListLayout(workareaR, {Padding = UDim.new(0,8)})
         Padding(workareaR, 12, 12, 8, 8)
 
-        -- ── fade no topo (filho do workarea, fora do ScrollingFrame) ────────
-        -- UIGradient nao funciona em ScrollingFrame, entao o fade fica
-        -- como frame irmao por cima, com a cor exata do fundo da janela
-        local function addTopFade(col)
-            local fade = Frame(workarea, {
-                Position             = col.Position,
-                Size                 = UDim2.new(col.Size.X.Scale, col.Size.X.Offset, 0, 32),
-                BackgroundColor3     = C.bg,
-                BackgroundTransparency = 0,
-                ZIndex               = 15,
-                BorderSizePixel      = 0,
-            })
-            local grad = Instance.new("UIGradient")
-            grad.Rotation = 270
-            grad.Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0,   0),
-                NumberSequenceKeypoint.new(0.6, 0),
-                NumberSequenceKeypoint.new(1,   1),
-            })
-            grad.Parent = fade
-        end
-        addTopFade(workareaL)
-        addTopFade(workareaR)
-
-
+        table.insert(sections, tabBtn)
+        table.insert(workareas, workarea)
 
         -- ── sec object ───────────────────────────────────────────────────
         local sec = {}
@@ -1599,8 +1576,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- ── botão principal ─────────────────────────────────────────
-                -- fundo levemente diferente do grupo, com borda sutil
+                -- botão principal
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundColor3     = Color3.fromRGB(30,30,30),
@@ -1611,7 +1587,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(ddBtn, 6)
                 Stroke(ddBtn, Color3.fromRGB(55,55,55), 1, 0)
 
-                -- ── label do campo (esquerda, cinza médio) ──────────────────
+                -- label do campo (esquerda)
                 Label(ddBtn, {
                     Position       = UDim2.new(0,10,0,0),
                     Size           = UDim2.new(0.45,0,1,0),
@@ -1623,8 +1599,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 7,
                 })
 
-                -- ── pill do valor selecionado (direita) ─────────────────────
-                -- fundo escuro com borda, exatamente como na referência
+                -- pill do valor selecionado (direita)
                 local pillBg = Frame(ddBtn, {
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -8, 0.5, 0),
@@ -1636,7 +1611,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 Corner(pillBg, 5)
                 Stroke(pillBg, Color3.fromRGB(68,68,68), 1, 0)
 
-                -- texto do valor dentro da pill (centralizado)
                 local valLbl = Label(pillBg, {
                     Position       = UDim2.new(0, 8, 0, 0),
                     Size           = UDim2.new(1, -26, 1, 0),
@@ -1648,12 +1622,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
-                -- chevron ▾ dentro da pill, à direita
+                -- chevron animado
                 local chevron = Label(pillBg, {
                     AnchorPoint    = Vector2.new(1, 0.5),
                     Position       = UDim2.new(1, -6, 0.5, 0),
                     Size           = UDim2.new(0, 14, 0, 14),
-                    Text           = "▾",
+                    Text           = "\xe2\x96\xbe",
                     TextColor3     = C.dim,
                     TextSize       = 12,
                     Font           = Enum.Font.Gotham,
@@ -1661,7 +1635,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
-                -- botão invisível que cobre o ddBtn inteiro
                 local clickBtn = Button(ddBtn, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
@@ -1669,7 +1642,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 9,
                 })
 
-                -- ── painel de opções ────────────────────────────────────────
+                -- painel de opções
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
@@ -1700,11 +1673,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Corner(ob, 4)
                         Padding(ob, 0, 0, 10, 10)
 
-                        -- checkmark se selecionado
                         Label(ob, {
                             Position       = UDim2.new(0, 0, 0, 0),
                             Size           = UDim2.new(0, 16, 1, 0),
-                            Text           = isSel and "✓" or "",
+                            Text           = isSel and "\xe2\x9c\x93" or "",
                             TextColor3     = C.accent,
                             TextSize       = 10,
                             Font           = Enum.Font.GothamBold,
@@ -1747,7 +1719,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 buildOptions(currentOptions)
 
-                -- anima o chevron ao abrir/fechar
                 clickBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
@@ -1780,7 +1751,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                 end
                 if id then
-                    -- copiado do Feral: Set verifica se valor existe na lista antes de aplicar
                     Registry.Dropdowns[id] = {
                         Get = function() return sel end,
                         Set = function(v)
