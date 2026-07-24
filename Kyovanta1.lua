@@ -1026,12 +1026,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local gbox = Frame(gboxOuter, {
                 Size                 = UDim2.new(1,0,0,0),
                 AutomaticSize        = Enum.AutomaticSize.Y,
-                BackgroundColor3     = C.element,
+                BackgroundColor3     = C.sidebar,
                 BackgroundTransparency = 0,
                 ClipsDescendants     = true,
                 ZIndex               = 3,
             })
             Corner(gbox, 9)
+            Stroke(gbox, C.border, 1, 0)
 
             -- header: transparente, só label em caps sem linha separadora
             local header = Frame(gbox, {
@@ -2096,7 +2097,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint          = Vector2.new(0.5,0.5),
                     Position             = UDim2.new(0.5,0,0.5,0),
                     Size                 = UDim2.new(1,-10,1,0),
-                    BackgroundColor3     = C.element,
+                    BackgroundColor3     = C.sidebar,
                     BackgroundTransparency = 0,
                     ZIndex               = 6,
                 })
