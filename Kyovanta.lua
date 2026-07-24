@@ -183,10 +183,10 @@ local C = {
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
     dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
-    accent   = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 branco apagado accent
-    accentBg = Color3.fromRGB(20,  20,  20),   -- #141414 fundo tab ativo
-    onBg     = Color3.fromRGB(200, 200, 200),  -- #c8c8c8 checkbox ON
-    offBg    = Color3.fromRGB(15,  15,  15),   -- #0f0f0f checkbox OFF
+    accent   = Color3.fromRGB(90,  0,   194),  -- #5a00c2 roxo accent
+    accentBg = Color3.fromRGB(60,  0,   130),  -- roxo escuro hover
+    onBg     = Color3.fromRGB(90,  0,   194),  -- #5a00c2 toggle ON
+    offBg    = Color3.fromRGB(38,  38,  38),   -- #262626 toggle OFF
     knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
     toastBg  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a
     success  = Color3.fromRGB(76,  175, 80),   -- #4caf50 verde
@@ -1126,45 +1126,40 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local waiting = false
                 local row     = baseRow(lbl, nil, desc)
 
-                -- checkbox: quadrado 14×14 no lado direito
-                local box = Button(row, {
-                    Position             = UDim2.new(1, -20, 0.5, -7),
-                    Size                 = UDim2.new(0, 14, 0, 14),
+                -- pill container (30×16px oval)
+                local pillBg = Button(row, {
+                    Position             = UDim2.new(1, -36, 0.5, -8),
+                    Size                 = UDim2.new(0, 30, 0, 16),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(box, 3)
-                local boxStroke = Stroke(box, state and C.accent or C.dim, 1, 0)
+                Corner(pillBg, 8)
 
-                -- checkmark (✓) visível só quando ON
-                local checkLbl = Label(box, {
-                    Size           = UDim2.new(1,0,1,0),
-                    Text           = "✓",
-                    TextColor3     = Color3.fromRGB(17,17,17),
-                    TextSize       = 10,
-                    Font           = Enum.Font.GothamBold,
-                    ZIndex         = 8,
-                    Visible        = state,
+                -- knob (bolinha branca)
+                local knob = Frame(pillBg, {
+                    Position         = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,12,0,12),
+                    BackgroundColor3 = Color3.fromRGB(255,255,255),
+                    ZIndex           = 8,
                 })
+                Corner(knob, 6)
 
                 local function flip()
                     state = not state
-                    tw(box, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(boxStroke, {Color = state and C.accent or C.dim}, 0.14)
-                    checkLbl.Visible = state
+                    tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state) end
                 end
-                box.MouseButton1Click:Connect(flip)
+                pillBg.MouseButton1Click:Connect(flip)
 
-                -- texto de keybind estilo Linoria, à esquerda do checkbox
+                -- keybind
                 if keybind then
                     local keyName = tostring(key):gsub("Enum.KeyCode.","")
-
                     local kbLbl = Label(row, {
                         AnchorPoint    = Vector2.new(1, 0.5),
-                        Position       = UDim2.new(1, -26, 0.5, 0),
+                        Position       = UDim2.new(1, -42, 0.5, 0),
                         Size           = UDim2.new(0, 60, 0, 20),
                         Text           = "[" .. keyName .. "]",
                         TextColor3     = C.hi,
@@ -1174,40 +1169,30 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         BackgroundTransparency = 1,
                         ZIndex         = 7,
                     })
-
                     local kbBtn = Button(row, {
                         AnchorPoint          = Vector2.new(1, 0.5),
-                        Position             = UDim2.new(1, -26, 0.5, 0),
+                        Position             = UDim2.new(1, -42, 0.5, 0),
                         Size                 = UDim2.new(0, 60, 0, 20),
                         BackgroundTransparency = 1,
                         Text                 = "",
                         ZIndex               = 8,
                     })
-
-                    -- captura: igual ao Feral — conexão temporária que se desconecta
                     kbBtn.MouseButton1Click:Connect(function()
                         if waiting then return end
-                        waiting      = true
-                        kbLbl.Text   = "[...]"
+                        waiting = true; kbLbl.Text = "[...]"
                         local conn
                         conn = UserInputService.InputBegan:Connect(function(i, gp)
                             if gp then return end
                             if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                            key          = i.KeyCode.Name   -- guarda como STRING, igual ao Feral
-                            kbLbl.Text   = "[" .. key .. "]"
-                            waiting      = false
-                            conn:Disconnect()               -- desconecta imediatamente
+                            key = i.KeyCode.Name
+                            kbLbl.Text = "[" .. key .. "]"
+                            waiting = false; conn:Disconnect()
                         end)
                     end)
-
-                    -- ação: permanente — só dispara se não está capturando E a tecla bate
                     UserInputService.InputBegan:Connect(function(i, gp)
-                        if gp then return end
-                        if waiting then return end
+                        if gp or waiting then return end
                         if not key or key == "Unknown" then return end
-                        if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then
-                            flip()
-                        end
+                        if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode.Name == key then flip() end
                     end)
                 end
 
@@ -1219,7 +1204,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         Get = function() return state end,
                         Set = function(v) if state ~= (not not v) then flip() end end
                     }
-                    -- registra keybind embutida separado, igual ao Feral
                     if keybind then
                         Registry.Keybinds[id .. "_key"] = {
                             Get = function() return tostring(key) end,
@@ -1228,9 +1212,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                                 local s = tostring(v)
                                 for _, kc in ipairs(Enum.KeyCode:GetEnumItems()) do
                                     if kc.Name == s or "Enum.KeyCode." .. kc.Name == s then
-                                        key = kc
-                                        kbLbl.Text = "[" .. kc.Name .. "]"
-                                        return
+                                        key = kc; kbLbl.Text = "[" .. kc.Name .. "]"; return
                                     end
                                 end
                             end
@@ -1249,40 +1231,36 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local num    = defaultNum or 0
                 local row    = baseRow(lbl, nil, desc)
 
-                -- checkbox
-                local box = Button(row, {
-                    Position             = UDim2.new(1, -20, 0.5, -7),
-                    Size                 = UDim2.new(0, 14, 0, 14),
+                -- pill toggle
+                local pillBg = Button(row, {
+                    Position             = UDim2.new(1, -36, 0.5, -8),
+                    Size                 = UDim2.new(0, 30, 0, 16),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(box, 3)
-                local boxStroke = Stroke(box, state and C.accent or C.dim, 1, 0)
-                local checkLbl = Label(box, {
-                    Size           = UDim2.new(1,0,1,0),
-                    Text           = "✓",
-                    TextColor3     = Color3.fromRGB(17,17,17),
-                    TextSize       = 10,
-                    Font           = Enum.Font.GothamBold,
-                    ZIndex         = 8,
-                    Visible        = state,
+                Corner(pillBg, 8)
+                local knob = Frame(pillBg, {
+                    Position         = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,12,0,12),
+                    BackgroundColor3 = Color3.fromRGB(255,255,255),
+                    ZIndex           = 8,
                 })
+                Corner(knob, 6)
 
                 local function flip()
                     state = not state
-                    tw(box, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(boxStroke, {Color = state and C.accent or C.dim}, 0.14)
-                    checkLbl.Visible = state
+                    tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state, num) end
                 end
-                box.MouseButton1Click:Connect(flip)
+                pillBg.MouseButton1Click:Connect(flip)
 
-                -- input numérico à esquerda do checkbox
+                -- input numérico à esquerda da pill
                 local inputBg = Frame(row, {
                     AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -40, 0.5, 0),
+                    Position             = UDim2.new(1, -72, 0.5, 0),
                     Size                 = UDim2.new(0, 46, 0, 20),
                     BackgroundColor3     = C.border,
                     BackgroundTransparency = 0,
@@ -1353,35 +1331,31 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local waiting = false
                 local row     = baseRow(lbl, nil, desc)
 
-                -- checkbox
-                local box = Button(row, {
-                    Position             = UDim2.new(1, -20, 0.5, -7),
-                    Size                 = UDim2.new(0, 14, 0, 14),
+                -- pill toggle
+                local pillBg = Button(row, {
+                    Position             = UDim2.new(1, -36, 0.5, -8),
+                    Size                 = UDim2.new(0, 30, 0, 16),
                     BackgroundColor3     = state and C.onBg or C.offBg,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                 })
-                Corner(box, 3)
-                local boxStroke = Stroke(box, state and C.accent or C.dim, 1, 0)
-                local checkLbl = Label(box, {
-                    Size           = UDim2.new(1,0,1,0),
-                    Text           = "✓",
-                    TextColor3     = Color3.fromRGB(17,17,17),
-                    TextSize       = 10,
-                    Font           = Enum.Font.GothamBold,
-                    ZIndex         = 8,
-                    Visible        = state,
+                Corner(pillBg, 8)
+                local knob = Frame(pillBg, {
+                    Position         = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6),
+                    Size             = UDim2.new(0,12,0,12),
+                    BackgroundColor3 = Color3.fromRGB(255,255,255),
+                    ZIndex           = 8,
                 })
+                Corner(knob, 6)
 
                 local function flip()
                     state = not state
-                    tw(box, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
-                    tw(boxStroke, {Color = state and C.accent or C.dim}, 0.14)
-                    checkLbl.Visible = state
+                    tw(pillBg, {BackgroundColor3 = state and C.onBg or C.offBg}, 0.14)
+                    tw(knob,   {Position = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)}, 0.14)
                     if cb then cb(state) end
                 end
-                box.MouseButton1Click:Connect(flip)
+                pillBg.MouseButton1Click:Connect(flip)
 
                 -- badge do keybind à esquerda do checkbox
                 local keyName = key ~= "Unknown" and key or ""
@@ -1468,115 +1442,92 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Slider(lbl, min, max, default, cb, id)
                 min = min or 0; max = max or 100; default = default or min
                 local val = default
-                local TRACK_W = 400
 
-                -- frame externo 50px, vai direto pro body
+                -- frame externo 44px
                 local slFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,50),
+                    Size                 = UDim2.new(1,0,0,44),
                     BackgroundTransparency = 1,
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- background 1: centralizado
-                local bg1 = Frame(slFrame, {
-                    AnchorPoint          = Vector2.new(0.5,0.5),
-                    Position             = UDim2.new(0.5,0,0.5,0),
-                    Size                 = UDim2.new(1,-10,1,0),
-                    BackgroundColor3     = C.element,
-                    BackgroundTransparency = 0,
-                    ZIndex               = 6,
-                })
-                Corner(bg1, 4)
-
-                -- label do título (linha de cima)
-                Label(bg1, {
-                    Position       = UDim2.new(0,10,0,0),
-                    Size           = UDim2.new(1,-170,0,25),
+                -- linha superior: label à esquerda, valor à direita
+                Label(slFrame, {
+                    Position       = UDim2.new(0,0,0,4),
+                    Size           = UDim2.new(0.7,0,0,16),
                     Text           = lbl or "",
                     TextColor3     = C.hi,
                     TextSize       = 11,
-                    Font           = Enum.Font.GothamMedium,
+                    Font           = Enum.Font.Gotham,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 7,
+                    ZIndex         = 6,
                 })
 
-                -- TextBox do valor (canto superior direito, editável)
-                local bg2 = Frame(bg1, {
-                    AnchorPoint          = Vector2.new(1,0),
-                    Position             = UDim2.new(1,-5,0,5),
-                    Size                 = UDim2.new(0,150,0,20),
-                    BackgroundColor3     = C.border,
-                    BackgroundTransparency = 0,
-                    ZIndex               = 7,
+                local valLbl = Label(slFrame, {
+                    Position       = UDim2.new(0.7,0,0,4),
+                    Size           = UDim2.new(0.3,0,0,16),
+                    Text           = tostring(val),
+                    TextColor3     = C.hi,
+                    TextSize       = 11,
+                    Font           = Enum.Font.GothamMedium,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    ZIndex         = 6,
                 })
-                Corner(bg2, 4)
 
-                local valBox = Instance.new("TextBox")
-                valBox.Size                  = UDim2.new(1,0,1,0)
-                valBox.BackgroundTransparency = 1
-                valBox.BorderSizePixel       = 0
-                valBox.Font                  = Enum.Font.GothamMedium
-                valBox.Text                  = tostring(val)
-                valBox.TextColor3            = C.hi
-                valBox.TextSize              = 10
-                valBox.ClearTextOnFocus      = false
-                valBox.TextXAlignment        = Enum.TextXAlignment.Center
-                valBox.ZIndex                = 8
-                valBox.Parent                = bg2
-
-                -- track (SliderBar) centralizado horizontalmente
+                -- track fino full-width
                 local trackBg = Frame(slFrame, {
-                    AnchorPoint          = Vector2.new(0.5,0.5),
-                    Position             = UDim2.new(0.5,0,0.5,14),
-                    Size                 = UDim2.new(0,TRACK_W,0,6),
-                    BackgroundColor3     = C.border,
+                    Position             = UDim2.new(0,0,0,28),
+                    Size                 = UDim2.new(1,0,0,4),
+                    BackgroundColor3     = Color3.fromRGB(50,50,50),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(trackBg, 3)
+                Corner(trackBg, 2)
+
+                local TRACK_W = 0 -- calculado em runtime via AbsoluteSize
 
                 local p0 = (val-min)/(max-min)
                 local fill = Frame(trackBg, {
-                    Size             = UDim2.new(0, p0*TRACK_W, 1, 0),
+                    Size             = UDim2.new(p0, 0, 1, 0),
                     BackgroundColor3 = C.accent,
                     BackgroundTransparency = 0,
                     ZIndex           = 8,
                 })
-                Corner(fill, 3)
+                Corner(fill, 2)
 
-                -- botão invisível sobre o track para captura de input
+                -- knob no fim do fill
+                local knob = Frame(fill, {
+                    AnchorPoint      = Vector2.new(1, 0.5),
+                    Position         = UDim2.new(1, 0, 0.5, 0),
+                    Size             = UDim2.new(0, 10, 0, 10),
+                    BackgroundColor3 = Color3.fromRGB(255,255,255),
+                    ZIndex           = 9,
+                })
+                Corner(knob, 5)
+
                 local slBtn = Button(trackBg, {
-                    Size                 = UDim2.new(1,0,1,0),
+                    Size                 = UDim2.new(1,0,0,20),
+                    Position             = UDim2.new(0,0,0.5,-10),
                     BackgroundTransparency = 1,
                     Text                 = "",
-                    ZIndex               = 9,
+                    ZIndex               = 10,
                 })
 
-                local mouse = game.Players.LocalPlayer:GetMouse()
+                local sliding = false
                 local moveConn, releaseConn
 
                 local function setVal(v)
                     val = math.clamp(v, min, max)
                     local p = (val-min)/(max-min)
-                    fill.Size = UDim2.new(0, p*TRACK_W, 1, 0)
-                    valBox.Text = tostring(val)
+                    fill.Size = UDim2.new(p, 0, 1, 0)
+                    valLbl.Text = tostring(val)
                     if cb then cb(val) end
                 end
 
-                slBtn.MouseEnter:Connect(function()
-                    tw(fill, {BackgroundColor3 = C.accentBg}, 0.15)
-                end)
-                slBtn.MouseLeave:Connect(function()
-                    tw(fill, {BackgroundColor3 = C.accent}, 0.15)
-                end)
-
-                local sliding = false
-
                 local function onSlide(inputX)
-                    local offset = math.clamp(inputX - trackBg.AbsolutePosition.X, 0, TRACK_W)
-                    fill.Size = UDim2.new(0, offset, 1, 0)
-                    local rv = math.floor((max - min) / TRACK_W * offset + min)
+                    local tw_ = trackBg.AbsoluteSize.X
+                    local offset = math.clamp(inputX - trackBg.AbsolutePosition.X, 0, tw_)
+                    local rv = math.floor((max - min) * (offset / tw_) + min)
                     setVal(rv)
                 end
 
@@ -1599,12 +1550,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end)
                 end)
 
-                valBox.FocusLost:Connect(function()
-                    local v = tonumber(valBox.Text)
-                    if v then setVal(math.floor(v))
-                    else valBox.Text = tostring(val) end
-                end)
-
                 local o = {}
                 function o.Set(v) setVal(math.floor(v)) end
                 function o.Get() return val end
@@ -1621,73 +1566,74 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Dropdown(lbl, options, default, cb, id)
                 local sel  = default or (options and options[1]) or ""
                 local open = false
-                local currentOptions = options  -- cópia mutável para GetNewList
+                local currentOptions = options
 
-                -- frame externo, largura total, vai direto pro body
                 local ddFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,25),
+                    Size                 = UDim2.new(1,0,0,28),
                     BackgroundTransparency = 1,
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- background 1: centralizado, cor element
-                local bg1 = Frame(ddFrame, {
-                    AnchorPoint          = Vector2.new(0.5,0.5),
-                    Position             = UDim2.new(0.5,0,0.5,0),
-                    Size                 = UDim2.new(1,-10,1,0),
-                    BackgroundColor3     = C.element,
+                -- botão principal limpo
+                local ddBtn = Button(ddFrame, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundColor3     = Color3.fromRGB(38,38,38),
                     BackgroundTransparency = 0,
-                    ClipsDescendants     = true,
+                    Text                 = "",
                     ZIndex               = 6,
                 })
-                Corner(bg1, 4)
+                Corner(ddBtn, 5)
+                Stroke(ddBtn, C.border, 1, 0)
 
-                -- background 2: barra interna (linha completa, fundo levemente diferente)
-                local bg2 = Frame(bg1, {
-                    Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = C.border,
-                    BackgroundTransparency = 0.5,
-                    ZIndex               = 7,
-                })
-                Corner(bg2, 4)
-
-                -- label "Titulo: Valor"
-                local btnLbl = Label(bg2, {
+                -- label: "Titulo" à esquerda
+                Label(ddBtn, {
                     Position       = UDim2.new(0,10,0,0),
-                    Size           = UDim2.new(1,-30,1,0),
-                    Text           = lbl .. ": " .. sel,
+                    Size           = UDim2.new(0.5,0,1,0),
+                    Text           = lbl,
+                    TextColor3     = C.mid,
+                    TextSize       = 11,
+                    Font           = Enum.Font.Gotham,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 7,
+                })
+
+                -- valor selecionado à direita
+                local valLbl = Label(ddBtn, {
+                    Position       = UDim2.new(0.5,0,0,0),
+                    Size           = UDim2.new(0.5,-24,1,0),
+                    Text           = sel,
                     TextColor3     = C.hi,
                     TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex         = 8,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    ZIndex         = 7,
                 })
 
-                -- seta (imagem igual ao Feral)
+                -- seta
                 local arrow = Instance.new("ImageLabel")
                 arrow.BackgroundTransparency = 1
                 arrow.AnchorPoint = Vector2.new(1,0.5)
-                arrow.Position = UDim2.new(1,-6,0.5,0)
-                arrow.Size = UDim2.new(0,15,0,15)
+                arrow.Position = UDim2.new(1,-8,0.5,0)
+                arrow.Size = UDim2.new(0,12,0,12)
                 arrow.Image = "rbxassetid://6954383209"
                 arrow.ImageColor3 = C.dim
-                arrow.ZIndex = 8
-                arrow.Parent = bg2
+                arrow.ZIndex = 7
+                arrow.Parent = ddBtn
 
-                -- botão transparente sobre tudo
-                local ddBtn = Button(bg2, {
+                -- botão invisível sobre tudo
+                local clickBtn = Button(ddBtn, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
                     Text                 = "",
-                    ZIndex               = 9,
+                    ZIndex               = 8,
                 })
 
                 -- painel de opções
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = C.toastBg,
+                    BackgroundColor3 = Color3.fromRGB(28,28,28),
                     BackgroundTransparency = 0,
                     ZIndex           = 20,
                     Visible          = false,
@@ -1698,28 +1644,27 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
-                -- reconstrói as opções do painel (igual ao Feral: GetNewList)
                 local function buildOptions(opts)
                     for _, ch in ipairs(panel:GetChildren()) do
                         if ch:IsA("TextButton") then ch:Destroy() end
                     end
                     for _, opt in ipairs(opts or {}) do
                         local ob = Button(panel, {
-                            Size                 = UDim2.new(1,0,0,24),
-                            BackgroundColor3     = C.white,
-                            BackgroundTransparency = 1,
+                            Size                 = UDim2.new(1,0,0,26),
+                            BackgroundColor3     = C.accent,
+                            BackgroundTransparency = opt == sel and 0.7 or 1,
                             Text                 = opt,
-                            TextColor3           = opt == sel and C.hi or C.low,
+                            TextColor3           = opt == sel and C.hi or C.mid,
                             TextSize             = 10,
                             Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
                             ZIndex               = 21,
                         })
-                        Padding(ob, 0, 0, 8, 8)
-                        ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
-                        ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
+                        Padding(ob, 0, 0, 10, 10)
+                        ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.8, TextColor3 = C.hi}, 0.1) end)
+                        ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = opt == sel and 0.7 or 1, TextColor3 = opt == sel and C.hi or C.mid}, 0.1) end)
                         ob.MouseButton1Click:Connect(function()
                             sel = opt
-                            btnLbl.Text = lbl .. ": " .. opt
+                            valLbl.Text = opt
                             slideClose(panel); open = false
                             if cb then cb(opt) end
                         end)
@@ -1728,10 +1673,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 buildOptions(currentOptions)
 
-                ddBtn.MouseButton1Click:Connect(function()
+                clickBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
-                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 25
+                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
                         panel.Position = UDim2.new(0,0,0,relY)
                         buildOptions(currentOptions)
                         slideOpen(panel)
@@ -1741,10 +1686,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 end)
 
                 local o = {}
-                function o.Set(v) sel = v; btnLbl.Text = lbl .. ": " .. tostring(v); if cb then cb(v) end end
+                function o.Set(v) sel = v; valLbl.Text = tostring(v); if cb then cb(v) end end
                 function o.Get() return sel end
                 function o.GetNewList(newOpts)
-                    currentOptions = newOpts  -- atualiza a referência mutável
+                    currentOptions = newOpts
                     panel.Visible = false; open = false
                     buildOptions(currentOptions)
                     local found = false
@@ -1753,7 +1698,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     end
                     if not found then
                         sel = (currentOptions and currentOptions[1]) or ""
-                        btnLbl.Text = lbl .. ": " .. sel
+                        valLbl.Text = sel
                     end
                 end
                 if id then
