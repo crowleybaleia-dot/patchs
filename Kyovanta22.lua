@@ -1568,15 +1568,16 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- botão principal — sem stroke, fundo sutil
+                -- botão principal
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = Color3.fromRGB(18,18,18),
+                    BackgroundColor3     = C.sidebar,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 6,
                 })
                 Corner(ddBtn, 8)
+                Stroke(ddBtn, C.border, 1, 0)
 
                 -- bloco esquerda: label + desc empilhados
                 local leftBlock = Frame(ddBtn, {
@@ -1604,16 +1605,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     LayoutOrder    = 1,
                 })
 
-                -- pill do valor selecionado (direita) — arredondado, escuro
+                -- pill do valor selecionado (direita) — arredondado
                 local pillBg = Frame(ddBtn, {
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -12, 0.5, 0),
                     Size                 = UDim2.new(0, 120, 0, 28),
-                    BackgroundColor3     = Color3.fromRGB(38,38,38),
+                    BackgroundColor3     = C.bg,
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
                 Corner(pillBg, 20)
+                Stroke(pillBg, C.border, 1, 0)
 
                 local valLbl = Label(pillBg, {
                     Position       = UDim2.new(0, 12, 0, 0),
@@ -1801,12 +1803,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- botão principal — idêntico ao Dropdown
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = Color3.fromRGB(18,18,18),
+                    BackgroundColor3     = C.sidebar,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 6,
                 })
                 Corner(ddBtn, 8)
+                Stroke(ddBtn, C.border, 1, 0)
 
                 -- bloco esquerda: label
                 local leftBlock = Frame(ddBtn, {
@@ -1839,11 +1842,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -12, 0.5, 0),
                     Size                 = UDim2.new(0, 120, 0, 28),
-                    BackgroundColor3     = Color3.fromRGB(38,38,38),
+                    BackgroundColor3     = C.bg,
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
                 Corner(pillBg, 20)
+                Stroke(pillBg, C.border, 1, 0)
 
                 local btnLbl = Label(pillBg, {
                     Position       = UDim2.new(0, 12, 0, 0),
@@ -1999,13 +2003,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Button(lbl, cb)
                 local btn = Button(body, {
                     Size                 = UDim2.new(1, 0, 0, 36),
-                    BackgroundColor3     = Color3.fromRGB(18, 18, 18),
+                    BackgroundColor3     = C.sidebar,
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
                 })
                 Corner(btn, 8)
+                Stroke(btn, C.border, 1, 0)
 
                 -- texto à esquerda
                 Label(btn, {
