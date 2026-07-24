@@ -1082,8 +1082,8 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 BackgroundTransparency = 1,
                 ZIndex           = 4,
             })
-            ListLayout(body)
-            Padding(body, 4, 6, 10, 10)
+            ListLayout(body, {Padding = UDim.new(0, 5)})
+            Padding(body, 6, 8, 10, 10)
 
             -- ── base row ─────────────────────────────────────────────────
             local function baseRow(lbl, h, desc)
@@ -1597,13 +1597,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 -- botão principal
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = Color3.fromRGB(30,30,30),
+                    BackgroundColor3     = Color3.fromRGB(22,22,22),
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 6,
                 })
                 Corner(ddBtn, 6)
-                Stroke(ddBtn, Color3.fromRGB(55,55,55), 1, 0)
+                Stroke(ddBtn, Color3.fromRGB(40,40,40), 1, 0)
 
                 -- label do campo (esquerda)
                 Label(ddBtn, {
@@ -1622,12 +1622,12 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     AnchorPoint          = Vector2.new(1, 0.5),
                     Position             = UDim2.new(1, -8, 0.5, 0),
                     Size                 = UDim2.new(0, 110, 0, 22),
-                    BackgroundColor3     = Color3.fromRGB(42, 42, 42),
+                    BackgroundColor3     = Color3.fromRGB(30,30,30),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
                 Corner(pillBg, 5)
-                Stroke(pillBg, Color3.fromRGB(68,68,68), 1, 0)
+                Stroke(pillBg, Color3.fromRGB(50,50,50), 1, 0)
 
                 local valLbl = Label(pillBg, {
                     Position       = UDim2.new(0, 8, 0, 0),
@@ -1936,14 +1936,14 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             function grp:Button(lbl, cb)
                 local btn = Button(body, {
                     Size                 = UDim2.new(1, 0, 0, 32),
-                    BackgroundColor3     = Color3.fromRGB(30, 30, 30),
+                    BackgroundColor3     = Color3.fromRGB(22, 22, 22),
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
                 })
                 Corner(btn, 6)
-                Stroke(btn, Color3.fromRGB(55, 55, 55), 1, 0)
+                Stroke(btn, Color3.fromRGB(40, 40, 40), 1, 0)
 
                 -- texto à esquerda
                 Label(btn, {
@@ -1957,29 +1957,28 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 8,
                 })
 
-                -- ícone ▶ à direita
-                Label(btn, {
-                    AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -10, 0.5, 0),
-                    Size           = UDim2.new(0, 16, 0, 16),
-                    Text           = "â¶",
-                    TextColor3     = C.dim,
-                    TextSize       = 9,
-                    Font           = Enum.Font.Gotham,
-                    TextXAlignment = Enum.TextXAlignment.Center,
-                    ZIndex         = 8,
+                Image(btn, {
+                    AnchorPoint       = Vector2.new(1, 0.5),
+                    Position          = UDim2.new(1, -10, 0.5, 0),
+                    Size              = UDim2.new(0, 12, 0, 12),
+                    Image             = "rbxassetid://6034818372",
+                    ImageColor3       = C.dim,
+                    ImageTransparency = 0,
+                    ScaleType         = Enum.ScaleType.Fit,
+                    ZIndex            = 8,
                 })
+                -- placeholder removido
 
                 btn.MouseEnter:Connect(function()
-                    tw(btn, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12)
-                end)
-                btn.MouseLeave:Connect(function()
                     tw(btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.12)
                 end)
+                btn.MouseLeave:Connect(function()
+                    tw(btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.12)
+                end)
                 btn.MouseButton1Click:Connect(function()
-                    tw(btn, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.06)
+                    tw(btn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.06)
                     task.delay(0.12, function()
-                        tw(btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.1)
+                        tw(btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.1)
                     end)
                     if cb then coroutine.wrap(cb)() end
                 end)
