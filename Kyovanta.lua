@@ -894,6 +894,27 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ListLayout(workareaR, {Padding = UDim.new(0,8)})
         Padding(workareaR, 12, 12, 8, 8)
 
+        -- ── fade no topo das colunas (evita corte seco ao scrollar) ─────────
+        local function addTopFade(col)
+            local fade = Frame(workarea, {
+                Position             = col.Position,
+                Size                 = UDim2.new(col.Size.X.Scale, col.Size.X.Offset, 0, 28),
+                BackgroundColor3     = Color3.fromRGB(16, 16, 20),
+                BackgroundTransparency = 0,
+                ZIndex               = 15,
+                BorderSizePixel      = 0,
+            })
+            local grad = Instance.new("UIGradient")
+            grad.Rotation = 90
+            grad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0,   0),
+                NumberSequenceKeypoint.new(1,   1),
+            })
+            grad.Parent = fade
+        end
+        addTopFade(workareaL)
+        addTopFade(workareaR)
+
         table.insert(sections, tabBtn)
         table.insert(workareas, workarea)
 
