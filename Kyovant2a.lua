@@ -1568,28 +1568,30 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local open = false
                 local currentOptions = options
 
+                -- container externo — altura fixa de 36px (mais folgado que antes)
                 local ddFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,28),
+                    Size                 = UDim2.new(1,0,0,36),
                     BackgroundTransparency = 1,
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- botão principal limpo
+                -- ── botão principal ─────────────────────────────────────────
+                -- fundo levemente diferente do grupo, com borda sutil
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = Color3.fromRGB(38,38,38),
+                    BackgroundColor3     = Color3.fromRGB(30,30,30),
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 6,
                 })
-                Corner(ddBtn, 5)
-                Stroke(ddBtn, C.border, 1, 0)
+                Corner(ddBtn, 6)
+                Stroke(ddBtn, Color3.fromRGB(55,55,55), 1, 0)
 
-                -- label: "Titulo" à esquerda
+                -- ── label do campo (esquerda, cinza médio) ──────────────────
                 Label(ddBtn, {
                     Position       = UDim2.new(0,10,0,0),
-                    Size           = UDim2.new(0.5,0,1,0),
+                    Size           = UDim2.new(0.45,0,1,0),
                     Text           = lbl,
                     TextColor3     = C.mid,
                     TextSize       = 11,
@@ -1598,49 +1600,64 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex         = 7,
                 })
 
-                -- valor selecionado à direita
-                local valLbl = Label(ddBtn, {
-                    Position       = UDim2.new(0.5,0,0,0),
-                    Size           = UDim2.new(0.5,-24,1,0),
+                -- ── pill do valor selecionado (direita) ─────────────────────
+                -- fundo escuro com borda, exatamente como na referência
+                local pillBg = Frame(ddBtn, {
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, -8, 0.5, 0),
+                    Size                 = UDim2.new(0, 110, 0, 22),
+                    BackgroundColor3     = Color3.fromRGB(42, 42, 42),
+                    BackgroundTransparency = 0,
+                    ZIndex               = 7,
+                })
+                Corner(pillBg, 5)
+                Stroke(pillBg, Color3.fromRGB(68,68,68), 1, 0)
+
+                -- texto do valor dentro da pill (centralizado)
+                local valLbl = Label(pillBg, {
+                    Position       = UDim2.new(0, 8, 0, 0),
+                    Size           = UDim2.new(1, -26, 1, 0),
                     Text           = sel,
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 10,
                     Font           = Enum.Font.GothamMedium,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                    ZIndex         = 7,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 8,
                 })
 
-                -- seta
-                local arrow = Instance.new("ImageLabel")
-                arrow.BackgroundTransparency = 1
-                arrow.AnchorPoint = Vector2.new(1,0.5)
-                arrow.Position = UDim2.new(1,-8,0.5,0)
-                arrow.Size = UDim2.new(0,12,0,12)
-                arrow.Image = "rbxassetid://6954383209"
-                arrow.ImageColor3 = C.dim
-                arrow.ZIndex = 7
-                arrow.Parent = ddBtn
+                -- chevron ▾ dentro da pill, à direita
+                local chevron = Label(pillBg, {
+                    AnchorPoint    = Vector2.new(1, 0.5),
+                    Position       = UDim2.new(1, -6, 0.5, 0),
+                    Size           = UDim2.new(0, 14, 0, 14),
+                    Text           = "▾",
+                    TextColor3     = C.dim,
+                    TextSize       = 12,
+                    Font           = Enum.Font.Gotham,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ZIndex         = 8,
+                })
 
-                -- botão invisível sobre tudo
+                -- botão invisível que cobre o ddBtn inteiro
                 local clickBtn = Button(ddBtn, {
                     Size                 = UDim2.new(1,0,1,0),
                     BackgroundTransparency = 1,
                     Text                 = "",
-                    ZIndex               = 8,
+                    ZIndex               = 9,
                 })
 
-                -- painel de opções
+                -- ── painel de opções ────────────────────────────────────────
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = Color3.fromRGB(28,28,28),
+                    BackgroundColor3 = Color3.fromRGB(24,24,24),
                     BackgroundTransparency = 0,
                     ZIndex           = 20,
                     Visible          = false,
                     ClipsDescendants = true,
                 })
-                Corner(panel, 5)
-                Stroke(panel, C.border, 1, 0)
+                Corner(panel, 6)
+                Stroke(panel, Color3.fromRGB(55,55,55), 1, 0)
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
@@ -1649,22 +1666,56 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                         if ch:IsA("TextButton") then ch:Destroy() end
                     end
                     for _, opt in ipairs(opts or {}) do
+                        local isSel = opt == sel
                         local ob = Button(panel, {
-                            Size                 = UDim2.new(1,0,0,26),
-                            BackgroundColor3     = C.accent,
-                            BackgroundTransparency = opt == sel and 0.7 or 1,
-                            Text                 = opt,
-                            TextColor3           = opt == sel and C.hi or C.mid,
-                            TextSize             = 10,
-                            Font                 = opt == sel and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                            Size                 = UDim2.new(1,0,0,28),
+                            BackgroundColor3     = isSel and Color3.fromRGB(55,55,55) or Color3.fromRGB(38,38,38),
+                            BackgroundTransparency = isSel and 0 or 1,
+                            Text                 = "",
                             ZIndex               = 21,
                         })
+                        Corner(ob, 4)
                         Padding(ob, 0, 0, 10, 10)
-                        ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.8, TextColor3 = C.hi}, 0.1) end)
-                        ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = opt == sel and 0.7 or 1, TextColor3 = opt == sel and C.hi or C.mid}, 0.1) end)
+
+                        -- checkmark se selecionado
+                        Label(ob, {
+                            Position       = UDim2.new(0, 0, 0, 0),
+                            Size           = UDim2.new(0, 16, 1, 0),
+                            Text           = isSel and "✓" or "",
+                            TextColor3     = C.accent,
+                            TextSize       = 10,
+                            Font           = Enum.Font.GothamBold,
+                            TextXAlignment = Enum.TextXAlignment.Center,
+                            ZIndex         = 22,
+                        })
+
+                        local optLbl = Label(ob, {
+                            Position       = UDim2.new(0, 16, 0, 0),
+                            Size           = UDim2.new(1, -16, 1, 0),
+                            Text           = opt,
+                            TextColor3     = isSel and C.hi or C.mid,
+                            TextSize       = 10,
+                            Font           = isSel and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex         = 22,
+                        })
+
+                        ob.MouseEnter:Connect(function()
+                            if opt ~= sel then
+                                tw(ob,     {BackgroundTransparency = 0.6}, 0.1)
+                                tw(optLbl, {TextColor3 = C.hi},            0.1)
+                            end
+                        end)
+                        ob.MouseLeave:Connect(function()
+                            if opt ~= sel then
+                                tw(ob,     {BackgroundTransparency = 1},   0.1)
+                                tw(optLbl, {TextColor3 = C.mid},           0.1)
+                            end
+                        end)
                         ob.MouseButton1Click:Connect(function()
                             sel = opt
                             valLbl.Text = opt
+                            tw(chevron, {Rotation = 0}, 0.15)
                             slideClose(panel); open = false
                             if cb then cb(opt) end
                         end)
@@ -1673,14 +1724,17 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                 buildOptions(currentOptions)
 
+                -- anima o chevron ao abrir/fechar
                 clickBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
-                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
+                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 36
                         panel.Position = UDim2.new(0,0,0,relY)
                         buildOptions(currentOptions)
+                        tw(chevron, {Rotation = 180}, 0.15)
                         slideOpen(panel)
                     else
+                        tw(chevron, {Rotation = 0}, 0.15)
                         slideClose(panel)
                     end
                 end)
@@ -1691,6 +1745,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 function o.GetNewList(newOpts)
                     currentOptions = newOpts
                     panel.Visible = false; open = false
+                    tw(chevron, {Rotation = 0}, 0.1)
                     buildOptions(currentOptions)
                     local found = false
                     for _, v in ipairs(currentOptions or {}) do
@@ -1714,7 +1769,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                             end
                             if not found then return end
                             sel = s
-                            btnLbl.Text = lbl .. ": " .. s
+                            valLbl.Text = s
                             if cb then cb(s) end
                         end
                     }
