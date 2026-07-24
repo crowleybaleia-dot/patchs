@@ -1803,112 +1803,177 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── MultiDropdown ─────────────────────────────────────────────
             function grp:MultiDropdown(lbl, options, defaults, cb, id)
-                local sel  = {}
+                local sel = {}
                 for _, v in ipairs(defaults or {}) do sel[v] = true end
                 local open = false
-                local row  = baseRow(lbl)
 
                 local function count()
-                    local n = 0; for _, v in pairs(sel) do if v then n+=1 end end; return n
+                    local n = 0
+                    for _, v in pairs(sel) do if v then n += 1 end end
+                    return n
                 end
                 local function labelTxt()
                     local n = count(); local tot = #(options or {})
-                    if n == 0 then return "None" elseif n == tot then return "All"
+                    if n == 0 then return "None"
+                    elseif n == tot then return "All"
                     else return n .. " selected" end
                 end
 
-                local btn = Button(row, {
-                    Position             = UDim2.new(1,-130,0.5,-11),
-                    Size                 = UDim2.new(0,126,0,22),
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.96,
+                -- container externo
+                local ddFrame = Frame(body, {
+                    Size                 = UDim2.new(1,0,0,36),
+                    BackgroundTransparency = 1,
+                    ZIndex               = 5,
+                    LayoutOrder          = #body:GetChildren(),
+                })
+
+                -- botão principal
+                local ddBtn = Button(ddFrame, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundColor3     = Color3.fromRGB(22,22,22),
+                    BackgroundTransparency = 0,
                     Text                 = "",
+                    ZIndex               = 6,
+                })
+                Corner(ddBtn, 6)
+                Stroke(ddBtn, Color3.fromRGB(40,40,40), 1, 0)
+
+                -- label do campo (esquerda)
+                Label(ddBtn, {
+                    Position       = UDim2.new(0,10,0,0),
+                    Size           = UDim2.new(0.45,0,1,0),
+                    Text           = lbl,
+                    TextColor3     = C.mid,
+                    TextSize       = 11,
+                    Font           = Enum.Font.Gotham,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 7,
+                })
+
+                -- pill à direita
+                local pillBg = Frame(ddBtn, {
+                    AnchorPoint          = Vector2.new(1, 0.5),
+                    Position             = UDim2.new(1, -8, 0.5, 0),
+                    Size                 = UDim2.new(0, 110, 0, 22),
+                    BackgroundColor3     = Color3.fromRGB(30,30,30),
+                    BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(btn, 5)
-                Stroke(btn, C.white, 1, 0.9)
+                Corner(pillBg, 5)
+                Stroke(pillBg, Color3.fromRGB(50,50,50), 1, 0)
 
-                local btnLbl = Label(btn, {
-                    Position       = UDim2.new(0,8,0,0),
-                    Size           = UDim2.new(1,-38,1,0),
+                local valLbl = Label(pillBg, {
+                    Position       = UDim2.new(0, 8, 0, 0),
+                    Size           = UDim2.new(1, -26, 1, 0),
                     Text           = labelTxt(),
                     TextColor3     = C.hi,
                     TextSize       = 10,
-                    Font           = Enum.Font.Gotham,
+                    Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
 
-                local badge = Label(btn, {
-                    Position             = UDim2.new(1,-28,0.5,-7),
-                    Size                 = UDim2.new(0,14,0,14),
-                    Text                 = tostring(count()),
-                    TextColor3           = C.hi,
-                    TextSize             = 9,
-                    Font                 = Enum.Font.Code,
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.88,
-                    ZIndex               = 8,
+                -- chevron
+                local chevron = Label(pillBg, {
+                    AnchorPoint    = Vector2.new(1, 0.5),
+                    Position       = UDim2.new(1, -6, 0.5, 0),
+                    Size           = UDim2.new(0, 14, 0, 14),
+                    Text           = "v",
+                    TextColor3     = C.dim,
+                    TextSize       = 10,
+                    Font           = Enum.Font.GothamBold,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ZIndex         = 8,
                 })
-                Corner(badge, 3)
 
+                -- botão invisível
+                local clickBtn = Button(ddBtn, {
+                    Size                 = UDim2.new(1,0,1,0),
+                    BackgroundTransparency = 1,
+                    Text                 = "",
+                    ZIndex               = 9,
+                })
+
+                -- painel de opções
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = C.toastBg,
-                    BackgroundTransparency = 0.05,
+                    BackgroundColor3 = Color3.fromRGB(24,24,24),
+                    BackgroundTransparency = 0,
                     ZIndex           = 20,
                     Visible          = false,
                     ClipsDescendants = true,
                 })
-                Corner(panel, 7)
-                Stroke(panel, C.white, 1, 0.88)
+                Corner(panel, 6)
+                Stroke(panel, Color3.fromRGB(55,55,55), 1, 0)
                 ListLayout(panel)
                 Padding(panel, 4, 4, 0, 0)
 
+                local itemRefs = {}
+
                 for _, opt in ipairs(options or {}) do
-                    local on  = sel[opt] == true
-                    local ob  = Button(panel, {
-                        Size                 = UDim2.new(1,0,0,24),
-                        BackgroundColor3     = C.white,
+                    local ob = Button(panel, {
+                        Size                 = UDim2.new(1,0,0,28),
+                        BackgroundColor3     = Color3.fromRGB(38,38,38),
                         BackgroundTransparency = 1,
                         Text                 = "",
                         ZIndex               = 21,
                     })
-                    Padding(ob, 0, 0, 8, 8)
+                    Corner(ob, 4)
+                    Padding(ob, 0, 0, 10, 10)
+
+                    -- checkmark
+                    local chk = Label(ob, {
+                        Position       = UDim2.new(0, 0, 0, 0),
+                        Size           = UDim2.new(0, 20, 1, 0),
+                        Text           = sel[opt] and "+" or "",
+                        TextColor3     = C.accent,
+                        TextSize       = 12,
+                        Font           = Enum.Font.GothamBold,
+                        TextXAlignment = Enum.TextXAlignment.Center,
+                        ZIndex         = 22,
+                    })
 
                     local optLbl = Label(ob, {
-                        Position       = UDim2.new(0,0,0,0),
-                        Size           = UDim2.new(1,0,1,0),
+                        Position       = UDim2.new(0, 20, 0, 0),
+                        Size           = UDim2.new(1, -20, 1, 0),
                         Text           = opt,
-                        TextColor3     = on and C.hi or C.low,
+                        TextColor3     = sel[opt] and C.hi or C.mid,
                         TextSize       = 10,
-                        Font           = on and Enum.Font.GothamMedium or Enum.Font.Gotham,
+                        Font           = sel[opt] and Enum.Font.GothamMedium or Enum.Font.Gotham,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex         = 22,
                     })
 
-                    ob.MouseEnter:Connect(function() tw(ob, {BackgroundTransparency = 0.94}, 0.1) end)
-                    ob.MouseLeave:Connect(function() tw(ob, {BackgroundTransparency = 1},    0.1) end)
+                    itemRefs[opt] = {ob = ob, chk = chk, lbl = optLbl}
+
+                    ob.MouseEnter:Connect(function()
+                        if not sel[opt] then tw(ob, {BackgroundTransparency = 0.6}, 0.1) end
+                    end)
+                    ob.MouseLeave:Connect(function()
+                        if not sel[opt] then tw(ob, {BackgroundTransparency = 1}, 0.1) end
+                    end)
                     ob.MouseButton1Click:Connect(function()
                         if sel[opt] then sel[opt] = nil else sel[opt] = true end
                         local s = sel[opt]
-                        tw(optLbl, {TextColor3 = s and C.hi or C.low}, 0.12)
+                        chk.Text  = s and "+" or ""
+                        tw(optLbl, {TextColor3 = s and C.hi or C.mid}, 0.12)
                         optLbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
-                        btnLbl.Text = labelTxt()
-                        badge.Text  = tostring(count())
+                        tw(ob, {BackgroundTransparency = s and 0.4 or 1}, 0.1)
+                        valLbl.Text = labelTxt()
                         if cb then cb(sel) end
-                        for k,v in pairs(sel) do print("[MultiDropdown debug]", k, v) end
                     end)
                 end
 
-                btn.MouseButton1Click:Connect(function()
+                clickBtn.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
-                        local relY = row.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 28
+                        local relY = ddFrame.AbsolutePosition.Y - gbox.AbsolutePosition.Y + 36
                         panel.Position = UDim2.new(0,0,0,relY)
+                        tw(chevron, {Rotation = 180}, 0.15)
                         slideOpen(panel)
                     else
+                        tw(chevron, {Rotation = 0}, 0.15)
                         slideClose(panel)
                     end
                 end)
@@ -1920,11 +1985,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     return out
                 end
                 function o.Set(tbl)
-                    sel = {}; for _,v in ipairs(tbl) do sel[v] = true end
-                    btnLbl.Text = labelTxt(); badge.Text = tostring(count())
+                    sel = {}
+                    for _,v in ipairs(tbl) do sel[v] = true end
+                    valLbl.Text = labelTxt()
+                    for opt, refs in pairs(itemRefs) do
+                        local s = sel[opt]
+                        refs.chk.Text  = s and "+" or ""
+                        refs.lbl.TextColor3 = s and C.hi or C.mid
+                        refs.lbl.Font = s and Enum.Font.GothamMedium or Enum.Font.Gotham
+                        refs.ob.BackgroundTransparency = s and 0.4 or 1
+                    end
                 end
                 if id then
-                    -- copiado do Feral: Get retorna {k=bool}, Set itera tabela
                     Registry.Dropdowns[id] = {
                         Get = function()
                             local out = {}
