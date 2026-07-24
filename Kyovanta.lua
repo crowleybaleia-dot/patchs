@@ -831,7 +831,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Size              = UDim2.new(0,18,0,18),
             Image             = iconAsset or "",
             ImageColor3       = C.low,
-            ImageTransparency = iconAsset and 0.5 or 1,
+            ImageTransparency = (iconAsset and iconAsset ~= "") and 0.3 or 1,
             ScaleType         = Enum.ScaleType.Fit,
             ZIndex            = 4,
         })
@@ -970,7 +970,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             tw(tabBtn,   {BackgroundTransparency = 1},  0.1)
             tw(tabLabel, {TextColor3 = C.low},           0.1)
             if iconAsset and iconAsset ~= "" then
-                tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.5}, 0.1)
+                tw(tabIcon, {ImageColor3 = C.low, ImageTransparency = 0.3}, 0.1)
             end
         end)
 
