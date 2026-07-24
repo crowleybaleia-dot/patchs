@@ -229,6 +229,24 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     Corner(main, 6)
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
+    -- ── fade no topo da janela (suaviza o corte do scroll) ───────────────────
+    -- filho direto do main, ZIndex alto, cobre só a faixa superior da área de conteúdo
+    local topFade = Frame(main, {
+        Position             = UDim2.new(0, 72, 0, 0),   -- começa após a sidebar
+        Size                 = UDim2.new(1, -72, 0, 24), -- faixa de 24px no topo
+        BackgroundColor3     = Color3.fromRGB(16, 16, 20),
+        BackgroundTransparency = 0,
+        BorderSizePixel      = 0,
+        ZIndex               = 50,
+    })
+    local topFadeGrad = Instance.new("UIGradient")
+    topFadeGrad.Rotation = 90  -- cima opaco, baixo transparente
+    topFadeGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0,   0),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(1,   1),
+    })
+    topFadeGrad.Parent = topFade
 
     -- ── drag — funciona em toda a sidebar ────────────────────────────────────
     local drag, dragStart, startPos
@@ -1914,26 +1932,55 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 return o
             end
 
-            -- ── Button (Linoria style: full-width, centered, no side label) ─
+            -- ── Button ───────────────────────────────────────────────────
             function grp:Button(lbl, cb)
                 local btn = Button(body, {
-                    Size                 = UDim2.new(1, 0, 0, 28),
-                    BackgroundColor3     = C.white,
-                    BackgroundTransparency = 0.92,
-                    Text                 = lbl,
-                    TextColor3           = C.hi,
-                    TextSize             = 11,
-                    Font                 = Enum.Font.GothamMedium,
+                    Size                 = UDim2.new(1, 0, 0, 32),
+                    BackgroundColor3     = Color3.fromRGB(30, 30, 30),
+                    BackgroundTransparency = 0,
+                    Text                 = "",
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
                 })
-                Corner(btn, 5)
-                Stroke(btn, C.white, 1, 0.87)
-                btn.MouseEnter:Connect(function() tw(btn, {BackgroundTransparency = 0.80}, 0.12) end)
-                btn.MouseLeave:Connect(function() tw(btn, {BackgroundTransparency = 0.92}, 0.12) end)
+                Corner(btn, 6)
+                Stroke(btn, Color3.fromRGB(55, 55, 55), 1, 0)
+
+                -- texto à esquerda
+                Label(btn, {
+                    Position       = UDim2.new(0, 12, 0, 0),
+                    Size           = UDim2.new(1, -36, 1, 0),
+                    Text           = lbl,
+                    TextColor3     = C.hi,
+                    TextSize       = 11,
+                    Font           = Enum.Font.GothamMedium,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex         = 8,
+                })
+
+                -- ícone ▶ à direita
+                Label(btn, {
+                    AnchorPoint    = Vector2.new(1, 0.5),
+                    Position       = UDim2.new(1, -10, 0.5, 0),
+                    Size           = UDim2.new(0, 16, 0, 16),
+                    Text           = "â¶",
+                    TextColor3     = C.dim,
+                    TextSize       = 9,
+                    Font           = Enum.Font.Gotham,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ZIndex         = 8,
+                })
+
+                btn.MouseEnter:Connect(function()
+                    tw(btn, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12)
+                end)
+                btn.MouseLeave:Connect(function()
+                    tw(btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.12)
+                end)
                 btn.MouseButton1Click:Connect(function()
-                    tw(btn, {BackgroundTransparency = 0.65}, 0.06)
-                    task.delay(0.12, function() tw(btn, {BackgroundTransparency = 0.92}, 0.1) end)
+                    tw(btn, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.06)
+                    task.delay(0.12, function()
+                        tw(btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.1)
+                    end)
                     if cb then coroutine.wrap(cb)() end
                 end)
             end
