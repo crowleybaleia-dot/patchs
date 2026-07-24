@@ -273,7 +273,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(0,32,0,32),
+            Size              = UDim2.new(0.75,0,0.75,0),
             Image             = logoAsset,
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
@@ -284,7 +284,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Label(logoBlock, {
             AnchorPoint    = Vector2.new(0.5,0.5),
             Position       = UDim2.new(0.5,0,0.5,0),
-            Size           = UDim2.new(0,32,0,32),
+            Size           = UDim2.new(1,0,1,0),
             Text           = string.upper((title or "V"):sub(1,1)),
             TextColor3     = C.hi,
             TextSize       = 18,
