@@ -280,7 +280,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ImageColor3       = C.accent,
             ImageTransparency = 0.55,
             ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 3,
+            ZIndex            = 5,
         })
         -- logo principal
         Image(logoBlock, {
@@ -291,7 +291,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
             ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 4,
+            ZIndex            = 6,
         })
     else
         Label(logoBlock, {
