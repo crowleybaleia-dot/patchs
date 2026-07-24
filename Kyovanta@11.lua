@@ -1011,7 +1011,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         function sec:Group(groupName, iconAsset, side)
             local col = (side == "right") and workareaR or workareaL
 
-            -- wrapper externo: só corner + stroke, sem filhos de conteúdo
+            -- wrapper externo: sem fundo, sem borda
             local gboxOuter = Frame(col, {
                 Name                 = "grp_" .. groupName,
                 Size                 = UDim2.new(1,0,0,0),
@@ -1020,70 +1020,37 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 ZIndex               = 3,
                 LayoutOrder          = #col:GetChildren(),
             })
-            Corner(gboxOuter, 9)
-            Stroke(gboxOuter, C.border, 1, 0)
 
-            -- frame interno com a cor de fundo, ClipsDescendants pra cortar os filhos nos cantos
+            -- gbox transparente (mantido para compatibilidade com o resto do código)
             local gbox = Frame(gboxOuter, {
                 Size                 = UDim2.new(1,0,0,0),
                 AutomaticSize        = Enum.AutomaticSize.Y,
-                BackgroundColor3     = C.element,
-                BackgroundTransparency = 0,
-                ClipsDescendants     = true,
+                BackgroundTransparency = 1,
                 ZIndex               = 3,
             })
-            Corner(gbox, 9)
 
-            -- header
-            local header = Frame(gbox, {
-                Size                 = UDim2.new(1,0,0,28),
-                BackgroundColor3     = C.white,
-                BackgroundTransparency = 0.98,
-                ZIndex               = 4,
-            })
-            -- linha separadora
-            Frame(header, {
-                Position             = UDim2.new(0,0,1,-1),
-                Size                 = UDim2.new(1,0,0,1),
-                BackgroundColor3     = C.white,
-                BackgroundTransparency = 0.95,
-                ZIndex               = 5,
-            })
-
-            if iconAsset then
-                Image(header, {
-                    Position          = UDim2.new(0,10,0.5,-7),
-                    Size              = UDim2.new(0,14,0,14),
-                    Image             = iconAsset,
-                    ImageColor3       = C.low,
-                    ImageTransparency = 0.5,
-                    ScaleType         = Enum.ScaleType.Fit,
-                    ZIndex            = 5,
-                })
-            end
-
-            Label(header, {
-                Position       = UDim2.new(0, iconAsset and 30 or 10, 0, 0),
-                Size           = UDim2.new(1, -(iconAsset and 40 or 20), 1, 0),
+            -- header: só label simples em caps, sem frame de fundo
+            Label(gbox, {
+                Size           = UDim2.new(1,0,0,22),
                 Text           = string.upper(groupName or ""),
-                TextColor3     = C.hi,
+                TextColor3     = C.low,
                 TextSize       = 9,
                 Font           = Enum.Font.GothamBold,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex         = 5,
+                ZIndex         = 4,
             })
 
             -- body
             local body = Frame(gbox, {
                 Name             = "body",
-                Position         = UDim2.new(0,0,0,28),
+                Position         = UDim2.new(0,0,0,22),
                 Size             = UDim2.new(1,0,0,0),
                 AutomaticSize    = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 ZIndex           = 4,
             })
             ListLayout(body, {Padding = UDim.new(0, 5)})
-            Padding(body, 6, 8, 10, 10)
+            Padding(body, 4, 8, 0, 0)
 
             -- ── base row ─────────────────────────────────────────────────
             local function baseRow(lbl, h, desc)
