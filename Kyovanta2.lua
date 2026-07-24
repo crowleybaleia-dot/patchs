@@ -1586,69 +1586,81 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                 local open = false
                 local currentOptions = options
 
-                -- container externo — altura fixa de 36px (mais folgado que antes)
+                -- container externo — altura 48px pra caber label + desc
                 local ddFrame = Frame(body, {
-                    Size                 = UDim2.new(1,0,0,36),
+                    Size                 = UDim2.new(1,0,0,48),
                     BackgroundTransparency = 1,
                     ZIndex               = 5,
                     LayoutOrder          = #body:GetChildren(),
                 })
 
-                -- botão principal
+                -- botão principal — sem stroke, fundo sutil
                 local ddBtn = Button(ddFrame, {
                     Size                 = UDim2.new(1,0,1,0),
-                    BackgroundColor3     = Color3.fromRGB(22,22,22),
+                    BackgroundColor3     = Color3.fromRGB(18,18,18),
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 6,
                 })
-                Corner(ddBtn, 6)
-                Stroke(ddBtn, Color3.fromRGB(40,40,40), 1, 0)
+                Corner(ddBtn, 8)
 
-                -- label do campo (esquerda)
-                Label(ddBtn, {
-                    Position       = UDim2.new(0,10,0,0),
-                    Size           = UDim2.new(0.45,0,1,0),
+                -- bloco esquerda: label + desc empilhados
+                local leftBlock = Frame(ddBtn, {
+                    Position             = UDim2.new(0,14,0,0),
+                    Size                 = UDim2.new(0.55,0,1,0),
+                    BackgroundTransparency = 1,
+                    ZIndex               = 7,
+                })
+                local leftLayout = Instance.new("UIListLayout")
+                leftLayout.FillDirection       = Enum.FillDirection.Vertical
+                leftLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
+                leftLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+                leftLayout.Padding             = UDim.new(0,2)
+                leftLayout.SortOrder           = Enum.SortOrder.LayoutOrder
+                leftLayout.Parent              = leftBlock
+
+                Label(leftBlock, {
+                    Size           = UDim2.new(1,0,0,16),
                     Text           = lbl,
-                    TextColor3     = C.mid,
-                    TextSize       = 11,
-                    Font           = Enum.Font.Gotham,
+                    TextColor3     = C.hi,
+                    TextSize       = 12,
+                    Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 7,
+                    LayoutOrder    = 1,
                 })
 
-                -- pill do valor selecionado (direita)
+                -- pill do valor selecionado (direita) — arredondado, escuro
                 local pillBg = Frame(ddBtn, {
                     AnchorPoint          = Vector2.new(1, 0.5),
-                    Position             = UDim2.new(1, -8, 0.5, 0),
-                    Size                 = UDim2.new(0, 110, 0, 22),
-                    BackgroundColor3     = Color3.fromRGB(30,30,30),
+                    Position             = UDim2.new(1, -12, 0.5, 0),
+                    Size                 = UDim2.new(0, 120, 0, 28),
+                    BackgroundColor3     = Color3.fromRGB(38,38,38),
                     BackgroundTransparency = 0,
                     ZIndex               = 7,
                 })
-                Corner(pillBg, 5)
-                Stroke(pillBg, Color3.fromRGB(50,50,50), 1, 0)
+                Corner(pillBg, 20)
 
                 local valLbl = Label(pillBg, {
-                    Position       = UDim2.new(0, 8, 0, 0),
-                    Size           = UDim2.new(1, -26, 1, 0),
+                    Position       = UDim2.new(0, 12, 0, 0),
+                    Size           = UDim2.new(1, -30, 1, 0),
                     Text           = sel,
                     TextColor3     = C.hi,
-                    TextSize       = 10,
+                    TextSize       = 11,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
 
-                -- chevron animado
+                -- chevron animado dentro do pill
                 local chevron = Label(pillBg, {
                     AnchorPoint    = Vector2.new(1, 0.5),
-                    Position       = UDim2.new(1, -6, 0.5, 0),
+                    Position       = UDim2.new(1, -10, 0.5, 0),
                     Size           = UDim2.new(0, 14, 0, 14),
-                    Text           = "\xe2\x96\xbe",
-                    TextColor3     = C.dim,
-                    TextSize       = 12,
-                    Font           = Enum.Font.Gotham,
+                    Text           = "▾",
+                    TextColor3     = C.mid,
+                    TextSize       = 13,
+                    Font           = Enum.Font.GothamBold,
                     TextXAlignment = Enum.TextXAlignment.Center,
                     ZIndex         = 8,
                 })
@@ -1660,20 +1672,20 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     ZIndex               = 9,
                 })
 
-                -- painel de opções
+                -- painel de opções — fundo escuro, cantos generosos, sem stroke pesado
                 local panel = Frame(gbox, {
                     Size             = UDim2.new(1,0,0,0),
                     AutomaticSize    = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = Color3.fromRGB(24,24,24),
+                    BackgroundColor3 = Color3.fromRGB(20,20,20),
                     BackgroundTransparency = 0,
                     ZIndex           = 20,
                     Visible          = false,
                     ClipsDescendants = true,
                 })
-                Corner(panel, 6)
-                Stroke(panel, Color3.fromRGB(55,55,55), 1, 0)
+                Corner(panel, 10)
+                Stroke(panel, Color3.fromRGB(38,38,38), 1, 0)
                 ListLayout(panel)
-                Padding(panel, 4, 4, 0, 0)
+                Padding(panel, 6, 6, 0, 0)
 
                 local function buildOptions(opts)
                     for _, ch in ipairs(panel:GetChildren()) do
@@ -1682,32 +1694,33 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     for _, opt in ipairs(opts or {}) do
                         local isSel = opt == sel
                         local ob = Button(panel, {
-                            Size                 = UDim2.new(1,0,0,28),
-                            BackgroundColor3     = isSel and Color3.fromRGB(55,55,55) or Color3.fromRGB(38,38,38),
-                            BackgroundTransparency = isSel and 0 or 1,
+                            Size                 = UDim2.new(1,0,0,32),
+                            BackgroundColor3     = Color3.fromRGB(38,38,38),
+                            BackgroundTransparency = isSel and 0.5 or 1,
                             Text                 = "",
                             ZIndex               = 21,
                         })
-                        Corner(ob, 4)
-                        Padding(ob, 0, 0, 10, 10)
+                        Corner(ob, 6)
+                        Padding(ob, 0, 0, 12, 12)
 
+                        -- tick de selecionado
                         Label(ob, {
                             Position       = UDim2.new(0, 0, 0, 0),
-                            Size           = UDim2.new(0, 16, 1, 0),
-                            Text           = isSel and "\xe2\x9c\x93" or "",
+                            Size           = UDim2.new(0, 18, 1, 0),
+                            Text           = isSel and "✓" or "",
                             TextColor3     = C.accent,
-                            TextSize       = 10,
+                            TextSize       = 11,
                             Font           = Enum.Font.GothamBold,
                             TextXAlignment = Enum.TextXAlignment.Center,
                             ZIndex         = 22,
                         })
 
                         local optLbl = Label(ob, {
-                            Position       = UDim2.new(0, 16, 0, 0),
-                            Size           = UDim2.new(1, -16, 1, 0),
+                            Position       = UDim2.new(0, 18, 0, 0),
+                            Size           = UDim2.new(1, -18, 1, 0),
                             Text           = opt,
                             TextColor3     = isSel and C.hi or C.mid,
-                            TextSize       = 10,
+                            TextSize       = 11,
                             Font           = isSel and Enum.Font.GothamMedium or Enum.Font.Gotham,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex         = 22,
@@ -1715,7 +1728,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
                         ob.MouseEnter:Connect(function()
                             if opt ~= sel then
-                                tw(ob,     {BackgroundTransparency = 0.6}, 0.1)
+                                tw(ob,     {BackgroundTransparency = 0.7}, 0.1)
                                 tw(optLbl, {TextColor3 = C.hi},            0.1)
                             end
                         end)
@@ -1935,50 +1948,50 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             -- ── Button ───────────────────────────────────────────────────
             function grp:Button(lbl, cb)
                 local btn = Button(body, {
-                    Size                 = UDim2.new(1, 0, 0, 32),
-                    BackgroundColor3     = Color3.fromRGB(22, 22, 22),
+                    Size                 = UDim2.new(1, 0, 0, 36),
+                    BackgroundColor3     = Color3.fromRGB(18, 18, 18),
                     BackgroundTransparency = 0,
                     Text                 = "",
                     ZIndex               = 7,
                     LayoutOrder          = #body:GetChildren(),
                 })
-                Corner(btn, 6)
-                Stroke(btn, Color3.fromRGB(40, 40, 40), 1, 0)
+                Corner(btn, 8)
 
                 -- texto à esquerda
                 Label(btn, {
-                    Position       = UDim2.new(0, 12, 0, 0),
-                    Size           = UDim2.new(1, -36, 1, 0),
+                    Position       = UDim2.new(0, 14, 0, 0),
+                    Size           = UDim2.new(1, -40, 1, 0),
                     Text           = lbl,
                     TextColor3     = C.hi,
-                    TextSize       = 11,
+                    TextSize       = 12,
                     Font           = Enum.Font.GothamMedium,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex         = 8,
                 })
 
-                Image(btn, {
-                    AnchorPoint       = Vector2.new(1, 0.5),
-                    Position          = UDim2.new(1, -10, 0.5, 0),
-                    Size              = UDim2.new(0, 12, 0, 12),
-                    Image             = "rbxassetid://6034818372",
-                    ImageColor3       = C.dim,
-                    ImageTransparency = 0,
-                    ScaleType         = Enum.ScaleType.Fit,
-                    ZIndex            = 8,
+                -- seta ▶ à direita
+                Label(btn, {
+                    AnchorPoint    = Vector2.new(1, 0.5),
+                    Position       = UDim2.new(1, -14, 0.5, 0),
+                    Size           = UDim2.new(0, 14, 0, 14),
+                    Text           = "▶",
+                    TextColor3     = C.dim,
+                    TextSize       = 9,
+                    Font           = Enum.Font.GothamBold,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ZIndex         = 8,
                 })
-                -- placeholder removido
 
                 btn.MouseEnter:Connect(function()
-                    tw(btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.12)
+                    tw(btn, {BackgroundTransparency = 0.55}, 0.12)
                 end)
                 btn.MouseLeave:Connect(function()
-                    tw(btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.12)
+                    tw(btn, {BackgroundTransparency = 0}, 0.12)
                 end)
                 btn.MouseButton1Click:Connect(function()
-                    tw(btn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.06)
+                    tw(btn, {BackgroundTransparency = 0.3}, 0.06)
                     task.delay(0.12, function()
-                        tw(btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.1)
+                        tw(btn, {BackgroundTransparency = 0}, 0.1)
                     end)
                     if cb then coroutine.wrap(cb)() end
                 end)
