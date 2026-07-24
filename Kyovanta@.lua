@@ -270,10 +270,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ZIndex               = 4,
     })
     if logoAsset and logoAsset ~= "" then
+        local lSize = logoSize and UDim2.new(0, logoSize, 0, logoSize) or UDim2.new(0.75, 0, 0.75, 0)
         Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(0.75,0,0.75,0),
+            Size              = lSize,
             Image             = logoAsset,
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
