@@ -226,27 +226,10 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ClipsDescendants     = true,
         ZIndex               = 1,
     })
-    Corner(main, 6)
+    Corner(main, 8)
     Stroke(main, Color3.fromRGB(255,255,255), 1, 0.82)
 
-    -- ── fade no topo da janela (suaviza o corte do scroll) ───────────────────
-    -- filho direto do main, ZIndex alto, cobre só a faixa superior da área de conteúdo
-    local topFade = Frame(main, {
-        Position             = UDim2.new(0, 72, 0, 0),   -- começa após a sidebar
-        Size                 = UDim2.new(1, -72, 0, 24), -- faixa de 24px no topo
-        BackgroundColor3     = Color3.fromRGB(16, 16, 20),
-        BackgroundTransparency = 0,
-        BorderSizePixel      = 0,
-        ZIndex               = 50,
-    })
-    local topFadeGrad = Instance.new("UIGradient")
-    topFadeGrad.Rotation = 90  -- cima opaco, baixo transparente
-    topFadeGrad.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0,   0),
-        NumberSequenceKeypoint.new(0.5, 0),
-        NumberSequenceKeypoint.new(1,   1),
-    })
-    topFadeGrad.Parent = topFade
+
 
     -- ── drag — funciona em toda a sidebar ────────────────────────────────────
     local drag, dragStart, startPos
