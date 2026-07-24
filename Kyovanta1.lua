@@ -894,20 +894,23 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ListLayout(workareaR, {Padding = UDim.new(0,8)})
         Padding(workareaR, 12, 12, 8, 8)
 
-        -- ── fade no topo das colunas (evita corte seco ao scrollar) ─────────
+        -- ── fade no topo (filho do workarea, fora do ScrollingFrame) ────────
+        -- UIGradient nao funciona em ScrollingFrame, entao o fade fica
+        -- como frame irmao por cima, com a cor exata do fundo da janela
         local function addTopFade(col)
             local fade = Frame(workarea, {
                 Position             = col.Position,
-                Size                 = UDim2.new(col.Size.X.Scale, col.Size.X.Offset, 0, 28),
-                BackgroundColor3     = Color3.fromRGB(16, 16, 20),
+                Size                 = UDim2.new(col.Size.X.Scale, col.Size.X.Offset, 0, 32),
+                BackgroundColor3     = C.bg,
                 BackgroundTransparency = 0,
                 ZIndex               = 15,
                 BorderSizePixel      = 0,
             })
             local grad = Instance.new("UIGradient")
-            grad.Rotation = 90
+            grad.Rotation = 270
             grad.Transparency = NumberSequence.new({
                 NumberSequenceKeypoint.new(0,   0),
+                NumberSequenceKeypoint.new(0.6, 0),
                 NumberSequenceKeypoint.new(1,   1),
             })
             grad.Parent = fade
@@ -915,8 +918,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         addTopFade(workareaL)
         addTopFade(workareaR)
 
-        table.insert(sections, tabBtn)
-        table.insert(workareas, workarea)
+
 
         -- ── sec object ───────────────────────────────────────────────────
         local sec = {}
