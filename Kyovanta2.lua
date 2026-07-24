@@ -271,17 +271,25 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     if logoAsset and logoAsset ~= "" then
         local lSize = logoSize and UDim2.new(0, logoSize, 0, logoSize) or UDim2.new(0.75, 0, 0.75, 0)
-        -- glow layer (halo roxo por baixo)
-        Image(logoBlock, {
-            AnchorPoint       = Vector2.new(0.5,0.5),
-            Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(lSize.X.Scale + 0.18, lSize.X.Offset, lSize.Y.Scale + 0.18, lSize.Y.Offset),
-            Image             = logoAsset,
-            ImageColor3       = C.accent,
-            ImageTransparency = 0.55,
-            ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 5,
-        })
+        -- bloom: 4 camadas progressivas (maior + mais transparente = brilho difuso)
+        local glowLayers = {
+            { scale = 0.55, trans = 0.82 },
+            { scale = 0.40, trans = 0.75 },
+            { scale = 0.26, trans = 0.65 },
+            { scale = 0.13, trans = 0.55 },
+        }
+        for i, g in ipairs(glowLayers) do
+            Image(logoBlock, {
+                AnchorPoint       = Vector2.new(0.5,0.5),
+                Position          = UDim2.new(0.5,0,0.5,0),
+                Size              = UDim2.new(lSize.X.Scale + g.scale, lSize.X.Offset, lSize.Y.Scale + g.scale, lSize.Y.Offset),
+                Image             = logoAsset,
+                ImageColor3       = C.accent,
+                ImageTransparency = g.trans,
+                ScaleType         = Enum.ScaleType.Fit,
+                ZIndex            = 5,
+            })
+        end
         -- logo principal
         Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
