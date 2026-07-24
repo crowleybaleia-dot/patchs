@@ -271,6 +271,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     if logoAsset and logoAsset ~= "" then
         local lSize = logoSize and UDim2.new(0, logoSize, 0, logoSize) or UDim2.new(0.75, 0, 0.75, 0)
+        -- glow layer (halo roxo por baixo)
+        Image(logoBlock, {
+            AnchorPoint       = Vector2.new(0.5,0.5),
+            Position          = UDim2.new(0.5,0,0.5,0),
+            Size              = UDim2.new(lSize.X.Scale + 0.18, lSize.X.Offset, lSize.Y.Scale + 0.18, lSize.Y.Offset),
+            Image             = logoAsset,
+            ImageColor3       = C.accent,
+            ImageTransparency = 0.55,
+            ScaleType         = Enum.ScaleType.Fit,
+            ZIndex            = 3,
+        })
+        -- logo principal
         Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
