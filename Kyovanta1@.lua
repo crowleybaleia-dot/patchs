@@ -567,7 +567,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         glowPart.CastShadow   = false
         glowPart.Material     = Enum.Material.Neon
         glowPart.Color        = C.accent
-        glowPart.Transparency = 0.3
+        glowPart.Transparency = 0.1
         glowPart.Size         = Vector3.new(0.1, 0.1, 0.05)
         glowPart.Name         = "PillGlow"
         glowPart.Parent       = camera
@@ -584,16 +584,19 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local abs     = pill.AbsolutePosition
             local absSize = pill.AbsoluteSize
 
-            local tl = camera:ScreenPointToRay(abs.X,             abs.Y,             0.98).Origin
-            local tr = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y,             0.98).Origin
-            local bl = camera:ScreenPointToRay(abs.X,             abs.Y + absSize.Y, 0.98).Origin
-            local br = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y + absSize.Y, 0.98).Origin
+            local tl = camera:ScreenPointToRay(abs.X,             abs.Y,             0.5).Origin
+            local tr = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y,             0.5).Origin
+            local bl = camera:ScreenPointToRay(abs.X,             abs.Y + absSize.Y, 0.5).Origin
+            local br = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y + absSize.Y, 0.5).Origin
 
             local center = (tl + br) / 2
             local width  = (tr - tl).Magnitude
             local height = (bl - tl).Magnitude
 
-            glowPart.Size   = Vector3.new(width, height, 0.05)
+            local right = camera.CFrame.RightVector
+            center = center + right * 0.05
+
+            glowPart.Size   = Vector3.new(width + 0.3, height, 0.3)
             glowPart.CFrame = CFrame.new(center, center + camera.CFrame.LookVector)
         end)
     end
