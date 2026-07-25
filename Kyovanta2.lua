@@ -225,7 +225,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Size                 = UDim2.new(0, 820, 0, 500),
         BackgroundColor3     = Color3.fromRGB(15, 15, 15),
         BackgroundTransparency = 0.05,
-        ClipsDescendants     = false,
+        ClipsDescendants     = true,
         ZIndex               = 1,
     })
     Corner(main, 8)
@@ -441,18 +441,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         end
     end)
 
-    -- ── sidebar glow ──────────────────────────────────────────────────────
-    Image(main, {
-        Name                 = "sidebarGlow",
-        AnchorPoint          = Vector2.new(0, 0),
-        Position             = UDim2.new(0, -30, 0, -30),
-        Size                 = UDim2.new(0, 116, 1, 60),
-        Image                = "rbxassetid://5028857084",
-        ImageColor3          = Color3.fromRGB(100, 200, 80),
-        ImageTransparency    = 0.5,
-        ZIndex               = 2,
-    })
-
     -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
         Name                 = "sidebar",
@@ -570,6 +558,46 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         ZIndex               = 6,
     })
     Corner(pill, 2)
+
+    -- ── pill neon glow (Part 3D) ──────────────────────────────────────────
+    do
+        local glowPart = Instance.new("Part")
+        glowPart.Anchored     = true
+        glowPart.CanCollide   = false
+        glowPart.CastShadow   = false
+        glowPart.Material     = Enum.Material.Neon
+        glowPart.Color        = C.accent
+        glowPart.Transparency = 0.3
+        glowPart.Size         = Vector3.new(0.1, 0.1, 0.05)
+        glowPart.Name         = "PillGlow"
+        glowPart.Parent       = camera
+
+        RunService.RenderStepped:Connect(function()
+            if not main.Visible or not scrgui.Enabled then
+                glowPart.Parent = nil
+                return
+            end
+            if not glowPart.Parent then
+                glowPart.Parent = camera
+            end
+
+            local abs     = pill.AbsolutePosition
+            local absSize = pill.AbsoluteSize
+
+            local tl = camera:ScreenPointToRay(abs.X,             abs.Y,             0.98).Origin
+            local tr = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y,             0.98).Origin
+            local bl = camera:ScreenPointToRay(abs.X,             abs.Y + absSize.Y, 0.98).Origin
+            local br = camera:ScreenPointToRay(abs.X + absSize.X, abs.Y + absSize.Y, 0.98).Origin
+
+            local center = (tl + br) / 2
+            local width  = (tr - tl).Magnitude
+            local height = (bl - tl).Magnitude
+
+            glowPart.Size   = Vector3.new(width, height, 0.05)
+            glowPart.CFrame = CFrame.new(center, center + camera.CFrame.LookVector)
+        end)
+    end
+    -- ─────────────────────────────────────────────────────────────────────────
 
     -- ── state ─────────────────────────────────────────────────────────────
     local sections     = {}
