@@ -225,7 +225,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Size                 = UDim2.new(0, 820, 0, 500),
         BackgroundColor3     = Color3.fromRGB(15, 15, 15),
         BackgroundTransparency = 0.05,
-        ClipsDescendants     = true,
+        ClipsDescendants     = false,
         ZIndex               = 1,
     })
     Corner(main, 8)
@@ -440,6 +440,18 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                                            startPos.Y.Scale, startPos.Y.Offset + d.Y)
         end
     end)
+
+    -- ── sidebar glow ──────────────────────────────────────────────────────
+    Image(main, {
+        Name                 = "sidebarGlow",
+        AnchorPoint          = Vector2.new(0, 0),
+        Position             = UDim2.new(0, -30, 0, -30),
+        Size                 = UDim2.new(0, 116, 1, 60),
+        Image                = "rbxassetid://5028857084",
+        ImageColor3          = Color3.fromRGB(100, 200, 80),
+        ImageTransparency    = 0.5,
+        ZIndex               = 2,
+    })
 
     -- ── sidebar full-height (56px) ────────────────────────────────────────
     local sidebar = Frame(main, {
