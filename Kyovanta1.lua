@@ -221,7 +221,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         AnchorPoint          = Vector2.new(0.5, 0.5),
         Position             = UDim2.new(0.5, 0, 2, 0),
         Size                 = UDim2.new(0, 820, 0, 500),
-        BackgroundColor3     = Color3.fromRGB(16, 16, 20),
+        BackgroundColor3     = Color3.fromRGB(15, 15, 15),
         BackgroundTransparency = 0.05,
         ClipsDescendants     = true,
         ZIndex               = 1,
@@ -271,17 +271,6 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
     })
     if logoAsset and logoAsset ~= "" then
         local lSize = logoSize and UDim2.new(0, logoSize, 0, logoSize) or UDim2.new(0.75, 0, 0.75, 0)
-        -- glow asset (halo difuso por baixo da logo)
-        Image(logoBlock, {
-            AnchorPoint       = Vector2.new(0.5,0.5),
-            Position          = UDim2.new(0.5,0,0.5,0),
-            Size              = UDim2.new(lSize.X.Scale + 0.9, lSize.X.Offset, lSize.Y.Scale + 0.9, lSize.Y.Offset),
-            Image             = "rbxassetid://73075105263383",
-            ImageTransparency = 0.15,
-            ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 5,
-        })
-        -- logo principal
         Image(logoBlock, {
             AnchorPoint       = Vector2.new(0.5,0.5),
             Position          = UDim2.new(0.5,0,0.5,0),
@@ -290,7 +279,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             ImageColor3       = C.white,
             ImageTransparency = 0.1,
             ScaleType         = Enum.ScaleType.Fit,
-            ZIndex            = 6,
+            ZIndex            = 4,
         })
     else
         Label(logoBlock, {
