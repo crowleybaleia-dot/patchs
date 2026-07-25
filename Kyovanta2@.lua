@@ -594,9 +594,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             local height = (bl - tl).Magnitude
 
             local right = camera.CFrame.RightVector
-            center = center - right * 0.05
+            center = center - right * 0.01
 
-            glowPart.Size   = Vector3.new(width + 0.3, height, 0.3)
+            glowPart.Size   = Vector3.new(width, height, 0.05)
             glowPart.CFrame = CFrame.new(center, center + camera.CFrame.LookVector)
         end)
     end
