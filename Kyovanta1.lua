@@ -1490,12 +1490,11 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             Padding(body, 8, 8, 10, 10)
 
             -- ── base row ─────────────────────────────────────────────────
-            local function baseRow(lbl, h, desc)
-                -- linha divisória entre elementos (só após o primeiro)
+            local function addDivider()
                 local children = body:GetChildren()
                 local hasItems = false
                 for _, c in ipairs(children) do
-                    if c:IsA("Frame") then hasItems = true break end
+                    if c:IsA("Frame") or c:IsA("TextLabel") or c:IsA("TextButton") then hasItems = true break end
                 end
                 if hasItems then
                     local divider = Instance.new("Frame")
@@ -1508,6 +1507,9 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     divider.LayoutOrder = #body:GetChildren()
                     divider.Parent = body
                 end
+            end
+            local function baseRow(lbl, h, desc)
+                addDivider()
                 -- se tiver descrição, altura maior e layout vertical
                 local hasDesc = desc and desc ~= ""
                 h = h or (hasDesc and 42 or 30)
@@ -2589,6 +2591,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Button ───────────────────────────────────────────────────
             function grp:Button(lbl, cb)
+                addDivider()
                 local btn = Button(body, {
                     Size                 = UDim2.new(1, 0, 0, 36),
                     BackgroundColor3     = C.sidebar,
@@ -2638,6 +2641,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Label ────────────────────────────────────────────────────
             function grp:Label(text)
+                addDivider()
                 local lbl = Label(body, {
                     Size           = UDim2.new(1,0,0,26),
                     Text           = text or "",
@@ -2655,6 +2659,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── Paragraph ────────────────────────────────────────────────
             function grp:Paragraph(text)
+                addDivider()
                 local lbl = Label(body, {
                     Size           = UDim2.new(1,0,0,0),
                     AutomaticSize  = Enum.AutomaticSize.Y,
@@ -2673,6 +2678,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
 
             -- ── TextField ────────────────────────────────────────────────
             function grp:TextField(lbl, placeholder, cb, id)
+                addDivider()
                 id = id or lbl
                 local tfFrame = Frame(body, {
                     Size                 = UDim2.new(1,0,0,60),
