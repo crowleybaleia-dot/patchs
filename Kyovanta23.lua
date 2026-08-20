@@ -206,9 +206,9 @@ local C = {
     low      = Color3.fromRGB(102, 102, 102),  -- #666666 texto inativo
     dim      = Color3.fromRGB(68,  68,  68),   -- #444444 descrição/placeholder
     border   = Color3.fromRGB(42,  42,  42),   -- #2a2a2a bordas sutis
-    accent   = Color3.fromRGB(4,   96,  255),  -- azul mar accent
-    accentBg = Color3.fromRGB(2,   60,  180),  -- azul mar escuro hover
-    onBg     = Color3.fromRGB(4,   96,  255),  -- azul mar toggle ON
+    accent   = Color3.fromRGB(169, 218, 136),  -- azul mar accent
+    accentBg = Color3.fromRGB(120, 170, 90),  -- azul mar escuro hover
+    onBg     = Color3.fromRGB(169, 218, 136),  -- azul mar toggle ON
     offBg    = Color3.fromRGB(38,  38,  38),   -- #262626 toggle OFF
     knob     = Color3.fromRGB(15,  15,  15),   -- #0f0f0f
     toastBg  = Color3.fromRGB(10,  10,  10),   -- #0a0a0a
@@ -474,13 +474,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
             AnchorPoint          = Vector2.new(0.5, 0.5),
             Position             = UDim2.new(0.5, 0, 0.5, 0),
             Size                 = UDim2.new(0, 8, 0, 8),
-            BackgroundColor3     = Color3.fromRGB(4, 96, 255),
+            BackgroundColor3     = Color3.fromRGB(169, 218, 136),
             BackgroundTransparency = 0,
             ZIndex               = 3,
         })
         Corner(logoGlowDot, 99)
         local logoGlowShadow = Instance.new("UIShadow")
-        logoGlowShadow.Color        = Color3.fromRGB(60, 140, 255)
+        logoGlowShadow.Color        = Color3.fromRGB(169, 218, 136)
         logoGlowShadow.BlurRadius   = UDim.new(0, 24)
         logoGlowShadow.Spread       = UDim2.fromOffset(6, 8)
         logoGlowShadow.Offset       = UDim2.fromOffset(0, 0)
@@ -578,7 +578,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Name                 = "pill",
         Position             = UDim2.new(0,0,0,118),
         Size                 = UDim2.new(0,4,0,14),
-        BackgroundColor3     = Color3.fromRGB(4,  96, 255),   -- azul mar vivo
+        BackgroundColor3     = Color3.fromRGB(169, 218, 136),   -- azul mar vivo
         BackgroundTransparency = 0,
         ZIndex               = 6,
     })
@@ -589,13 +589,13 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         Name                 = "pillGlow",
         Position             = UDim2.new(0,0,0,118),
         Size                 = UDim2.new(0,4,0,14),
-        BackgroundColor3     = Color3.fromRGB(4, 96, 255),
+        BackgroundColor3     = Color3.fromRGB(169, 218, 136),
         BackgroundTransparency = 1,
         ZIndex               = 5,
     })
     Corner(pillGlow, 6)
     local pillShadow = Instance.new("UIShadow")
-    pillShadow.Color        = Color3.fromRGB(4, 96, 255)
+    pillShadow.Color        = Color3.fromRGB(169, 218, 136)
     pillShadow.BlurRadius   = UDim.new(0, 30)
     pillShadow.Spread       = UDim2.fromOffset(8, 10)
     pillShadow.Offset       = UDim2.fromOffset(0, 0)
@@ -857,7 +857,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
         })
         Corner(mGlowDot, 99)
         local mGlowShadow = Instance.new("UIShadow")
-        mGlowShadow.Color        = Color3.fromRGB(60, 140, 255)
+        mGlowShadow.Color        = Color3.fromRGB(169, 218, 136)
         mGlowShadow.BlurRadius   = UDim.new(0, 24)
         mGlowShadow.Spread       = UDim2.fromOffset(6, 8)
         mGlowShadow.Offset       = UDim2.fromOffset(0, 0)
