@@ -2649,6 +2649,7 @@ function lib:init(title, subtitle, logoAsset, visibleKey, deletePrevious, logoSi
                     TextSize       = 10,
                     Font           = Enum.Font.Gotham,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    RichText       = true,
                     ZIndex         = 5,
                     LayoutOrder    = #body:GetChildren(),
                 })
