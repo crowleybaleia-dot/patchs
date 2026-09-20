@@ -7282,8 +7282,9 @@ local Library do
                     Size = UDim2New(0, 55, 1, 0),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.None,
-                    BackgroundColor3 = FromRGB(16, 18, 21)
-                })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
+                    BackgroundColor3 = FromRGB(16, 18, 21),
+                    BackgroundTransparency = 1
+                })
 
                 Instances:Create("UICorner", {
                     Parent = Items["Pages"].Instance,
@@ -7904,10 +7905,10 @@ local Library do
                         p0.CanCollide = false
                         p0.CastShadow = false
                         p0.Material = MTREL
-                        p0.Color = Color3.fromRGB(30, 33, 38)
+                        p0.Color = Color3.fromRGB(22, 25, 30)
                         p0.Size = Vector3.new(sz, sz, sz)
                         p0.Name = HS:GenerateGUID(true)
-                        p0.Transparency = 0.15
+                        p0.Transparency = 0.05
                         local mesh = Instance.new("SpecialMesh", p0)
                         mesh.MeshType = Enum.MeshType.Wedge
                         mesh.Name = wedgeguid
@@ -7984,8 +7985,8 @@ local Library do
                     )
                     for _, pt in pairs(parts) do
                         pt.Parent = Camera
-                        pt.Color = Color3.fromRGB(30, 33, 38)
-                        pt.Transparency = 0.15
+                        pt.Color = Color3.fromRGB(22, 25, 30)
+                        pt.Transparency = 0.05
                     end
                 end
 
