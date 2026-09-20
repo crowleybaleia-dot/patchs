@@ -7279,9 +7279,9 @@ local Library do
                     AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
                     Position = UDim2New(0, -8, 0.5, 0),
-                    Size = UDim2New(0, 45, 0, 0),
+                    Size = UDim2New(0, 45, 1, 0),
                     ZIndex = 2,
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    AutomaticSize = Enum.AutomaticSize.None,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -7291,14 +7291,16 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
-                Items["Holder"] = Instances:Create("Frame", {
+                Items["Holder"] = Instances:Create("ScrollingFrame", {
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 0, 0),
+                    Size = UDim2New(1, 0, 1, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    ScrollBarThickness = 0,
+                    CanvasSize = UDim2New(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
 
