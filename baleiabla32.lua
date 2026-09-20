@@ -7308,13 +7308,15 @@ local Library do
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
                     PaddingTop = UDimNew(0, 8),
-                    PaddingBottom = UDimNew(0, 8)
+                    PaddingBottom = UDimNew(0, 8),
+                    PaddingLeft = UDimNew(0, 6),
+                    PaddingRight = UDimNew(0, 6)
                 })
 
                 Instances:Create("UIListLayout", {
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
-                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Left,
                     FillDirection = Enum.FillDirection.Vertical,
                     Padding = UDimNew(0, 5),
                     SortOrder = Enum.SortOrder.LayoutOrder
@@ -7915,10 +7917,10 @@ local Library do
                     ImageTransparency = 0.5,
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 20, 0, 20),
-                    AnchorPoint = Vector2New(0.5, 0.5),
+                    AnchorPoint = Vector2New(0, 0.5),
                     Image = "rbxassetid://"..Page.Icon,
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0.5, 0, 0.5, 0),
+                    Position = UDim2New(0, 6, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -7938,7 +7940,7 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Text = Page.Name,
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0, 32, 0.5, 0),
+                    Position = UDim2New(0, 30, 0.5, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
