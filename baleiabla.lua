@@ -7304,10 +7304,10 @@ local Library do
                 Instances:Create("UIPadding", {
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
-                    PaddingTop = UDimNew(0, 12),
-                    PaddingBottom = UDimNew(0, 12),
-                    PaddingLeft = UDimNew(0, 8),
-                    PaddingRight = UDimNew(0, 8)
+                    PaddingTop = UDimNew(0, 16),
+                    PaddingBottom = UDimNew(0, 16),
+                    PaddingLeft = UDimNew(0, 10),
+                    PaddingRight = UDimNew(0, 10)
                 })
 
                 Instances:Create("UIListLayout", {
@@ -7909,6 +7909,24 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
+                Items["ActiveIndicator"] = Instances:Create("Frame", {
+                    Parent = Items["Inactive"].Instance,
+                    Name = "\0",
+                    AnchorPoint = Vector2New(0, 0.5),
+                    Position = UDim2New(0, -6, 0.5, 0),
+                    Size = UDim2New(0, 3, 0, 16),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    ZIndex = 3,
+                    BackgroundColor3 = FromRGB(255, 255, 255)
+                })  Items["ActiveIndicator"]:AddToTheme({BackgroundColor3 = "Accent"})
+
+                Instances:Create("UICorner", {
+                    Parent = Items["ActiveIndicator"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(1, 0)
+                })
+
                 Items["Icon"] = Instances:Create("ImageLabel", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
@@ -8050,13 +8068,15 @@ local Library do
                     Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Accent, ImageTransparency = 0})
+                    Items["ActiveIndicator"]:Tween(nil, {BackgroundTransparency = 0})
 
                     Library.CurrentPage = Page
                 else
                     Items["Text"].Instance.Visible = false 
                     Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Image"})
-                    Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5}) 
+                    Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5})
+                    Items["ActiveIndicator"]:Tween(nil, {BackgroundTransparency = 1})
                 end
 
                 local Descendants = Items["PageContent"].Instance:GetDescendants()
