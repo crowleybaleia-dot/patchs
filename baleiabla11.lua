@@ -7820,7 +7820,7 @@ local Library do
             Window.Items = Items
 
             -- [[ ACRYLIC BLUR ]] --
-            do
+            task.spawn(function()
                 local BlurEnabled = true
                 local MTREL = Enum.Material.Glass
                 local binds = {}
@@ -8014,7 +8014,7 @@ local Library do
                 Window.SetBlur = function(state)
                     BlurEnabled = state
                 end
-            end
+            end)
             -- [[ /ACRYLIC BLUR ]] --
 
             Window:SetOpen(true)
