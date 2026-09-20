@@ -7276,12 +7276,11 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(1, 0.5),
+                    AnchorPoint = Vector2New(1, 0),
                     BorderSizePixel = 0,
-                    Position = UDim2New(0, -16, 0.5, 0),
-                    Size = UDim2New(0, 55, 0, 0),
+                    Position = UDim2New(0, -16, 0, 0),
+                    Size = UDim2New(0, 55, 1, 0),
                     ZIndex = 2,
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
