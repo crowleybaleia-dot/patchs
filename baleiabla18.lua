@@ -7304,10 +7304,8 @@ local Library do
                 })
 
                 Instances:Create("UIPadding", {
-                    Parent = Items["Holder"].Instance,
+                    Parent = Items["Pages"].Instance,
                     Name = "\0",
-                    PaddingTop = UDimNew(0, 12),
-                    PaddingBottom = UDimNew(0, 12),
                     PaddingLeft = UDimNew(0, 8),
                     PaddingRight = UDimNew(0, 8)
                 })
