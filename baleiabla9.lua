@@ -7294,7 +7294,8 @@ local Library do
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 1, 0),
+                    Size = UDim2New(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ScrollBarThickness = 0,
@@ -7316,11 +7317,20 @@ local Library do
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
                     HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     FillDirection = Enum.FillDirection.Vertical,
                     Padding = UDimNew(0, 10),
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
+
+                local HolderLayout = Items["Holder"].Instance:FindFirstChildWhichIsA("UIListLayout")
+                local function CenterIcons()
+                    local contentH = HolderLayout.AbsoluteContentSize.Y
+                    local pagesH = Items["Pages"].Instance.AbsoluteSize.Y
+                    Items["Holder"].Instance.Position = UDim2New(0, 0, 0, math.max(0, (pagesH - contentH) / 2))
+                end
+                HolderLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(CenterIcons)
+                Items["Pages"].Instance:GetPropertyChangedSignal("AbsoluteSize"):Connect(CenterIcons)
+                CenterIcons()
 
                 Items["Shadow"] = Instances:Create("ImageLabel", {
                     Parent = Items["MainFrame"].Instance,
