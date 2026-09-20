@@ -7826,6 +7826,7 @@ local Library do
                 local binds = {}
                 local wedgeguid = HttpService:GenerateGUID(true)
                 local BlurTarget = Items["MainFrame"].Instance
+                BlurTarget.BackgroundTransparency = 0.05
 
                 local DepthOfField
                 for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
