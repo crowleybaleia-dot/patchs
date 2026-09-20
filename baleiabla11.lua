@@ -7282,9 +7282,8 @@ local Library do
                     Size = UDim2New(0, 55, 1, 0),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.None,
-                    BackgroundColor3 = FromRGB(16, 18, 21),
-                    BackgroundTransparency = 1
-                })
+                    BackgroundColor3 = FromRGB(16, 18, 21)
+                })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Pages"].Instance,
@@ -7818,126 +7817,133 @@ local Library do
                 Library:Unload()
             end)
 
-            -- Acrylic Blur (sidebar)
+            Window.Items = Items
+
+            -- [[ ACRYLIC BLUR ]] --
             do
-                local HS = game:GetService("HttpService")
-                local Lighting = game:GetService("Lighting")
-                local BlurTarget = Items["Pages"].Instance
-                local MTREL = "Glass"
-                local wedgeguid = HS:GenerateGUID(true)
-                local parts = {}
+                local BlurEnabled = true
+                local MTREL = Enum.Material.Glass
+                local binds = {}
+                local wedgeguid = HttpService:GenerateGUID(true)
+                local BlurTarget = Items["MainFrame"].Instance
 
                 local DepthOfField
-                for _, v in pairs(Lighting:GetChildren()) do
-                    if v:IsA("DepthOfFieldEffect") and v:HasTag(".__refolk") then
+                for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
+                    if v:IsA("DepthOfFieldEffect") and v:HasTag(".") then
                         DepthOfField = v
+                        break
                     end
                 end
                 if not DepthOfField then
-                    DepthOfField = Instance.new("DepthOfFieldEffect", Lighting)
+                    DepthOfField = Instance.new("DepthOfFieldEffect", game:GetService("Lighting"))
                     DepthOfField.FarIntensity = 0
                     DepthOfField.FocusDistance = 51.6
                     DepthOfField.InFocusRadius = 50
                     DepthOfField.NearIntensity = 1
-                    DepthOfField.Name = HS:GenerateGUID(true)
-                    DepthOfField:AddTag(".__refolk")
+                    DepthOfField.Name = HttpService:GenerateGUID(true)
+                    DepthOfField:AddTag(".")
                 end
 
-                local blurFrame = Instance.new("Frame")
-                blurFrame.Parent = BlurTarget
-                blurFrame.Size = UDim2.new(1, 0, 1, 0)
-                blurFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-                blurFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-                blurFrame.BackgroundTransparency = 1
-                blurFrame.Name = HS:GenerateGUID(true)
+                local frame = Instance.new("Frame")
+                frame.Parent = BlurTarget
+                frame.Size = UDim2.new(0.97, 0, 0.97, 0)
+                frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+                frame.AnchorPoint = Vector2.new(0.5, 0.5)
+                frame.BackgroundTransparency = 1
+                frame.Name = HttpService:GenerateGUID(true)
 
-                local function IsNotNaN(x) return x == x end
-                local cont = IsNotNaN(Camera:ScreenPointToRay(0, 0).Origin.X)
-                while not cont do
-                    RunService.RenderStepped:Wait()
-                    cont = IsNotNaN(Camera:ScreenPointToRay(0, 0).Origin.X)
+                do
+                    local function IsNotNaN(x) return x == x end
+                    local continue_ = IsNotNaN(Camera:ScreenPointToRay(0, 0).Origin.X)
+                    while not continue_ do
+                        RunService.RenderStepped:Wait()
+                        continue_ = IsNotNaN(Camera:ScreenPointToRay(0, 0).Origin.X)
+                    end
                 end
 
-                local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt
-                local sz = 0.2
+                local DrawQuad
+                do
+                    local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt
+                    local sz = 0.2
 
-                local function DrawTriangle(v1, v2, v3, p0, p1)
-                    local s1 = (v1 - v2).Magnitude
-                    local s2 = (v2 - v3).Magnitude
-                    local s3 = (v3 - v1).Magnitude
-                    local smax = max(s1, s2, s3)
-                    local A, B, C
-                    if s1 == smax then A, B, C = v1, v2, v3
-                    elseif s2 == smax then A, B, C = v2, v3, v1
-                    else A, B, C = v3, v1, v2 end
+                    local function DrawTriangle(v1, v2, v3, p0, p1)
+                        local s1 = (v1 - v2).Magnitude
+                        local s2 = (v2 - v3).Magnitude
+                        local s3 = (v3 - v1).Magnitude
+                        local smax = max(s1, s2, s3)
+                        local A, B, C
+                        if s1 == smax then A, B, C = v1, v2, v3
+                        elseif s2 == smax then A, B, C = v2, v3, v1
+                        elseif s3 == smax then A, B, C = v3, v1, v2
+                        end
 
-                    local para = ((B-A).X*(C-A).X + (B-A).Y*(C-A).Y + (B-A).Z*(C-A).Z) / (A-B).Magnitude
-                    local perp = sqrt((C-A).Magnitude^2 - para*para)
-                    local dif_para = (A - B).Magnitude - para
+                        local para = ((B-A).X*(C-A).X + (B-A).Y*(C-A).Y + (B-A).Z*(C-A).Z) / (A-B).Magnitude
+                        local perp = sqrt((C-A).Magnitude^2 - para*para)
+                        local dif_para = (A-B).Magnitude - para
 
-                    local st = CFrame.new(B, A)
-                    local za = CFrame.Angles(pi/2, 0, 0)
-                    local cf0 = st
-                    local Top_Look = (cf0 * za).LookVector
-                    local Mid_Point = A + CFrame.new(A, B).LookVector * para
-                    local Needed_Look = CFrame.new(Mid_Point, C).LookVector
-                    local dot = Top_Look.X*Needed_Look.X + Top_Look.Y*Needed_Look.Y + Top_Look.Z*Needed_Look.Z
-                    local ac = CFrame.Angles(0, 0, acos(math.clamp(dot, -1, 1)))
+                        local st = CFrame.new(B, A)
+                        local za = CFrame.Angles(pi/2, 0, 0)
+                        local cf0 = st
+                        local Top_Look = (cf0 * za).LookVector
+                        local Mid_Point = A + CFrame.new(A, B).LookVector * para
+                        local Needed_Look = CFrame.new(Mid_Point, C).LookVector
+                        local dot = Top_Look.X*Needed_Look.X + Top_Look.Y*Needed_Look.Y + Top_Look.Z*Needed_Look.Z
+                        local ac = CFrame.Angles(0, 0, acos(dot))
+                        cf0 = cf0 * ac
+                        if ((cf0 * za).LookVector - Needed_Look).Magnitude > 0.01 then
+                            cf0 = cf0 * CFrame.Angles(0, 0, -2*acos(dot))
+                        end
+                        cf0 = cf0 * CFrame.new(0, perp/2, -(dif_para + para/2))
 
-                    cf0 = cf0 * ac
-                    if ((cf0 * za).LookVector - Needed_Look).Magnitude > 0.01 then
-                        cf0 = cf0 * CFrame.Angles(0, 0, -2 * acos(math.clamp(dot, -1, 1)))
+                        local cf1 = st * ac * CFrame.Angles(0, pi, 0)
+                        if ((cf1 * za).LookVector - Needed_Look).Magnitude > 0.01 then
+                            cf1 = cf1 * CFrame.Angles(0, 0, 2*acos(dot))
+                        end
+                        cf1 = cf1 * CFrame.new(0, perp/2, dif_para/2)
+
+                        if not p0 then
+                            p0 = Instance.new("Part")
+                            p0.FormFactor = "Custom"
+                            p0.TopSurface = 0
+                            p0.BottomSurface = 0
+                            p0.Anchored = true
+                            p0.CanCollide = false
+                            p0.CastShadow = false
+                            p0.Material = MTREL
+                            p0.Size = Vector3.new(sz, sz, sz)
+                            p0.Name = HttpService:GenerateGUID(true)
+                            local mesh = Instance.new("SpecialMesh", p0)
+                            mesh.MeshType = Enum.MeshType.Wedge
+                            mesh.Name = wedgeguid
+                        end
+                        p0:FindFirstChild(wedgeguid).Scale = Vector3.new(0, perp/sz, para/sz)
+                        p0.CFrame = cf0
+
+                        if not p1 then p1 = p0:Clone() end
+                        p1:FindFirstChild(wedgeguid).Scale = Vector3.new(0, perp/sz, dif_para/sz)
+                        p1.CFrame = cf1
+
+                        return p0, p1
                     end
-                    cf0 = cf0 * CFrame.new(0, perp/2, -(dif_para + para/2))
 
-                    local cf1 = st * ac * CFrame.Angles(0, pi, 0)
-                    if ((cf1 * za).LookVector - Needed_Look).Magnitude > 0.01 then
-                        cf1 = cf1 * CFrame.Angles(0, 0, 2 * acos(math.clamp(dot, -1, 1)))
+                    function DrawQuad(v1, v2, v3, v4, parts)
+                        parts[1], parts[2] = DrawTriangle(v1, v2, v3, parts[1], parts[2])
+                        parts[3], parts[4] = DrawTriangle(v3, v2, v4, parts[3], parts[4])
                     end
-                    cf1 = cf1 * CFrame.new(0, perp/2, dif_para/2)
-
-                    if not p0 then
-                        p0 = Instance.new("Part")
-                        p0.FormFactor = "Custom"
-                        p0.TopSurface = 0
-                        p0.BottomSurface = 0
-                        p0.Anchored = true
-                        p0.CanCollide = false
-                        p0.CastShadow = false
-                        p0.Material = MTREL
-                        p0.Color = Color3.fromRGB(22, 25, 30)
-                        p0.Size = Vector3.new(sz, sz, sz)
-                        p0.Name = HS:GenerateGUID(true)
-                        p0.Transparency = 0.05
-                        local mesh = Instance.new("SpecialMesh", p0)
-                        mesh.MeshType = Enum.MeshType.Wedge
-                        mesh.Name = wedgeguid
-                    end
-                    p0[wedgeguid].Scale = Vector3.new(0, perp/sz, para/sz)
-                    p0.CFrame = cf0
-
-                    if not p1 then
-                        p1 = p0:Clone()
-                    end
-                    p1[wedgeguid].Scale = Vector3.new(0, perp/sz, dif_para/sz)
-                    p1.CFrame = cf1
-
-                    return p0, p1
                 end
 
-                local function DrawQuad(v1, v2, v3, v4, pts)
-                    pts[1], pts[2] = DrawTriangle(v1, v2, v3, pts[1], pts[2])
-                    pts[3], pts[4] = DrawTriangle(v3, v2, v4, pts[3], pts[4])
-                end
+                local parts = {}
 
                 local parents = {}
-                local function addParents(child)
-                    if child:IsA("GuiObject") then
-                        parents[#parents + 1] = child
-                        addParents(child.Parent)
+                do
+                    local function add(child)
+                        if child:IsA("GuiObject") then
+                            parents[#parents + 1] = child
+                            add(child.Parent)
+                        end
                     end
+                    add(frame)
                 end
-                addParents(blurFrame)
 
                 local function IsVisible(instance)
                     while instance do
@@ -7952,30 +7958,36 @@ local Library do
                     return true
                 end
 
-                local function UpdateBlur()
-                    if not IsVisible(blurFrame) then
-                        for _, pt in pairs(parts) do pt.Parent = nil end
+                local function UpdateOrientation(fetchProps)
+                    if not IsVisible(frame) or not BlurEnabled then
+                        for _, pt in pairs(parts) do
+                            pt.Parent = nil
+                        end
                         DepthOfField.Enabled = false
                         return
                     end
                     DepthOfField.Enabled = true
-                    local zIndex = 1 - 0.05 * blurFrame.ZIndex
-                    local tl = blurFrame.AbsolutePosition
-                    local br = tl + blurFrame.AbsoluteSize
+                    local properties = {
+                        Transparency = 0.98,
+                        BrickColor = BrickColor.new("Institutional white"),
+                    }
+                    local zIndex = 1 - 0.05 * frame.ZIndex
+                    local tl = frame.AbsolutePosition
+                    local br = frame.AbsolutePosition + frame.AbsoluteSize
                     local tr = Vector2.new(br.X, tl.Y)
                     local bl = Vector2.new(tl.X, br.Y)
-
-                    local rot = 0
-                    for _, v in ipairs(parents) do rot = rot + v.Rotation end
-                    if rot ~= 0 and rot % 180 ~= 0 then
-                        local mid = tl:Lerp(br, 0.5)
-                        local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot))
-                        local function rotv(v)
-                            return Vector2.new(c*(v.X-mid.X) - s*(v.Y-mid.Y), s*(v.X-mid.X) + c*(v.Y-mid.Y)) + mid
+                    do
+                        local rot = 0
+                        for _, v in ipairs(parents) do rot = rot + v.Rotation end
+                        if rot ~= 0 and rot % 180 ~= 0 then
+                            local mid = tl:Lerp(br, 0.5)
+                            local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot))
+                            tl = Vector2.new(c*(tl.X-mid.X) - s*(tl.Y-mid.Y), s*(tl.X-mid.X) + c*(tl.Y-mid.Y)) + mid
+                            tr = Vector2.new(c*(tr.X-mid.X) - s*(tr.Y-mid.Y), s*(tr.X-mid.X) + c*(tr.Y-mid.Y)) + mid
+                            bl = Vector2.new(c*(bl.X-mid.X) - s*(bl.Y-mid.Y), s*(bl.X-mid.X) + c*(bl.Y-mid.Y)) + mid
+                            br = Vector2.new(c*(br.X-mid.X) - s*(br.Y-mid.Y), s*(br.X-mid.X) + c*(br.Y-mid.Y)) + mid
                         end
-                        tl, tr, bl, br = rotv(tl), rotv(tr), rotv(bl), rotv(br)
                     end
-
                     DrawQuad(
                         Camera:ScreenPointToRay(tl.X, tl.Y, zIndex).Origin,
                         Camera:ScreenPointToRay(tr.X, tr.Y, zIndex).Origin,
@@ -7983,18 +7995,26 @@ local Library do
                         Camera:ScreenPointToRay(br.X, br.Y, zIndex).Origin,
                         parts
                     )
-                    for _, pt in pairs(parts) do
-                        pt.Parent = Camera
-                        pt.Color = Color3.fromRGB(22, 25, 30)
-                        pt.Transparency = 0.05
+                    if fetchProps then
+                        for _, pt in pairs(parts) do
+                            pt.Parent = Camera
+                        end
+                        for propName, propValue in pairs(properties) do
+                            for _, pt in pairs(parts) do
+                                pt[propName] = propValue
+                            end
+                        end
                     end
                 end
 
-                UpdateBlur()
-                RunService.RenderStepped:Connect(UpdateBlur)
-            end
+                UpdateOrientation(true)
+                RunService.RenderStepped:Connect(UpdateOrientation)
 
-            Window.Items = Items
+                Window.SetBlur = function(state)
+                    BlurEnabled = state
+                end
+            end
+            -- [[ /ACRYLIC BLUR ]] --
 
             Window:SetOpen(true)
             return setmetatable(Window, self)
