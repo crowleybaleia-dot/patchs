@@ -7276,11 +7276,12 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(1, 0),
+                    AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
-                    Position = UDim2New(0, -16, 0, 35),
-                    Size = UDim2New(0, 55, 1, -35),
+                    Position = UDim2New(0, -16, 0.5, 0),
+                    Size = UDim2New(0, 55, 0, 0),
                     ZIndex = 2,
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -7290,22 +7291,25 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
-                Items["Holder"] = Instances:Create("Frame", {
+                Items["Holder"] = Instances:Create("ScrollingFrame", {
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    AnchorPoint = Vector2New(0.5, 0.5),
-                    Position = UDim2New(0.5, 0, 0.5, 0),
                     Size = UDim2New(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
+                    ScrollBarThickness = 0,
+                    CanvasSize = UDim2New(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
 
                 Instances:Create("UIPadding", {
-                    Parent = Items["Pages"].Instance,
+                    Parent = Items["Holder"].Instance,
                     Name = "\0",
+                    PaddingTop = UDimNew(0, 12),
+                    PaddingBottom = UDimNew(0, 12),
                     PaddingLeft = UDimNew(0, 8),
                     PaddingRight = UDimNew(0, 8)
                 })
@@ -7314,7 +7318,6 @@ local Library do
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
                     HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     FillDirection = Enum.FillDirection.Vertical,
                     Padding = UDimNew(0, 10),
                     SortOrder = Enum.SortOrder.LayoutOrder
