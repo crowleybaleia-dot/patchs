@@ -7276,11 +7276,12 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(1, 0.5),
+                    AnchorPoint = Vector2New(1, 0),
                     BorderSizePixel = 0,
-                    Position = UDim2New(0, -16, 0.5, 0),
-                    Size = UDim2New(0, 55, 1, 0),
+                    Position = UDim2New(0, -16, 0, 35),
+                    Size = UDim2New(0, 55, 1, -35),
                     ZIndex = 2,
+                    AutomaticSize = Enum.AutomaticSize.None,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -7294,8 +7295,8 @@ local Library do
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2New(1, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.None,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ScrollBarThickness = 0,
@@ -7321,16 +7322,6 @@ local Library do
                     Padding = UDimNew(0, 10),
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
-
-                local HolderLayout = Items["Holder"].Instance:FindFirstChildWhichIsA("UIListLayout")
-                local function CenterIcons()
-                    local contentH = HolderLayout.AbsoluteContentSize.Y
-                    local pagesH = Items["Pages"].Instance.AbsoluteSize.Y
-                    Items["Holder"].Instance.Position = UDim2New(0, 0, 0, math.max(0, (pagesH - contentH) / 2))
-                end
-                HolderLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(CenterIcons)
-                Items["Pages"].Instance:GetPropertyChangedSignal("AbsoluteSize"):Connect(CenterIcons)
-                task.defer(CenterIcons)
 
                 Items["Shadow"] = Instances:Create("ImageLabel", {
                     Parent = Items["MainFrame"].Instance,
