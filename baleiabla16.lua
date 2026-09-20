@@ -7290,16 +7290,16 @@ local Library do
                     CornerRadius = UDimNew(1, 0)
                 })
 
-                Items["Holder"] = Instances:Create("ScrollingFrame", {
+                Items["Holder"] = Instances:Create("Frame", {
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 1, 0),
+                    AnchorPoint = Vector2New(0.5, 0.5),
+                    Position = UDim2New(0.5, 0, 0.5, 0),
+                    Size = UDim2New(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
-                    ScrollBarThickness = 0,
-                    CanvasSize = UDim2New(0, 0, 0, 0),
-                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
 
