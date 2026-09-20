@@ -7279,9 +7279,9 @@ local Library do
                     AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
                     Position = UDim2New(0, -8, 0.5, 0),
-                    Size = UDim2New(0, 0, 0, 0),
+                    Size = UDim2New(0, 45, 0, 0),
                     ZIndex = 2,
-                    AutomaticSize = Enum.AutomaticSize.XY,
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -7295,8 +7295,7 @@ local Library do
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(0, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.XY,
+                    Size = UDim2New(1, 0, 1, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ScrollBarThickness = 0,
@@ -8049,8 +8048,8 @@ local Library do
                 Debounce = true 
 
                 if Bool then
-                    Items["Text"].Instance.Visible = true 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, Items["Text"].Instance.TextBounds.X + 38, 0, 32)})
+                    Items["Text"].Instance.Visible = false
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 32, 0, 32)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Accent, ImageTransparency = 0})
 
@@ -8255,8 +8254,8 @@ local Library do
                 Debounce = true 
 
                 if Bool then
-                    Items["Text"].Instance.Visible = true 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, Items["Text"].Instance.TextBounds.X + 38, 0, 32)})
+                    Items["Text"].Instance.Visible = false
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 32, 0, 32)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Accent, ImageTransparency = 0}) 
 
