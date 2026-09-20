@@ -7330,7 +7330,7 @@ local Library do
                 end
                 HolderLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(CenterIcons)
                 Items["Pages"].Instance:GetPropertyChangedSignal("AbsoluteSize"):Connect(CenterIcons)
-                CenterIcons()
+                task.defer(CenterIcons)
 
                 Items["Shadow"] = Instances:Create("ImageLabel", {
                     Parent = Items["MainFrame"].Instance,
