@@ -7279,7 +7279,7 @@ local Library do
                     AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
                     Position = UDim2New(0, -8, 0.5, 0),
-                    Size = UDim2New(0, 45, 1, 0),
+                    Size = UDim2New(0, 0, 1, 0),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(16, 18, 21)
@@ -7295,7 +7295,8 @@ local Library do
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 1, 0),
+                    Size = UDim2New(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ScrollBarThickness = 0,
