@@ -7344,8 +7344,8 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(22, 25, 29)
-                })  Items["Topbar"]:AddToTheme({BackgroundColor3 = "Inline"})
+                    BackgroundColor3 = FromRGB(16, 18, 21)
+                })  Items["Topbar"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Topbar"].Instance,
@@ -7362,30 +7362,21 @@ local Library do
                     Size = UDim2New(1, 0, 0, 3),
                     ZIndex = 2,
                     BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(22, 25, 29)
-                }):AddToTheme({BackgroundColor3 = "Inline"})
+                    BackgroundColor3 = FromRGB(16, 18, 21)
+                }):AddToTheme({BackgroundColor3 = "Background"})
 
                 Instances:Create("Frame", {
                     Parent = Items["Topbar"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0, 1),
-                    BackgroundTransparency = 0.4,
+                    BackgroundTransparency = 0.7,
                     Position = UDim2New(0, 0, 1, 0),
                     Size = UDim2New(1, 0, 0, 1),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(32, 36, 42)
                 }):AddToTheme({BackgroundColor3 = "Border"})
-
-                Instances:Create("UIGradient", {
-                    Parent = Items["Topbar"].Instance,
-                    Name = "\0",
-                    Rotation = 84,
-                    Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, FromRGB(211, 211, 211))}
-                }):AddToTheme({Color = function()
-                    return RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, Library.Theme["Dark Gradient"])}
-                end})
 
                 Items["Logo"] = Instances:Create("ImageLabel", {
                     Parent = Items["Topbar"].Instance,
@@ -7447,7 +7438,7 @@ local Library do
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(255, 255, 255),
-                    TextTransparency = 0.5,
+                    TextTransparency = 0.7,
                     Text = Window.Version,
                     AutomaticSize = Enum.AutomaticSize.X,
                     Size = UDim2New(0, 0, 0, 15),
