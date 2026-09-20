@@ -7281,7 +7281,7 @@ local Library do
                     Position = UDim2New(0, -8, 0.5, 0),
                     Size = UDim2New(0, 45, 1, 0),
                     ZIndex = 2,
-                    AutomaticSize = Enum.AutomaticSize.None,
+                    AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -8029,7 +8029,7 @@ local Library do
                     })
                 end
 
-                Items["Inactive"].Instance.Size = UDim2New(0, 25, 0, 32)
+                Items["Inactive"].Instance.Size = UDim2New(0, 32, 0, 32)
             end
 
             local Debounce = false
@@ -8054,7 +8054,7 @@ local Library do
                     Library.CurrentPage = Page
                 else
                     Items["Text"].Instance.Visible = false 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 25, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 32, 0, 32)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Image"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5}) 
                 end
@@ -8260,7 +8260,7 @@ local Library do
                     Library.CurrentPage = SubPage
                 else
                     Items["Text"].Instance.Visible = false 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 25, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 32, 0, 32)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Image"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5}) 
                 end
