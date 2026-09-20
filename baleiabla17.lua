@@ -7279,9 +7279,8 @@ local Library do
                     AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
                     Position = UDim2New(0, -16, 0.5, 0),
-                    Size = UDim2New(0, 55, 0, 0),
+                    Size = UDim2New(0, 55, 1, 0),
                     ZIndex = 2,
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(16, 18, 21)
                 })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
 
@@ -7295,8 +7294,7 @@ local Library do
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2New(1, 0, 1, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ScrollBarThickness = 0,
