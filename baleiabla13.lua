@@ -7278,8 +7278,8 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0.5),
                     BorderSizePixel = 0,
-                    Position = UDim2New(0, -8, 0.5, 0),
-                    Size = UDim2New(0, 45, 0, 0),
+                    Position = UDim2New(0, -16, 0.5, 0),
+                    Size = UDim2New(0, 55, 0, 0),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = FromRGB(16, 18, 21)
@@ -7308,18 +7308,18 @@ local Library do
                 Instances:Create("UIPadding", {
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
-                    PaddingTop = UDimNew(0, 8),
-                    PaddingBottom = UDimNew(0, 8),
-                    PaddingLeft = UDimNew(0, 6),
-                    PaddingRight = UDimNew(0, 6)
+                    PaddingTop = UDimNew(0, 12),
+                    PaddingBottom = UDimNew(0, 12),
+                    PaddingLeft = UDimNew(0, 8),
+                    PaddingRight = UDimNew(0, 8)
                 })
 
                 Instances:Create("UIListLayout", {
                     Parent = Items["Holder"].Instance,
                     Name = "\0",
-                    HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
                     FillDirection = Enum.FillDirection.Vertical,
-                    Padding = UDimNew(0, 5),
+                    Padding = UDimNew(0, 10),
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
 
@@ -7899,7 +7899,7 @@ local Library do
                     Text = "",
                     AutoButtonColor = false,
                     BackgroundTransparency = 1,
-                    Size = UDim2New(0, 32, 0, 32),
+                    Size = UDim2New(0, 38, 0, 38),
                     BorderSizePixel = 0,
                     ZIndex = 2,
                     TextSize = 14,
@@ -7917,11 +7917,11 @@ local Library do
                     Name = "\0",
                     ImageTransparency = 0.5,
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2New(0, 20, 0, 20),
-                    AnchorPoint = Vector2New(0, 0.5),
+                    Size = UDim2New(0, 24, 0, 24),
+                    AnchorPoint = Vector2New(0.5, 0.5),
                     Image = "rbxassetid://"..Page.Icon,
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0, 6, 0.5, 0),
+                    Position = UDim2New(0.5, 0, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -8032,7 +8032,7 @@ local Library do
                     })
                 end
 
-                Items["Inactive"].Instance.Size = UDim2New(0, 32, 0, 32)
+                Items["Inactive"].Instance.Size = UDim2New(0, 38, 0, 38)
             end
 
             local Debounce = false
@@ -8050,14 +8050,14 @@ local Library do
 
                 if Bool then
                     Items["Text"].Instance.Visible = false
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 32, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Accent, ImageTransparency = 0})
 
                     Library.CurrentPage = Page
                 else
                     Items["Text"].Instance.Visible = false 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 32, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Image"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5}) 
                 end
@@ -8256,14 +8256,14 @@ local Library do
 
                 if Bool then
                     Items["Text"].Instance.Visible = false
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 32, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Accent"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Accent, ImageTransparency = 0}) 
 
                     Library.CurrentPage = SubPage
                 else
                     Items["Text"].Instance.Visible = false 
-                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 32, 0, 32)})
+                    Items["Inactive"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(0, 38, 0, 38)})
                     Items["Icon"]:ChangeItemTheme({ImageColor3 = "Image"})
                     Items["Icon"]:Tween(nil, {ImageColor3 = Library.Theme.Image, ImageTransparency = 0.5}) 
                 end
