@@ -626,6 +626,14 @@ inst:Create("UIListLayout", {
     VerticalAlignment = Enum.VerticalAlignment.Top,
 })
 
+inst:Create("UIPadding", {
+    Parent = lib.NotifHolder.Instance,
+    Name = "\0",
+    PaddingTop    = udim(0, 15),
+    PaddingBottom = udim(0, 15),
+    PaddingRight  = udim(0, 15),
+})
+
 -- ─── UNLOAD ─────────────────────────────────────────────────────────────────
 
 lib.Unload = function(self)
