@@ -2516,7 +2516,11 @@ lib.Sections.Section = function(self, data)
             kd.Window    = sec.Window
             kd.Flag      = kd.Flag or kd.flag or lib:NextFlag()
             kd.IsToggle  = true
-            kd.Callback  = kd.Callback or kd.callback or function() obj:Set(not obj.Value) end
+            local userCb = kd.Callback or kd.callback
+            kd.Callback  = function(k)
+                obj:Set(not obj.Value)
+                if userCb then lib:SafeCall(userCb, k) end
+            end
             local kobj = comp.Keybind(kd)
             return kobj
         end
