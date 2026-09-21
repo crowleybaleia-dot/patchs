@@ -225,15 +225,18 @@ end
 lib.GetConfig = function(self)
     local cfg = {}
     for k, v in self.Flags do
+        if v == nil then continue end
         if type(v) == "table" and v.Key then
             cfg[k] = { Key = tostring(v.Key), Mode = v.Mode }
         elseif type(v) == "table" and v.Color then
             cfg[k] = { Color = "#" .. v.Color, Alpha = v.Alpha }
-        else
+        elseif type(v) == "boolean" or type(v) == "number" or type(v) == "string" then
             cfg[k] = v
         end
     end
-    return http:JSONEncode(cfg)
+    local ok, encoded = pcall(http.JSONEncode, http, cfg)
+    if not ok then return "{}" end
+    return encoded
 end
 
 lib.LoadConfig = function(self, raw)
@@ -255,15 +258,25 @@ end
 
 lib.SaveConfig = function(self, name)
     local path = self.Folders.Configs .. "/" .. name .. ".json"
-    writefile(path, self:GetConfig())
-    self:Notification({ Name = "Success", Description = "Config salvo: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+    local ok, err = pcall(writefile, path, self:GetConfig())
+    if ok then
+        self:Notification({ Name = "Success", Description = "Config salvo: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+    else
+        self:Notification({ Name = "Erro", Description = "Falha ao salvar: " .. tostring(err), Duration = 5, IconColor = rgb(255, 100, 100) })
+    end
 end
 
 lib.DeleteConfig = function(self, name)
     local path = self.Folders.Configs .. "/" .. name .. ".json"
     if isfile(path) then
-        delfile(path)
-        self:Notification({ Name = "Success", Description = "Config deletado: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+        local ok, err = pcall(delfile, path)
+        if ok then
+            self:Notification({ Name = "Success", Description = "Config deletado: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+        else
+            self:Notification({ Name = "Erro", Description = "Falha ao deletar: " .. tostring(err), Duration = 5, IconColor = rgb(255, 100, 100) })
+        end
+    else
+        self:Notification({ Name = "Erro", Description = "Config não encontrado: " .. name, Duration = 4, IconColor = rgb(255, 100, 100) })
     end
 end
 
