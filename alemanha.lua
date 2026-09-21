@@ -350,6 +350,27 @@ tw.GetProperty = function(self, inst)
     end
 end
 
+tw.Get = function(self)
+    if not self.Tween then return end
+    return self.Tween, self.Info, self.Goal
+end
+
+tw.Pause = function(self)
+    if not self.Tween then return end
+    self.Tween:Pause()
+end
+
+tw.Play = function(self)
+    if not self.Tween then return end
+    self.Tween:Play()
+end
+
+tw.Clean = function(self)
+    if not self.Tween then return end
+    self:Pause()
+    self = nil
+end
+
 tw.FadeItem = function(self, inst, prop, show, speed)
     local old = inst[prop]
     inst[prop] = show and 1 or old
@@ -3109,6 +3130,7 @@ lib.Window = function(self, data)
             Name = "\0",
             Image = "rbxassetid://" .. iconId,
             ImageColor3 = lib.Theme["Inactive Text"],
+            ImageTransparency = 0.5,
             ScaleType = Enum.ScaleType.Fit,
             AnchorPoint = vec2(0.5, 0.4),
             Position = udim2(0.5,0,0.4,0),
@@ -3118,6 +3140,7 @@ lib.Window = function(self, data)
             ZIndex = 4,
             BackgroundColor3 = rgb(255,255,255),
         })
+        icon:AddToTheme({ ImageColor3 = "Inactive Text" })
 
         local label = inst:Create("TextLabel", {
             Parent = btn.Instance,
@@ -3136,19 +3159,58 @@ lib.Window = function(self, data)
         })
         label:AddToTheme({ TextColor3 = "Inactive Text" })
 
-        ins(pageBtns, { Btn = btn, Icon = icon, Label = label, Page = page, Frame = frame })
+        -- indicador ativo (barra no topo do botão)
+        local indicator = inst:Create("Frame", {
+            Parent = btn.Instance,
+            Name = "\0",
+            AnchorPoint = vec2(0.5, 0),
+            Position = udim2(0.5, 0, 0, 0),
+            Size = udim2(0, 16, 0, 3),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ZIndex = 5,
+            BackgroundColor3 = lib.Theme.Accent,
+        })
+        indicator:AddToTheme({ BackgroundColor3 = "Accent" })
+        inst:Create("UICorner", { Parent = indicator.Instance, Name = "\0", CornerRadius = udim(1, 0) })
+
+        ins(pageBtns, { Btn = btn, Icon = icon, Label = label, Indicator = indicator, Page = page, Frame = frame })
+
+        local debounce = false
 
         local function activate(p)
             if currentPage == p then return end
+            if debounce then return end
+            debounce = true
 
-            -- desativa anterior
+            -- desativa anterior com fade out
             if currentPage then
                 for _, b in pageBtns do
                     if b.Page == currentPage then
-                        b.Frame.Instance.Visible = false
-                        b.Icon:Tween(nil, { ImageColor3 = lib.Theme["Inactive Text"] })
+                        local kids = b.Frame.Instance:GetDescendants()
+                        ins(kids, b.Frame.Instance)
+                        local last
+                        for _, v in kids do
+                            local props = tw:GetProperty(v)
+                            if not props then continue end
+                            for _, prop in props do
+                                last = tw:FadeItem(v, prop, false, win.FadeSpeed)
+                            end
+                        end
+                        if last then
+                            lib:Connect(last.Tween.Completed, function()
+                                b.Frame.Instance.Visible = false
+                                b.Frame.Instance.Parent = lib.UnusedHolder.Instance
+                            end)
+                        else
+                            b.Frame.Instance.Visible = false
+                            b.Frame.Instance.Parent = lib.UnusedHolder.Instance
+                        end
+                        b.Icon:ChangeItemTheme({ ImageColor3 = "Inactive Text" })
+                        b.Icon:Tween(nil, { ImageColor3 = lib.Theme["Inactive Text"], ImageTransparency = 0.5 })
                         b.Label:Tween(nil, { TextColor3 = lib.Theme["Inactive Text"] })
                         b.Btn:Tween(nil, { BackgroundTransparency = 1 })
+                        b.Indicator:Tween(nil, { BackgroundTransparency = 1 })
                         break
                     end
                 end
@@ -3157,10 +3219,34 @@ lib.Window = function(self, data)
             currentPage = p
             lib.CurrentPage = p
 
+            -- move para Content e faz fade in
+            frame.Instance.Parent = items.Content.Instance
             frame.Instance.Visible = true
-            icon:Tween(nil, { ImageColor3 = lib.Theme.Accent })
+
+            local kids = frame.Instance:GetDescendants()
+            ins(kids, frame.Instance)
+            local last
+            for _, v in kids do
+                local props = tw:GetProperty(v)
+                if not props then continue end
+                for _, prop in props do
+                    last = tw:FadeItem(v, prop, true, win.FadeSpeed)
+                end
+            end
+
+            if last then
+                lib:Connect(last.Tween.Completed, function()
+                    debounce = false
+                end)
+            else
+                debounce = false
+            end
+
+            icon:ChangeItemTheme({ ImageColor3 = "Accent" })
+            icon:Tween(nil, { ImageColor3 = lib.Theme.Accent, ImageTransparency = 0 })
             label:Tween(nil, { TextColor3 = lib.Theme.Accent })
             btn:Tween(nil, { BackgroundTransparency = 0 })
+            indicator:Tween(nil, { BackgroundTransparency = 0 })
         end
 
         btn:Connect("MouseButton1Down", function()
@@ -3169,12 +3255,12 @@ lib.Window = function(self, data)
 
         btn:OnHover(function()
             if currentPage ~= page then
-                icon:Tween(nil, { ImageColor3 = rgb(255,255,255) })
+                icon:Tween(nil, { ImageTransparency = 0 })
             end
         end)
         btn:OnHoverLeave(function()
             if currentPage ~= page then
-                icon:Tween(nil, { ImageColor3 = lib.Theme["Inactive Text"] })
+                icon:Tween(nil, { ImageTransparency = 0.5 })
             end
         end)
 
@@ -3185,6 +3271,7 @@ lib.Window = function(self, data)
 
         ins(win.Pages, page)
     end
+
 
     -- wrapper de page
     local winMeta = setmetatable(win, lib.Pages)
