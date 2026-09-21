@@ -517,7 +517,7 @@ inst.MakeResizeable = function(self, minS, maxS)
     lib:Connect(uis.InputChanged, function(input)
         if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
         if not resizing then return end
-        local rmax = maxS or gui.Parent.AbsoluteSize - gui.AbsoluteSize
+        local rmax = maxS or Vector2.new(math.max(gui.Parent.AbsoluteSize.X - gui.AbsoluteSize.X, minS.X), math.max(gui.Parent.AbsoluteSize.Y - gui.AbsoluteSize.Y, minS.Y))
         local d = start + udim2(0, input.Position.X, 0, input.Position.Y)
         d = udim2(0, clamp(d.X.Offset, minS.X, rmax.X), 0, clamp(d.Y.Offset, minS.Y, rmax.Y))
         tws:Create(gui, TweenInfo.new(0.17, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = d }):Play()
@@ -1454,7 +1454,7 @@ comp.Slider = function(data)
     local obj = { Value = value, Flag = flag, Min = min, Max = max, Decimals = decimals, Suffix = suffix, Callback = cb }
 
     function obj:Set(v)
-        self.Value = lib:Round(lib, clamp(v, min, max), decimals)
+        self.Value = lib:Round(clamp(v, min, max), decimals)
         lib.Flags[flag] = self.Value
         items.Fill:Tween(TweenInfo.new(0.21, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Size = udim2((self.Value - min) / (max - min), 0, 1, 0)
