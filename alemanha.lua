@@ -54,9 +54,9 @@ local lib = {
     Font        = Font.fromEnum(Enum.Font.GothamSemibold),
 
     Tween = {
-        Time      = 0.24,
-        Style     = Enum.EasingStyle.Exponential,
-        Direction = Enum.EasingDirection.InOut,
+        Time      = 0.3,
+        Style     = Enum.EasingStyle.Cubic,
+        Direction = Enum.EasingDirection.Out,
     },
 
     Theme = {
@@ -76,6 +76,7 @@ local lib = {
         Directory = "Alemanha",
         Assets    = "Alemanha/Assets",
         Configs   = "Alemanha/Configs",
+        Themes    = "Alemanha/Themes",
     },
 
     -- rbxassetids usados
@@ -255,11 +256,74 @@ lib.SaveConfig = function(self, name)
 end
 
 lib.DeleteConfig = function(self, name)
-    local path = self.Folders.Configs .. "/" .. name
+    local path = self.Folders.Configs .. "/" .. name .. ".json"
     if isfile(path) then
         delfile(path)
         self:Notification({ Name = "Success", Description = "Config deletado: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
     end
+end
+
+lib.RefreshConfigsList = function(self, element)
+    local list = {}
+    for _, v in listfiles(self.Folders.Configs) do
+        local name = v:gsub(self.Folders.Configs .. "\\", ""):gsub(self.Folders.Configs .. "/", "")
+        ins(list, name)
+    end
+    if element and element.Refresh then
+        element:Refresh(list)
+    end
+    return list
+end
+
+-- ─── THEME SYSTEM ────────────────────────────────────────────────────────────
+
+lib.GetTheme = function(self)
+    local cfg = {}
+    for k, v in self.Flags do
+        if type(v) == "table" and v.Color and find(k, "Theme") then
+            cfg[k] = { Color = "#" .. v.Color, Alpha = v.Alpha }
+        end
+    end
+    return http:JSONEncode(cfg)
+end
+
+lib.LoadTheme = function(self, raw)
+    local ok, decoded = pcall(http.JSONDecode, http, raw)
+    if not ok then return false, decoded end
+    for k, v in decoded do
+        local setter = self.SetFlags[k]
+        if not setter then continue end
+        if type(v) == "table" and v.Color and find(k, "Theme") then
+            setter(v.Color, v.Alpha)
+        end
+    end
+    return true
+end
+
+lib.SaveTheme = function(self, name)
+    local path = self.Folders.Themes .. "/" .. name .. ".json"
+    writefile(path, self:GetTheme())
+    self:Notification({ Name = "Success", Description = "Tema salvo: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+end
+
+lib.DeleteTheme = function(self, name)
+    local path = self.Folders.Themes .. "/" .. name .. ".json"
+    if isfile(path) then
+        delfile(path)
+        self:Notification({ Name = "Success", Description = "Tema deletado: " .. name, Duration = 4, IconColor = rgb(52, 255, 164) })
+    end
+end
+
+lib.RefreshThemesList = function(self, element)
+    local list = {}
+    for _, v in listfiles(self.Folders.Themes) do
+        local name = v:gsub(self.Folders.Themes .. "\\", ""):gsub(self.Folders.Themes .. "/", "")
+        ins(list, name)
+    end
+    if element and element.Refresh then
+        element:Refresh(list)
+    end
+    return list
 end
 
 -- ─── TWEEN SYSTEM ───────────────────────────────────────────────────────────
@@ -865,7 +929,7 @@ comp.Toggle = function(data)
         Parent = parent.Instance,
         Name = "\0",
         BackgroundTransparency = 1,
-        Size = udim2(1, 0, 0, 24),
+        Size = udim2(1, 0, 0, 20),
         BorderColor3 = rgb(0,0,0),
         ZIndex = 2,
         BorderSizePixel = 0,
@@ -3105,9 +3169,19 @@ lib.Init = function(self)
     if rawCfg ~= "" then
         local ok, err = self:LoadConfig(rawCfg)
         if ok then
-            self:Notification({ Name = "Success", Description = "Config carregado", Duration = 4, IconColor = rgb(52,255,164) })
+            self:Notification({ Name = "Success", Description = "Config carregado com sucesso", Duration = 5, Icon = "116339777575852", IconColor = rgb(52,255,164) })
         else
-            self:Notification({ Name = "Erro!", Description = "Falha ao carregar config:\n" .. tostring(err), Duration = 5, IconColor = rgb(255,100,100) })
+            self:Notification({ Name = "Erro!", Description = "Falha ao carregar config:\n" .. tostring(err), Duration = 5, Icon = "97118059177470", IconColor = rgb(255,120,120) })
+        end
+    end
+
+    local rawTheme = readfile(themePath)
+    if rawTheme ~= "" then
+        local ok, err = self:LoadTheme(rawTheme)
+        if ok then
+            self:Notification({ Name = "Success", Description = "Tema carregado com sucesso", Duration = 5, Icon = "116339777575852", IconColor = rgb(52,255,164) })
+        else
+            self:Notification({ Name = "Erro!", Description = "Falha ao carregar tema:\n" .. tostring(err), Duration = 5, Icon = "97118059177470", IconColor = rgb(255,120,120) })
         end
     end
 end
