@@ -2798,7 +2798,6 @@ lib.Window = function(self, data)
     items.Bottombar = inst:Create("Frame", {
         Parent = items.MainFrame.Instance,
         Name = "\0",
-        AnchorPoint = vec2(0,1),
         Position = udim2(0,0,1,-46),
         Size = udim2(1,0,0,46),
         BorderSizePixel = 0,
