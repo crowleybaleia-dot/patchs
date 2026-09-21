@@ -914,19 +914,32 @@ comp.Toggle = function(data)
         SortOrder = Enum.SortOrder.LayoutOrder,
     })
 
-    -- checkbox
-    items.Check = inst:Create("TextButton", {
+    -- indicator (outer box)
+    items.Indicator = inst:Create("Frame", {
         Parent = items.SubElements.Instance,
+        Name = "\0",
+        AnchorPoint = vec2(1, 0.5),
+        Size = udim2(0, 20, 0, 20),
+        ZIndex = 2,
+        BorderSizePixel = 0,
+        BackgroundColor3 = lib.Theme.Element,
+    })
+    items.Indicator:AddToTheme({ BackgroundColor3 = "Element" })
+    inst:Create("UICorner", { Parent = items.Indicator.Instance, Name = "\0", CornerRadius = udim(0, 4) })
+
+    -- inline (inner fill)
+    items.Check = inst:Create("TextButton", {
+        Parent = items.Indicator.Instance,
         Name = "\0",
         Text = "",
         AutoButtonColor = false,
-        Size = udim2(0, 18, 0, 18),
+        Size = udim2(1, -4, 1, -4),
+        Position = udim2(0, 2, 0, 2),
         ZIndex = 2,
         BorderSizePixel = 0,
         BackgroundColor3 = lib.Theme.Element,
     })
     items.Check:AddToTheme({ BackgroundColor3 = "Element" })
-
     inst:Create("UICorner", { Parent = items.Check.Instance, Name = "\0", CornerRadius = udim(0, 4) })
     inst:Create("UIGradient", {
         Parent = items.Check.Instance, Name = "\0",
@@ -944,7 +957,7 @@ comp.Toggle = function(data)
         ImageTransparency = value and 0 or 1,
         AnchorPoint = vec2(0.5, 0.5),
         Position = udim2(0.5, 0, 0.5, 0),
-        Size = udim2(0, 13, 0, 13),
+        Size = udim2(1, -2, 1, -2),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ZIndex = 3,
@@ -955,10 +968,16 @@ comp.Toggle = function(data)
 
     local function refresh()
         if obj.Value then
+            items.Indicator:ChangeItemTheme({ BackgroundColor3 = "Accent" })
+            items.Check:ChangeItemTheme({ BackgroundColor3 = "Accent" })
+            items.Indicator:Tween(nil, { BackgroundColor3 = lib.Theme.Accent })
             items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Accent })
             items.CheckIcon:Tween(nil, { ImageTransparency = 0 })
             items.Label:Tween(nil, { TextTransparency = 0 })
         else
+            items.Indicator:ChangeItemTheme({ BackgroundColor3 = "Element" })
+            items.Check:ChangeItemTheme({ BackgroundColor3 = "Element" })
+            items.Indicator:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
             items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
             items.CheckIcon:Tween(nil, { ImageTransparency = 1 })
             items.Label:Tween(nil, { TextTransparency = 0.4 })
@@ -980,22 +999,23 @@ comp.Toggle = function(data)
         obj:Set(not obj.Value)
     end)
 
-    -- click no label também ativa
+    -- click no row inteiro também ativa
     lib:Connect(items.Toggle.Instance.InputBegan, function(input)
         if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if lib:IsMouseOver(items.Check) then return end
         obj:Set(not obj.Value)
     end)
 
-    items.Check:OnHover(function()
-        if not obj.Value then
-            items.Check:Tween(nil, { BackgroundColor3 = lib:GetLighterColor(lib.Theme.Element, 1.45) })
-        end
+    -- hover no frame inteiro (igual kiwisense)
+    items.Toggle:OnHover(function()
+        if obj.Value then return end
+        items.Indicator:Tween(nil, { BackgroundColor3 = lib:GetLighterColor(lib.Theme.Element, 1.45) })
+        items.Check:Tween(nil, { BackgroundColor3 = lib:GetLighterColor(lib.Theme.Element, 1.45) })
     end)
-    items.Check:OnHoverLeave(function()
-        if not obj.Value then
-            items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
-        end
+    items.Toggle:OnHoverLeave(function()
+        if obj.Value then return end
+        items.Indicator:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
+        items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
     end)
 
     lib.Flags[flag] = default
