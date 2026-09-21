@@ -283,7 +283,7 @@ end
 lib.RefreshConfigsList = function(self, element)
     local list = {}
     for _, v in listfiles(self.Folders.Configs) do
-        local name = v:gsub(self.Folders.Configs .. "\\", ""):gsub(self.Folders.Configs .. "/", "")
+        local name = v:match("[^\\/]+$") or v
         ins(list, name)
     end
     if element and element.Refresh then
@@ -334,7 +334,7 @@ end
 lib.RefreshThemesList = function(self, element)
     local list = {}
     for _, v in listfiles(self.Folders.Themes) do
-        local name = v:gsub(self.Folders.Themes .. "\\", ""):gsub(self.Folders.Themes .. "/", "")
+        local name = v:match("[^\\/]+$") or v
         ins(list, name)
     end
     if element and element.Refresh then
