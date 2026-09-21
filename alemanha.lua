@@ -122,7 +122,7 @@ end
 
 -- ─── HELPERS ────────────────────────────────────────────────────────────────
 
-lib.Round = function(self, n, dec)
+lib.Round = function(n, dec)
     dec = dec or 1
     local m = 10 ^ dec
     return floor(n * m + 0.5) / m
@@ -373,10 +373,16 @@ end
 
 tw.FadeItem = function(self, inst, prop, show, speed)
     local old = inst[prop]
-    inst[prop] = show and 1 or old
-    local t = tw:Create(inst, TweenInfo.new(speed or lib.Tween.Time, lib.Tween.Style, lib.Tween.Direction), { [prop] = show and old or 1 }, true)
+    -- fade in: seta invisível antes de tweenear pra valor original
+    -- fade out: tweenea do valor atual pra 1 (invisível)
+    if show then inst[prop] = 1 end
+    local goal = show and old or 1
+    local t = tw:Create(inst, TweenInfo.new(speed or lib.Tween.Time, lib.Tween.Style, lib.Tween.Direction), { [prop] = goal }, true)
     lib:Connect(t.Tween.Completed, function()
-        if not show then task.wait(); inst[prop] = old end
+        if not show then
+            task.wait()
+            inst[prop] = old
+        end
     end)
     return t
 end
@@ -602,7 +608,7 @@ inst.MakeResizeable = function(self, minS, maxS)
     lib:Connect(uis.InputChanged, function(input)
         if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
         if not resizing then return end
-        local rmax = maxS or Vector2.new(math.max(gui.Parent.AbsoluteSize.X - gui.AbsoluteSize.X, minS.X), math.max(gui.Parent.AbsoluteSize.Y - gui.AbsoluteSize.Y, minS.Y))
+        local rmax = maxS or gui.Parent.AbsoluteSize
         local d = start + udim2(0, input.Position.X, 0, input.Position.Y)
         d = udim2(0, clamp(d.X.Offset, minS.X, rmax.X), 0, clamp(d.Y.Offset, minS.Y, rmax.Y))
         tws:Create(gui, TweenInfo.new(0.17, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = d }):Play()
@@ -1092,10 +1098,10 @@ comp.Toggle = function(data)
         obj:Set(not obj.Value)
     end)
 
-    -- click no row inteiro também ativa
+    -- click no row inteiro também ativa, mas ignora cliques nos sub-elements
     lib:Connect(items.Toggle.Instance.InputBegan, function(input)
         if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if lib:IsMouseOver(items.Check) then return end
+        if lib:IsMouseOver(items.SubElements) then return end
         obj:Set(not obj.Value)
     end)
 
@@ -1197,6 +1203,7 @@ comp.Keybind = function(data)
             BackgroundColor3 = rgb(255,255,255),
         })
         items.Label:AddToTheme({ TextColor3 = "Inactive Text" })
+        items.Label.Instance.Parent = items.Row.Instance
     end
 
     local obj = { Value = value, Flag = flag, Mode = mode, Callback = cb }
@@ -1605,7 +1612,7 @@ comp.Slider = function(data)
     local obj = { Value = value, Flag = flag, Min = min, Max = max, Decimals = decimals, Suffix = suffix, Callback = cb }
 
     function obj:Set(v)
-        self.Value = lib:Round(clamp(v, min, max), decimals)
+        self.Value = lib.Round(clamp(v, min, max), decimals)
         lib.Flags[flag] = self.Value
         items.Fill:Tween(TweenInfo.new(0.21, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Size = udim2((self.Value - min) / (max - min), 0, 1, 0)
@@ -2126,12 +2133,14 @@ comp.Button = function(data)
     local obj = { Callback = cb }
 
     function obj:Press()
-        items.Button:ChangeItemTheme({ BackgroundColor3 = "Accent" })
-        items.Button:Tween(nil, { BackgroundColor3 = lib.Theme.Accent })
-        task.wait(0.1)
-        lib:SafeCall(cb)
-        items.Button:ChangeItemTheme({ BackgroundColor3 = "Element" })
-        items.Button:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
+        task.spawn(function()
+            items.Button:ChangeItemTheme({ BackgroundColor3 = "Accent" })
+            items.Button:Tween(nil, { BackgroundColor3 = lib.Theme.Accent })
+            task.wait(0.1)
+            lib:SafeCall(cb)
+            items.Button:ChangeItemTheme({ BackgroundColor3 = "Element" })
+            items.Button:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
+        end)
     end
 
     function obj:SetVisibility(bool) items.Button.Instance.Visible = bool end
@@ -2600,7 +2609,7 @@ lib.Pages.Page = function(self, data)
     local items = {}
 
     items.Page = inst:Create("Frame", {
-        Parent = self.Items.Content.Instance,
+        Parent = lib.UnusedHolder.Instance,
         Name = "\0",
         BackgroundTransparency = 1,
         Size = udim2(1,0,1,0),
@@ -2939,6 +2948,7 @@ lib.Window = function(self, data)
         Position = udim2(0,8,0,83),
         Size = udim2(1,-16,1,-130),
         BackgroundTransparency = 1,
+        ClipsDescendants = true,
         BorderSizePixel = 0,
         ZIndex = 2,
         BackgroundColor3 = rgb(255,255,255),
