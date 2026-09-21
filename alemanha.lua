@@ -2641,7 +2641,7 @@ lib.Window = function(self, data)
         Name       = data.Name or data.name or "Alemanha",
         Version    = data.Version or data.version or "v1.0",
         Logo       = data.Logo or data.logo or "9080568477801",
-        Size       = data.Size or data.size or udim2(0, 659, 0, 460),
+        Size       = data.Size or data.size or udim2(0, 659, 0, 511),
         FadeSpeed  = data.FadeSpeed or data.fadespeed or 0.24,
         IsOpen     = true,
         Pages      = {},
@@ -2671,6 +2671,24 @@ lib.Window = function(self, data)
         Color = lib.Theme.Border, Transparency = 0.4,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     }):AddToTheme({ Color = "Border" })
+
+    inst:Create("ImageLabel", {
+        Parent = items.MainFrame.Instance,
+        Name = "\0",
+        ImageColor3 = lib.Theme.Shadow,
+        ScaleType = Enum.ScaleType.Slice,
+        ImageTransparency = 0.9,
+        BorderColor3 = rgb(0, 0, 0),
+        Size = udim2(1, 25, 1, 25),
+        AnchorPoint = vec2(0.5, 0.5),
+        Image = "http://www.roblox.com/asset/?id=18245826428",
+        BackgroundTransparency = 1,
+        Position = udim2(0.5, 0, 0.5, 0),
+        BackgroundColor3 = rgb(255, 255, 255),
+        BorderSizePixel = 0,
+        SliceCenter = Rect.new(Vector2.new(21, 21), Vector2.new(79, 79)),
+        ZIndex = 1,
+    }):AddToTheme({ ImageColor3 = "Shadow" })
 
     items.MainFrame:MakeDraggable()
     items.MainFrame:MakeResizeable(vec2(400, 300), nil)
@@ -2702,7 +2720,7 @@ lib.Window = function(self, data)
         Parent = items.Topbar.Instance,
         Name = "\0",
         AnchorPoint = vec2(0,1),
-        BackgroundTransparency = 0.4,
+        BackgroundTransparency = 0.7,
         Position = udim2(0,0,1,0),
         Size = udim2(1,0,0,1),
         ZIndex = 3,
@@ -2745,28 +2763,47 @@ lib.Window = function(self, data)
     })
     items.Title:AddToTheme({ TextColor3 = "Text" })
 
+    -- version badge (pill estilo kiwisense, filho do Title)
+    items.VersionBadge = inst:Create("Frame", {
+        Parent = items.Title.Instance,
+        Name = "\0",
+        Size = udim2(0, 0, 0, 15),
+        Position = udim2(1, 5, 0, 1),
+        AutomaticSize = Enum.AutomaticSize.X,
+        BorderSizePixel = 0,
+        ZIndex = 3,
+        BackgroundColor3 = lib.Theme.Background,
+    })
+    items.VersionBadge:AddToTheme({ BackgroundColor3 = "Background" })
+    inst:Create("UICorner", { Parent = items.VersionBadge.Instance, Name = "\0", CornerRadius = udim(0, 5) })
+    inst:Create("UIStroke", {
+        Parent = items.VersionBadge.Instance, Name = "\0",
+        Color = lib.Theme.Border, Transparency = 0.4,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    }):AddToTheme({ Color = "Border" })
+    inst:Create("UIPadding", {
+        Parent = items.VersionBadge.Instance, Name = "\0",
+        PaddingLeft = udim(0, 6), PaddingRight = udim(0, 5),
+    })
+
     items.Version = inst:Create("TextLabel", {
-        Parent = items.Topbar.Instance,
+        Parent = items.VersionBadge.Instance,
         Name = "\0",
         FontFace = lib.Font,
         Text = win.Version,
-        TextSize = 14,
-        TextColor3 = rgb(185,185,185),
-        AnchorPoint = vec2(0, 0.5),
-        Position = udim2(0,0,0.5,0),
+        TextSize = 12,
+        TextTransparency = 0.7,
+        TextColor3 = rgb(255,255,255),
         AutomaticSize = Enum.AutomaticSize.X,
-        Size = udim2(0,0,0,15),
+        Size = udim2(0, 0, 0, 15),
+        Position = udim2(0, -2, 0, 0),
         BackgroundTransparency = 1,
-        ZIndex = 3,
+        TextXAlignment = Enum.TextXAlignment.Left,
         BorderSizePixel = 0,
+        ZIndex = 3,
         BackgroundColor3 = rgb(255,255,255),
     })
-    items.Version:AddToTheme({ TextColor3 = "Inactive Text" })
-
-    -- posiciona version após title (feito via AbsoluteSize)
-    lib:Connect(items.Title.Instance:GetPropertyChangedSignal("AbsoluteSize"), function()
-        items.Version.Instance.Position = udim2(0, 34 + items.Title.Instance.AbsoluteSize.X + 6, 0.5, 0)
-    end)
+    items.Version:AddToTheme({ TextColor3 = "Text" })
 
     -- close / minimize
     items.CloseButton = inst:Create("ImageButton", {
