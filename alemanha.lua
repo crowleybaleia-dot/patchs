@@ -79,16 +79,20 @@ local lib = {
         Themes    = "Alemanha/Themes",
     },
 
-    -- rbxassetids usados
+    -- rbxassetids usados (exatos da kiwisense)
     Icons = {
-        Check   = "rbxassetid://116339777575852",
-        Grid    = "rbxassetid://114252321536924",
-        Close   = "rbxassetid://76001605964586",
-        Save    = "rbxassetid://9080568477801",
-        Palette = "rbxassetid://9080568477801",
-        Settings= "rbxassetid://9080568477801",
-        Resize  = "rbxassetid://7368471234",
-        Mouse   = "rbxassetid://136489814131946",
+        Check    = "rbxassetid://116339777575852",  -- checkmark dropdown
+        Grid     = "rbxassetid://114252321536924",   -- grid/arrow dropdown
+        Close    = "rbxassetid://76001605964586",    -- X fechar janela
+        Minimize = "rbxassetid://94817928404736",    -- minimizar
+        UnMin    = "rbxassetid://77419631183448",    -- restaurar
+        Search   = "rbxassetid://71924825350727",    -- lupa search
+        Resize   = "rbxassetid://7368471234",        -- resize corner
+        Mouse    = "rbxassetid://136489814131946",   -- cursor customizado
+        -- bottombar
+        Save     = "rbxassetid://116339777575852",   -- save configs (check icon)
+        Palette  = "rbxassetid://9126796571",        -- theme/palette
+        Settings = "rbxassetid://9080568477801",     -- settings gear
     },
 }
 
@@ -2856,11 +2860,11 @@ lib.Window = function(self, data)
     items.MinimizeButton = inst:Create("ImageButton", {
         Parent = items.Topbar.Instance,
         Name = "\0",
-        Image = "rbxassetid://7072706663",
+        Image = lib.Icons.Minimize,
         ImageColor3 = lib.Theme.Image,
         ScaleType = Enum.ScaleType.Fit,
         AnchorPoint = vec2(1, 0.5),
-        Position = udim2(1,-28,0.5,0),
+        Position = udim2(1,-28,0.5,-5),
         Size = udim2(0,17,0,17),
         AutoButtonColor = false,
         BackgroundTransparency = 1,
@@ -2873,7 +2877,7 @@ lib.Window = function(self, data)
     items.UnMinimizeButton = inst:Create("ImageButton", {
         Parent = items.Topbar.Instance,
         Name = "\0",
-        Image = lib.Icons.Close,
+        Image = lib.Icons.UnMin,
         ImageColor3 = lib.Theme.Image,
         ScaleType = Enum.ScaleType.Fit,
         AnchorPoint = vec2(1, 0.5),
@@ -2910,16 +2914,17 @@ lib.Window = function(self, data)
         Parent = items.SearchFrame.Instance,
         Name = "\0",
         ImageColor3 = lib.Theme["Inactive Text"],
-        Image = "rbxassetid://9126796571",
+        ImageTransparency = 0.5,
+        Image = lib.Icons.Search,
         AnchorPoint = vec2(0, 0.5),
         Position = udim2(0,8,0.5,0),
-        Size = udim2(0,16,0,16),
+        Size = udim2(0,20,0,20),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ZIndex = 3,
         BackgroundColor3 = rgb(255,255,255),
     })
-    searchIcon:AddToTheme({ ImageColor3 = "Inactive Text" })
+    searchIcon:AddToTheme({ ImageColor3 = "Image" })
 
     items.Input = inst:Create("TextBox", {
         Parent = items.SearchFrame.Instance,
@@ -3296,6 +3301,247 @@ lib.Window = function(self, data)
     function winMeta:SetText(t) items.Title.Instance.Text = t end
 
     return winMeta
+end
+
+-- ─── SETTINGS PAGE ──────────────────────────────────────────────────────────
+-- Cria a aba de settings padrão numa window existente.
+-- Uso: lib:Settings(window)
+-- Retorna o objeto da page para quem quiser estender.
+
+lib.Settings = function(self, win)
+    -- Page de settings — ícone de gear
+    local settingsPage = win:Page({
+        Name = "Settings",
+        Icon = "9080568477801",
+    })
+
+    -- ── Col 1: Menu ─────────────────────────────────────────────────────────
+
+    local menuSec = settingsPage:Section({
+        Name = "menu",
+        Icon = "9080568477801",
+        Side = 1,
+    })
+
+    -- Menu keybind
+    local kbTog = menuSec:Label({ Name = "menu keybind" })
+    local menuKb = kbTog:Keybind({
+        Name  = "menu keybind",
+        Flag  = "MenuKeybind",
+        Default = Enum.KeyCode.RightShift,
+        Mode  = "Toggle",
+        Callback = function(key)
+            lib.MenuKeybind = tostring(key)
+        end,
+    })
+
+    -- Toggles de overlay
+    menuSec:Toggle({
+        Name    = "keybind list",
+        Flag    = "ShowKeybindList",
+        Default = false,
+        Callback = function(v)
+            if lib._keybindsListFrame then
+                lib._keybindsListFrame.Frame.Instance.Visible = v
+            end
+        end,
+    })
+
+    menuSec:Toggle({
+        Name    = "watermark",
+        Flag    = "ShowWatermark",
+        Default = false,
+        Callback = function(v)
+            if lib._watermarkFrame then
+                lib._watermarkFrame.Frame.Instance.Visible = v
+            end
+        end,
+    })
+
+    menuSec:Button({
+        Name = "unload",
+        Callback = function()
+            win:SetOpen(false)
+            task.wait(0.15)
+            lib:Unload()
+        end,
+    })
+
+    -- ── Col 1: Tweening ─────────────────────────────────────────────────────
+
+    local tweenSec = settingsPage:Section({
+        Name = "tweening",
+        Icon = "9080568477801",
+        Side = 1,
+    })
+
+    tweenSec:Slider({
+        Name     = "time",
+        Min      = 0,
+        Max      = 1,
+        Default  = lib.Tween.Time,
+        Decimals = 2,
+        Flag     = "TweenTime",
+        Callback = function(v)
+            lib.Tween.Time = v
+        end,
+    })
+
+    tweenSec:Dropdown({
+        Name    = "style",
+        Items   = { "Linear", "Sine", "Bounce", "Elastic", "Exponential", "Circular", "Cubic", "Quart", "Quint", "Back" },
+        Default = "Exponential",
+        Flag    = "TweenStyle",
+        Callback = function(v)
+            lib.Tween.Style = Enum.EasingStyle[v]
+        end,
+    })
+
+    tweenSec:Dropdown({
+        Name    = "direction",
+        Items   = { "In", "Out", "InOut" },
+        Default = "Out",
+        Flag    = "TweenDirection",
+        Callback = function(v)
+            lib.Tween.Direction = Enum.EasingDirection[v]
+        end,
+    })
+
+    -- ── Col 2: Profiles (Configs) ────────────────────────────────────────────
+
+    local cfgSec = settingsPage:Section({
+        Name = "profiles",
+        Icon = "116339777575852",
+        Side = 2,
+    })
+
+    -- dropdown de configs existentes
+    local cfgDropdown = cfgSec:Dropdown({
+        Name  = "configs",
+        Items = lib:RefreshConfigsList(),
+        Flag  = "SelectedConfig",
+        Callback = function() end,
+    })
+
+    cfgSec:Textbox({
+        Name        = "config name",
+        Placeholder = "enter text",
+        Flag        = "ConfigName",
+        Callback    = function() end,
+    })
+
+    cfgSec:Button({
+        Name = "create",
+        Callback = function()
+            local name = lib.Flags["ConfigName"]
+            if not name or name == "" then
+                lib:Notification({ Name = "Erro", Description = "Nome vazio", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            writefile(lib.Folders.Configs .. "/" .. name .. ".json", lib:GetConfig())
+            lib:Notification({ Name = "Success", Description = "Config criado: " .. name, Duration = 4, IconColor = rgb(52,255,164) })
+            lib:RefreshConfigsList(cfgDropdown)
+        end,
+    })
+
+    cfgSec:Button({
+        Name = "delete",
+        Callback = function()
+            local sel = lib.Flags["SelectedConfig"]
+            if not sel then
+                lib:Notification({ Name = "Erro", Description = "Nenhum config selecionado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            lib:DeleteConfig(sel:gsub("%.json$", ""))
+            lib:RefreshConfigsList(cfgDropdown)
+        end,
+    })
+
+    cfgSec:Button({
+        Name = "load",
+        Callback = function()
+            local sel = lib.Flags["SelectedConfig"]
+            if not sel then
+                lib:Notification({ Name = "Erro", Description = "Nenhum config selecionado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            local path = lib.Folders.Configs .. "/" .. sel
+            if not isfile(path) then
+                lib:Notification({ Name = "Erro", Description = "Arquivo não encontrado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            local ok, err = lib:LoadConfig(readfile(path))
+            if ok then
+                lib:Notification({ Name = "Success", Description = "Config carregado", Duration = 4, IconColor = rgb(52,255,164) })
+            else
+                lib:Notification({ Name = "Erro", Description = tostring(err), Duration = 5, IconColor = rgb(255,100,100) })
+            end
+        end,
+    })
+
+    cfgSec:Button({
+        Name = "save",
+        Callback = function()
+            local sel = lib.Flags["SelectedConfig"]
+            if not sel then
+                lib:Notification({ Name = "Erro", Description = "Nenhum config selecionado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            writefile(lib.Folders.Configs .. "/" .. sel, lib:GetConfig())
+            lib:Notification({ Name = "Success", Description = "Config salvo: " .. sel, Duration = 4, IconColor = rgb(52,255,164) })
+        end,
+    })
+
+    cfgSec:Button({
+        Name = "refresh list",
+        Callback = function()
+            lib:RefreshConfigsList(cfgDropdown)
+        end,
+    })
+
+    -- ── Col 2: Autoload ──────────────────────────────────────────────────────
+
+    local autoSec = settingsPage:Section({
+        Name = "autoload",
+        Icon = "9080568477801",
+        Side = 2,
+    })
+
+    autoSec:Button({
+        Name = "set selected config as autoload",
+        Callback = function()
+            local sel = lib.Flags["SelectedConfig"]
+            if not sel then
+                lib:Notification({ Name = "Erro", Description = "Nenhum config selecionado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            local path = lib.Folders.Configs .. "/" .. sel
+            if not isfile(path) then
+                lib:Notification({ Name = "Erro", Description = "Config não encontrado", Duration = 3, IconColor = rgb(255,100,100) })
+                return
+            end
+            writefile(lib.Folders.Directory .. "/AutoLoadConfig (do not modify this).json", sel)
+            lib:Notification({ Name = "Success", Description = "Autoload definido: " .. sel, Duration = 4, IconColor = rgb(52,255,164) })
+        end,
+    })
+
+    autoSec:Button({
+        Name = "set current config as autoload",
+        Callback = function()
+            writefile(lib.Folders.Directory .. "/AutoLoadConfig (do not modify this).json", lib:GetConfig())
+            lib:Notification({ Name = "Success", Description = "Autoload definido com config atual", Duration = 4, IconColor = rgb(52,255,164) })
+        end,
+    })
+
+    autoSec:Button({
+        Name = "remove autoload config",
+        Callback = function()
+            writefile(lib.Folders.Directory .. "/AutoLoadConfig (do not modify this).json", "")
+            lib:Notification({ Name = "Success", Description = "Autoload removido", Duration = 4, IconColor = rgb(52,255,164) })
+        end,
+    })
+
+    return settingsPage
 end
 
 -- ─── INIT ───────────────────────────────────────────────────────────────────
