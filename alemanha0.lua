@@ -150,7 +150,7 @@ lib.Connect = function(self, evt, cb, name)
     name = name or fmt("conn_%d", self.UnnamedConnections + 1)
     self.UnnamedConnections += 1
     local conn = { Event = evt, Callback = cb, Name = name, Connection = nil }
-    self:Thread(function() conn.Connection = evt:Connect(cb) end)
+    conn.Connection = evt:Connect(cb)
     ins(self.Connections, conn)
     return conn
 end
@@ -659,22 +659,22 @@ lib.Notification = function(self, data)
     })
     items.Desc:AddToTheme({ TextColor3 = "Inactive Text" })
 
-    -- animate in
-    local oldSize = items.Notif.Instance.AbsoluteSize
-    items.Notif.Instance.BackgroundTransparency = 1
-    items.Notif.Instance.Size = udim2(0,0,0,0)
-
-    for _, v in items.Notif.Instance:GetDescendants() do
-        if v:IsA("UIStroke") then v.Transparency = 1
-        elseif v:IsA("TextLabel") then v.TextTransparency = 1
-        elseif v:IsA("ImageLabel") then v.ImageTransparency = 1
-        elseif v:IsA("Frame") then v.BackgroundTransparency = 1 end
-    end
-
-    task.wait(0.2)
-    items.Notif.Instance.AutomaticSize = Enum.AutomaticSize.None
-
+    -- animate in — espera 1 frame pro Roblox calcular AbsoluteSize antes de esconder
     lib:Thread(function()
+        task.wait()
+        local oldSize = items.Notif.Instance.AbsoluteSize
+
+        items.Notif.Instance.BackgroundTransparency = 1
+        items.Notif.Instance.AutomaticSize = Enum.AutomaticSize.None
+        items.Notif.Instance.Size = udim2(0, oldSize.X, 0, 0)
+
+        for _, v in items.Notif.Instance:GetDescendants() do
+            if v:IsA("UIStroke") then v.Transparency = 1
+            elseif v:IsA("TextLabel") then v.TextTransparency = 1
+            elseif v:IsA("ImageLabel") then v.ImageTransparency = 1
+            elseif v:IsA("Frame") then v.BackgroundTransparency = 1 end
+        end
+
         items.Notif:Tween(nil, { BackgroundTransparency = 0, Size = udim2(0, oldSize.X, 0, oldSize.Y) })
         task.wait(0.06)
         for _, v in items.Notif.Instance:GetDescendants() do
@@ -692,7 +692,7 @@ lib.Notification = function(self, data)
                 elseif v:IsA("Frame") then tw:Create(v, nil, { BackgroundTransparency = 1 }, true) end
             end
             task.wait(0.06)
-            items.Notif:Tween(nil, { BackgroundTransparency = 1, Size = udim2(0,0,0,0) })
+            items.Notif:Tween(nil, { BackgroundTransparency = 1, Size = udim2(0, oldSize.X, 0, 0) })
             task.wait(0.5)
             items.Notif:Clean()
         end)
@@ -957,9 +957,11 @@ comp.Toggle = function(data)
         if obj.Value then
             items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Accent })
             items.CheckIcon:Tween(nil, { ImageTransparency = 0 })
+            items.Label:Tween(nil, { TextTransparency = 0 })
         else
             items.Check:Tween(nil, { BackgroundColor3 = lib.Theme.Element })
             items.CheckIcon:Tween(nil, { ImageTransparency = 1 })
+            items.Label:Tween(nil, { TextTransparency = 0.4 })
         end
     end
 
@@ -975,6 +977,13 @@ comp.Toggle = function(data)
     function obj:SetVisibility(bool) items.Toggle.Instance.Visible = bool end
 
     items.Check:Connect("MouseButton1Down", function()
+        obj:Set(not obj.Value)
+    end)
+
+    -- click no label também ativa
+    lib:Connect(items.Toggle.Instance.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if lib:IsMouseOver(items.Check) then return end
         obj:Set(not obj.Value)
     end)
 
@@ -1012,22 +1021,21 @@ comp.Keybind = function(data)
     local listening = false
 
     -- label do keybind (texto da tecla)
-    items.Label = inst:Create("TextButton", {
-        Parent = parent.Instance,
-        Name = "\0",
-        FontFace = lib.Font,
-        AutoButtonColor = false,
-        Text = getKeyName(default),
-        TextSize = 14,
-        ZIndex = 2,
-        Size = udim2(0, 0, 0, 15),
-        AutomaticSize = Enum.AutomaticSize.X,
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        BackgroundColor3 = rgb(255,255,255),
-    })
-
     if isToggle then
+        items.Label = inst:Create("TextButton", {
+            Parent = parent.Instance,
+            Name = "\0",
+            FontFace = lib.Font,
+            AutoButtonColor = false,
+            Text = getKeyName(default),
+            TextSize = 14,
+            ZIndex = 2,
+            Size = udim2(0, 0, 0, 15),
+            AutomaticSize = Enum.AutomaticSize.X,
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            BackgroundColor3 = rgb(255,255,255),
+        })
         items.Label:AddToTheme({ TextColor3 = "Inactive Text" })
     else
         -- standalone: row com label esquerda + keybind direita
@@ -1059,9 +1067,22 @@ comp.Keybind = function(data)
         })
         nameLabel:AddToTheme({ TextColor3 = "Text" })
 
-        items.Label.Instance.Parent = items.Row.Instance
-        items.Label.Instance.AnchorPoint = vec2(1, 0.5)
-        items.Label.Instance.Position = udim2(1, 0, 0.5, 0)
+        items.Label = inst:Create("TextButton", {
+            Parent = items.Row.Instance,
+            Name = "\0",
+            FontFace = lib.Font,
+            AutoButtonColor = false,
+            Text = getKeyName(default),
+            TextSize = 14,
+            ZIndex = 2,
+            Size = udim2(0, 0, 0, 15),
+            AutomaticSize = Enum.AutomaticSize.X,
+            AnchorPoint = vec2(1, 0.5),
+            Position = udim2(1, 0, 0.5, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            BackgroundColor3 = rgb(255,255,255),
+        })
         items.Label:AddToTheme({ TextColor3 = "Inactive Text" })
     end
 
@@ -1166,11 +1187,10 @@ comp.Colorpicker = function(data)
         Image = "rbxassetid://698052001",
         Position = udim2(0, 8, 0, 8),
         Size = udim2(1, -16, 0, 130),
-        BackgroundColor3 = lib.Theme.Accent,
+        BackgroundColor3 = hsv(h, 1, 1),
         BorderSizePixel = 0,
         ZIndex = 21,
     })
-    palette:AddToTheme({ BackgroundColor3 = "Accent" })
     inst:Create("UICorner", { Parent = palette.Instance, Name = "\0", CornerRadius = udim(0, 4) })
 
     -- hue slider
@@ -1199,6 +1219,24 @@ comp.Colorpicker = function(data)
         Parent = alphaSlider.Instance, Name = "\0",
         Color = rgbseq{ rgbkey(0, rgb(255,255,255)), rgbkey(1, rgb(0,0,0)) },
     })
+
+    -- alpha drag
+    local alphaDragging = false
+    lib:Connect(alphaSlider.Instance.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        alphaDragging = true
+        alph = clamp((input.Position.X - alphaSlider.Instance.AbsolutePosition.X) / alphaSlider.Instance.AbsoluteSize.X, 0, 1)
+        buildColor()
+    end)
+    lib:Connect(uis.InputChanged, function(input)
+        if not alphaDragging then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+        alph = clamp((input.Position.X - alphaSlider.Instance.AbsolutePosition.X) / alphaSlider.Instance.AbsoluteSize.X, 0, 1)
+        buildColor()
+    end)
+    lib:Connect(uis.InputEnded, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then alphaDragging = false end
+    end)
 
     -- hex input
     local hexBg = inst:Create("Frame", {
@@ -2322,7 +2360,7 @@ lib.Sections.Section = function(self, data)
         local obj, i = comp.Toggle(d)
 
         -- search
-        ins(lib.SearchItems[sec.Page] or {}, { Name = d.Name or d.name or "Toggle", Item = i.Toggle })
+        do local _sd = lib.SearchItems[sec.Page]; if _sd then ins(_sd, { Name = d.Name or d.name or "Toggle", Item = i.Toggle }) end end
 
         local tog = { _obj = obj, _items = i, Window = sec.Window, Page = sec.Page, Section = sec, Count = 0 }
         setmetatable(tog, { __index = lib.Sections })
@@ -2360,7 +2398,7 @@ lib.Sections.Section = function(self, data)
         d.Page   = sec.Page
         d.Flag   = d.Flag or d.flag or lib:NextFlag()
         local obj, i = comp.Slider(d)
-        ins(lib.SearchItems[sec.Page] or {}, { Name = d.Name or d.name or "Slider", Item = i.Slider })
+        do local _sd = lib.SearchItems[sec.Page]; if _sd then ins(_sd, { Name = d.Name or d.name or "Slider", Item = i.Slider }) end end
         return obj
     end
 
@@ -2371,7 +2409,7 @@ lib.Sections.Section = function(self, data)
         d.Window = sec.Window
         d.Flag   = d.Flag or d.flag or lib:NextFlag()
         local obj, i = comp.Dropdown(d)
-        ins(lib.SearchItems[sec.Page] or {}, { Name = d.Name or d.name or "Dropdown", Item = i.Dropdown })
+        do local _sd = lib.SearchItems[sec.Page]; if _sd then ins(_sd, { Name = d.Name or d.name or "Dropdown", Item = i.Dropdown }) end end
         return obj
     end
 
@@ -2379,7 +2417,7 @@ lib.Sections.Section = function(self, data)
         d = d or {}
         d.Parent = items.Content
         local obj, i = comp.Button(d)
-        ins(lib.SearchItems[sec.Page] or {}, { Name = d.Name or d.name or "Button", Item = i.Button })
+        do local _sd = lib.SearchItems[sec.Page]; if _sd then ins(_sd, { Name = d.Name or d.name or "Button", Item = i.Button }) end end
         return obj
     end
 
@@ -2389,7 +2427,7 @@ lib.Sections.Section = function(self, data)
         d.Page   = sec.Page
         d.Flag   = d.Flag or d.flag or lib:NextFlag()
         local obj, i = comp.Textbox(d)
-        ins(lib.SearchItems[sec.Page] or {}, { Name = d.Name or d.name or "Textbox", Item = i.Textbox })
+        do local _sd = lib.SearchItems[sec.Page]; if _sd then ins(_sd, { Name = d.Name or d.name or "Textbox", Item = i.Textbox }) end end
         return obj
     end
 
@@ -2659,7 +2697,7 @@ lib.Window = function(self, data)
     items.MinimizeButton = inst:Create("ImageButton", {
         Parent = items.Topbar.Instance,
         Name = "\0",
-        Image = lib.Icons.Close,
+        Image = "rbxassetid://7072706663",
         ImageColor3 = lib.Theme.Image,
         ScaleType = Enum.ScaleType.Fit,
         AnchorPoint = vec2(1, 0.5),
