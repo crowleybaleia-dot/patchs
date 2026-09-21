@@ -2807,9 +2807,10 @@ lib.Window = function(self, data)
     items.Bottombar:AddToTheme({ BackgroundColor3 = "Background" })
 
     inst:Create("Frame", {
-        Parent = items.Bottombar.Instance,
+        Parent = items.MainFrame.Instance,
         Name = "\0",
         BackgroundTransparency = 0.4,
+        Position = udim2(0,0,1,-46),
         Size = udim2(1,0,0,1),
         BorderSizePixel = 0,
         ZIndex = 3,
