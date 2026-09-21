@@ -1238,7 +1238,6 @@ comp.Keybind = function(data)
 
     -- listener global: quando a tecla é pressionada, executa a ação
     lib:Connect(uis.InputBegan, function(input, gpe)
-        if gpe then return end
         if listening then return end
         local pressed = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode or input.UserInputType
         if pressed == obj.Value.Key then
