@@ -1212,10 +1212,15 @@ comp.Keybind = function(data)
 
     local obj = { Value = value, Flag = flag, Mode = mode, Callback = cb }
 
+    -- atualiza visual e flag, sem chamar o callback
     local function setKey(key)
         obj.Value = { Key = key, Mode = mode }
         lib.Flags[flag] = obj.Value
         items.Label.Instance.Text = getKeyName(key)
+    end
+
+    -- executa a ação do keybind (chama o callback)
+    local function pressKey(key)
         lib:SafeCall(cb, key)
     end
 
@@ -1230,6 +1235,16 @@ comp.Keybind = function(data)
     end
 
     function obj:Get() return obj.Value end
+
+    -- listener global: quando a tecla é pressionada, executa a ação
+    lib:Connect(uis.InputBegan, function(input, gpe)
+        if gpe then return end
+        if listening then return end
+        local pressed = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode or input.UserInputType
+        if pressed == obj.Value.Key then
+            pressKey(pressed)
+        end
+    end)
 
     items.Label:Connect("MouseButton1Down", function()
         if listening then return end
@@ -2497,10 +2512,11 @@ lib.Sections.Section = function(self, data)
 
         function tog:Keybind(kd)
             kd = kd or {}
-            kd.Parent   = i.SubElements
-            kd.Window   = sec.Window
-            kd.Flag     = kd.Flag or kd.flag or lib:NextFlag()
-            kd.IsToggle = true
+            kd.Parent    = i.SubElements
+            kd.Window    = sec.Window
+            kd.Flag      = kd.Flag or kd.flag or lib:NextFlag()
+            kd.IsToggle  = true
+            kd.Callback  = kd.Callback or kd.callback or function() obj:Set(not obj.Value) end
             local kobj = comp.Keybind(kd)
             return kobj
         end
