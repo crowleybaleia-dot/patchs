@@ -1617,7 +1617,7 @@ comp.Colorpicker = function(data)
         local sx = items.Palette.Instance.AbsoluteSize.X
         local sy = items.Palette.Instance.AbsoluteSize.Y
 
-        cp.Saturation = clamp(1 - (input.Position.X - px) / sx, 0, 1)
+        cp.Saturation = clamp(    (input.Position.X - px) / sx, 0, 1)
         cp.Value      = clamp(1 - (input.Position.Y - py) / sy, 0, 1)
 
         local dx = clamp((input.Position.X - px) / sx, 0, 0.97)
@@ -1767,7 +1767,7 @@ comp.Colorpicker = function(data)
         cp.Hue, cp.Saturation, cp.Value = color:ToHSV()
         cp.Alpha = alpha ~= nil and alpha or cp.Alpha
 
-        local dx = clamp(1 - cp.Saturation, 0, 0.97)
+        local dx = clamp(    cp.Saturation, 0, 0.97)
         local dy = clamp(1 - cp.Value,      0, 0.96)
         local hx = clamp(cp.Hue,            0, 0.98)
         local ax = clamp(cp.Alpha,          0, 0.98)
