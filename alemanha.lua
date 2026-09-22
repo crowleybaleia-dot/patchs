@@ -1286,249 +1286,488 @@ comp.Keybind = function(data)
     return obj, items
 end
 
--- COLORPICKER (dot inline + janela flutuante)
+-- COLORPICKER
 comp.Colorpicker = function(data)
-    local name     = data.Name
-    local parent   = data.Parent
+    local numseq = NumberSequence.new
+    local numkey = NumberSequenceKeypoint.new
+
+    local cp = {
+        IsOpen     = false,
+        Color      = data.Default or rgb(255, 255, 255),
+        HexValue   = "",
+        Alpha      = data.Alpha or 0,
+        Hue        = 0,
+        Saturation = 0,
+        Value      = 0,
+        Name       = data.Name,
+        Type       = "Colorpicker",
+    }
+
     local flag     = data.Flag
-    local default  = data.Default or rgb(255, 255, 255)
-    local alpha    = data.Alpha or 0
-    local isToggle = data.IsToggle or false
+    local parent   = data.Parent
     local cb       = data.Callback or function() end
+    local isToggle = data.IsToggle or false
+
+    lib.Flags[flag] = {}
 
     local items = {}
-    local color = default
-    local alph  = alpha
-    local open  = false
 
-    -- dot colorido
+    -- ── Dot (botão colorido) ──────────────────────────────────────────────
     items.Dot = inst:Create("TextButton", {
-        Parent = parent.Instance,
-        Name = "\0",
-        Text = "",
+        Parent          = parent.Instance,
+        Name            = "\0",
+        Text            = "",
         AutoButtonColor = false,
-        Size = udim2(0, 15, 0, 15),
-        BackgroundColor3 = color,
+        AnchorPoint     = vec2(1, 0.5),
         BorderSizePixel = 0,
-        ZIndex = 2,
+        Position        = udim2(1, -25, 0.5, 0),
+        Size            = udim2(0, 20, 0, 20),
+        ZIndex          = 2,
+        BackgroundColor3 = cp.Color,
     })
     inst:Create("UICorner", { Parent = items.Dot.Instance, Name = "\0", CornerRadius = udim(0, 4) })
 
-    -- janela do colorpicker (construção básica; palette via ImageLabel + hue slider)
-    items.Window = inst:Create("Frame", {
-        Parent = lib.Holder.Instance,
-        Name = "\0",
-        Size = udim2(0, 200, 0, 220),
-        BackgroundColor3 = lib.Theme.Background,
+    items.Inline = inst:Create("Frame", {
+        Parent          = items.Dot.Instance,
+        Name            = "\0",
+        Size            = udim2(1, -4, 1, -4),
+        Position        = udim2(0, 2, 0, 2),
         BorderSizePixel = 0,
-        Visible = false,
-        ZIndex = 20,
+        ZIndex          = 2,
+        BackgroundColor3 = cp.Color,
+    })
+    inst:Create("UICorner", { Parent = items.Inline.Instance, Name = "\0", CornerRadius = udim(0, 4) })
+    inst:Create("UIGradient", {
+        Parent   = items.Inline.Instance,
+        Name     = "\0",
+        Rotation = 84,
+        Color    = rgbseq{ rgbkey(0, rgb(255,255,255)), rgbkey(1, lib.Theme["Dark Gradient"]) },
+    }):AddToTheme({ Color = function()
+        return rgbseq{ rgbkey(0, rgb(255,255,255)), rgbkey(1, lib.Theme["Dark Gradient"]) }
+    end })
+
+    -- ── Janela flutuante ──────────────────────────────────────────────────
+    items.Window = inst:Create("TextButton", {
+        Parent          = lib.UnusedHolder.Instance,
+        Text            = "",
+        AutoButtonColor = false,
+        Name            = "\0",
+        Active          = false,
+        Selectable      = false,
+        Size            = udim2(0, 219, 0, 245),
+        Position        = udim2(0, 0, 0, 0),
+        BorderSizePixel = 0,
+        ZIndex          = 2,
+        Visible         = false,
+        BackgroundColor3 = lib.Theme.Background,
     })
     items.Window:AddToTheme({ BackgroundColor3 = "Background" })
-    inst:Create("UICorner", { Parent = items.Window.Instance, Name = "\0", CornerRadius = udim(0, 5) })
+    items.Window:MakeDraggable()
+
     inst:Create("UIStroke", {
-        Parent = items.Window.Instance, Name = "\0",
-        Color = lib.Theme.Border, Transparency = 0.4,
+        Parent          = items.Window.Instance,
+        Name            = "\0",
+        Color           = lib.Theme.Border,
+        Transparency    = 0.4,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     }):AddToTheme({ Color = "Border" })
+    inst:Create("UICorner", { Parent = items.Window.Instance, Name = "\0", CornerRadius = udim(0, 5) })
 
-    -- palette (S/V picker)
-    local palette = inst:Create("ImageLabel", {
-        Parent = items.Window.Instance, Name = "\0",
-        Image = "rbxassetid://698052001",
-        Position = udim2(0, 8, 0, 8),
-        Size = udim2(1, -16, 0, 130),
-        BackgroundColor3 = hsv(h, 1, 1),
+    -- shadow
+    inst:Create("ImageLabel", {
+        Parent              = items.Window.Instance,
+        Name                = "\0",
+        ImageColor3         = rgb(0,0,0),
+        ScaleType           = Enum.ScaleType.Slice,
+        ImageTransparency   = 0.9,
+        BorderSizePixel     = 0,
+        Size                = udim2(1, 25, 1, 25),
+        AnchorPoint         = vec2(0.5, 0.5),
+        Image               = "rbxassetid://18245826428",
+        BackgroundTransparency = 1,
+        Position            = udim2(0.5, 0, 0.5, 0),
+        BackgroundColor3    = rgb(255,255,255),
+        SliceCenter         = Rect.new(vec2(21,21), vec2(79,79)),
+    }):AddToTheme({ ImageColor3 = "Shadow" })
+
+    -- ── Palette (S/V) ─────────────────────────────────────────────────────
+    items.Palette = inst:Create("TextButton", {
+        Parent          = items.Window.Instance,
+        Name            = "\0",
+        Text            = "",
+        AutoButtonColor = false,
         BorderSizePixel = 0,
-        ZIndex = 21,
+        Position        = udim2(0, 8, 0, 8),
+        Size            = udim2(1, -16, 1, -125),
+        ZIndex          = 2,
+        BackgroundColor3 = rgb(255, 125, 32),
     })
-    inst:Create("UICorner", { Parent = palette.Instance, Name = "\0", CornerRadius = udim(0, 4) })
+    inst:Create("UICorner", { Parent = items.Palette.Instance, Name = "\0", CornerRadius = udim(0, 5) })
 
-    -- hue slider
-    local hueSlider = inst:Create("ImageLabel", {
-        Parent = items.Window.Instance, Name = "\0",
-        Image = "rbxassetid://698053498",
-        Position = udim2(0, 8, 0, 148),
-        Size = udim2(1, -16, 0, 12),
+    -- saturation overlay
+    inst:Create("ImageLabel", {
+        Parent              = items.Palette.Instance,
+        Name                = "\0",
+        Image               = "rbxassetid://698052001",
+        BackgroundTransparency = 1,
+        Size                = udim2(1, 0, 1, 0),
+        ZIndex              = 2,
+        BorderSizePixel     = 0,
+        BackgroundColor3    = rgb(255,255,255),
+    })
+    -- value overlay
+    inst:Create("ImageLabel", {
+        Parent              = items.Palette.Instance,
+        Name                = "\0",
+        Image               = "rbxassetid://698053492",
+        BackgroundTransparency = 1,
+        Size                = udim2(1, 2, 1, 0),
+        Position            = udim2(0, -1, 0, 0),
+        ZIndex              = 3,
+        BorderSizePixel     = 0,
+        BackgroundColor3    = rgb(255,255,255),
+    })
+
+    -- palette dragger
+    items.PaletteDragger = inst:Create("Frame", {
+        Parent          = items.Palette.Instance,
+        Name            = "\0",
+        Size            = udim2(0, 8, 0, 8),
+        Position        = udim2(0, 0, 0, 0),
+        BorderSizePixel = 0,
+        ZIndex          = 4,
         BackgroundColor3 = rgb(255,255,255),
-        BorderSizePixel = 0,
-        ZIndex = 21,
     })
-    inst:Create("UICorner", { Parent = hueSlider.Instance, Name = "\0", CornerRadius = udim(0, 4) })
+    inst:Create("UICorner",  { Parent = items.PaletteDragger.Instance, Name = "\0", CornerRadius = udim(1, 0) })
+    inst:Create("UIStroke",  { Parent = items.PaletteDragger.Instance, Name = "\0", Thickness = 1.2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
 
-    -- alpha slider
-    local alphaSlider = inst:Create("Frame", {
-        Parent = items.Window.Instance, Name = "\0",
-        Position = udim2(0, 8, 0, 168),
-        Size = udim2(1, -16, 0, 12),
-        BackgroundColor3 = rgb(255,255,255),
+    -- ── Hue slider ────────────────────────────────────────────────────────
+    items.Hue = inst:Create("TextButton", {
+        Parent          = items.Window.Instance,
+        Name            = "\0",
+        Text            = "",
+        AutoButtonColor = false,
         BorderSizePixel = 0,
-        ZIndex = 21,
+        AnchorPoint     = vec2(0, 1),
+        Position        = udim2(0, 8, 1, -90),
+        Size            = udim2(1, -16, 0, 18),
+        ZIndex          = 2,
+        BackgroundColor3 = rgb(255,255,255),
     })
-    inst:Create("UICorner", { Parent = alphaSlider.Instance, Name = "\0", CornerRadius = udim(0, 4) })
+    inst:Create("UICorner", { Parent = items.Hue.Instance, Name = "\0", CornerRadius = udim(0, 5) })
     inst:Create("UIGradient", {
-        Parent = alphaSlider.Instance, Name = "\0",
-        Color = rgbseq{ rgbkey(0, rgb(255,255,255)), rgbkey(1, rgb(0,0,0)) },
+        Parent = items.Hue.Instance,
+        Color  = rgbseq{
+            rgbkey(0,    rgb(255,0,0)),
+            rgbkey(0.17, rgb(255,255,0)),
+            rgbkey(0.33, rgb(0,255,0)),
+            rgbkey(0.50, rgb(0,255,255)),
+            rgbkey(0.67, rgb(0,0,255)),
+            rgbkey(0.83, rgb(255,0,255)),
+            rgbkey(1,    rgb(255,0,0)),
+        },
     })
 
-    -- alpha drag
-    local alphaDragging = false
-    lib:Connect(alphaSlider.Instance.InputBegan, function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        alphaDragging = true
-        alph = clamp((input.Position.X - alphaSlider.Instance.AbsolutePosition.X) / alphaSlider.Instance.AbsoluteSize.X, 0, 1)
-        buildColor()
-    end)
-    lib:Connect(uis.InputChanged, function(input)
-        if not alphaDragging then return end
-        if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-        alph = clamp((input.Position.X - alphaSlider.Instance.AbsolutePosition.X) / alphaSlider.Instance.AbsoluteSize.X, 0, 1)
-        buildColor()
-    end)
-    lib:Connect(uis.InputEnded, function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then alphaDragging = false end
-    end)
-
-    -- hex input
-    local hexBg = inst:Create("Frame", {
-        Parent = items.Window.Instance, Name = "\0",
-        Position = udim2(0, 8, 0, 190),
-        Size = udim2(1, -16, 0, 22),
-        BackgroundColor3 = lib.Theme.Element,
+    items.HueDragger = inst:Create("Frame", {
+        Parent          = items.Hue.Instance,
+        Name            = "\0",
         BorderSizePixel = 0,
-        ZIndex = 21,
+        AnchorPoint     = vec2(0, 0.5),
+        Position        = udim2(0, 0, 0.5, 0),
+        Size            = udim2(0, 4, 1, -6),
+        ZIndex          = 3,
+        BackgroundColor3 = rgb(255,255,255),
+    })
+    inst:Create("UICorner", { Parent = items.HueDragger.Instance, Name = "\0", CornerRadius = udim(1, 0) })
+    inst:Create("UIStroke", { Parent = items.HueDragger.Instance, Name = "\0", Thickness = 1.2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+
+    -- ── Alpha slider ──────────────────────────────────────────────────────
+    items.Alpha = inst:Create("TextButton", {
+        Parent          = items.Window.Instance,
+        Name            = "\0",
+        Text            = "",
+        AutoButtonColor = false,
+        BorderSizePixel = 0,
+        AnchorPoint     = vec2(0, 1),
+        Position        = udim2(0, 8, 1, -63),
+        Size            = udim2(1, -16, 0, 18),
+        ZIndex          = 2,
+        BackgroundColor3 = rgb(255,255,255),
+    })
+    inst:Create("UICorner", { Parent = items.Alpha.Instance, Name = "\0", CornerRadius = udim(0, 5) })
+
+    -- checkerboard
+    inst:Create("ImageLabel", {
+        Parent              = items.Alpha.Instance,
+        Name                = "\0",
+        ScaleType           = Enum.ScaleType.Tile,
+        TileSize            = udim2(0, 6, 0, 6),
+        Image               = "rbxassetid://1911661212",
+        BackgroundTransparency = 1,
+        Size                = udim2(1, 0, 1, 0),
+        ZIndex              = 2,
+        BorderSizePixel     = 0,
+        BackgroundColor3    = rgb(255,255,255),
+    })
+
+    -- gradient transparência
+    inst:Create("UIGradient", {
+        Parent       = items.Alpha.Instance,
+        Name         = "\0",
+        Transparency = numseq{ numkey(0, 1), numkey(0.37, 0.5), numkey(1, 0) },
+    })
+
+    items.AlphaDragger = inst:Create("Frame", {
+        Parent          = items.Alpha.Instance,
+        Name            = "\0",
+        BorderSizePixel = 0,
+        AnchorPoint     = vec2(0, 0.5),
+        Position        = udim2(0, 0, 0.5, 0),
+        Size            = udim2(0, 4, 1, -6),
+        ZIndex          = 3,
+        BackgroundColor3 = rgb(255,255,255),
+    })
+    inst:Create("UICorner", { Parent = items.AlphaDragger.Instance, Name = "\0", CornerRadius = udim(1, 0) })
+    inst:Create("UIStroke", { Parent = items.AlphaDragger.Instance, Name = "\0", Thickness = 1.2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border })
+
+    -- ── Hex input ─────────────────────────────────────────────────────────
+    local hexBg = inst:Create("Frame", {
+        Parent          = items.Window.Instance,
+        Name            = "\0",
+        AnchorPoint     = vec2(0, 1),
+        Position        = udim2(0, 8, 1, -8),
+        Size            = udim2(1, -16, 0, 22),
+        BorderSizePixel = 0,
+        ZIndex          = 2,
+        BackgroundColor3 = lib.Theme.Element,
     })
     hexBg:AddToTheme({ BackgroundColor3 = "Element" })
     inst:Create("UICorner", { Parent = hexBg.Instance, Name = "\0", CornerRadius = udim(0, 4) })
 
     local hexInput = inst:Create("TextBox", {
-        Parent = hexBg.Instance, Name = "\0",
-        FontFace = lib.Font,
-        Text = "#" .. color:ToHex(),
-        TextSize = 13,
-        TextColor3 = lib.Theme.Text,
-        PlaceholderText = "#ffffff",
-        PlaceholderColor3 = lib.Theme["Inactive Text"],
-        Size = udim2(1, 0, 1, 0),
+        Parent              = hexBg.Instance,
+        Name                = "\0",
+        FontFace            = lib.Font,
+        Text                = "#" .. cp.Color:ToHex(),
+        TextSize            = 13,
+        TextColor3          = lib.Theme.Text,
+        PlaceholderText     = "#ffffff",
+        PlaceholderColor3   = lib.Theme["Inactive Text"],
+        Size                = udim2(1, 0, 1, 0),
         BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ZIndex = 22,
-        ClearTextOnFocus = false,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        BackgroundColor3 = rgb(255,255,255),
+        BorderSizePixel     = 0,
+        ZIndex              = 3,
+        ClearTextOnFocus    = false,
+        TextXAlignment      = Enum.TextXAlignment.Center,
+        BackgroundColor3    = rgb(255,255,255),
     })
     hexInput:AddToTheme({ TextColor3 = "Text", PlaceholderColor3 = "Inactive Text" })
 
-    local h, s, v = color:ToHSV()
-    local hue = h
+    -- ── Estado de drag ────────────────────────────────────────────────────
+    local slidingPalette = false
+    local slidingHue     = false
+    local slidingAlpha   = false
 
-    local function buildColor()
-        local c = hsv(hue, s, v)
-        color = c
-        items.Dot.Instance.BackgroundColor3 = c
-        palette.Instance.BackgroundColor3 = hsv(hue, 1, 1)
-        hexInput.Instance.Text = "#" .. c:ToHex()
-        lib.Flags[flag] = { Color = c:ToHex(), Alpha = alph }
-        lib:SafeCall(cb, c, alph)
+    -- ── Update ────────────────────────────────────────────────────────────
+    local function update(fromAlpha)
+        local c = hsv(cp.Hue, cp.Saturation, cp.Value)
+        cp.Color    = c
+        cp.HexValue = c:ToHex()
+
+        lib.Flags[flag] = { Color = cp.HexValue, Alpha = cp.Alpha }
+
+        items.Dot:Tween(nil, { BackgroundColor3 = c })
+        items.Inline:Tween(nil, { BackgroundColor3 = c })
+        items.Palette:Tween(nil, { BackgroundColor3 = hsv(cp.Hue, 1, 1) })
+
+        if not fromAlpha then
+            items.Alpha:Tween(nil, { BackgroundColor3 = c })
+        end
+
+        hexInput.Instance.Text = "#" .. cp.HexValue
+
+        lib:SafeCall(cb, c, cp.Alpha)
     end
 
-    -- hue drag
-    local hueDragging = false
-    lib:Connect(hueSlider.Instance.InputBegan, function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        hueDragging = true
-    end)
-    lib:Connect(uis.InputChanged, function(input)
-        if not hueDragging then return end
-        if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-        hue = clamp((input.Position.X - hueSlider.Instance.AbsolutePosition.X) / hueSlider.Instance.AbsoluteSize.X, 0, 1)
-        buildColor()
-    end)
-    lib:Connect(uis.InputEnded, function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then hueDragging = false end
+    local tweenInfo = TweenInfo.new(0.08, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+    local function slidePalette(input)
+        if not slidingPalette or not input then return end
+        local px = items.Palette.Instance.AbsolutePosition.X
+        local py = items.Palette.Instance.AbsolutePosition.Y
+        local sx = items.Palette.Instance.AbsoluteSize.X
+        local sy = items.Palette.Instance.AbsoluteSize.Y
+
+        cp.Saturation = clamp(    (input.Position.X - px) / sx, 0, 1)
+        cp.Value      = clamp(1 - (input.Position.Y - py) / sy, 0, 1)
+
+        local dx = clamp((input.Position.X - px) / sx, 0, 0.97)
+        local dy = clamp((input.Position.Y - py) / sy, 0, 0.96)
+        items.PaletteDragger:Tween(tweenInfo, { Position = udim2(dx, -4, dy, -4) })
+        update()
+    end
+
+    local function slideHue(input)
+        if not slidingHue or not input then return end
+        local px = items.Hue.Instance.AbsolutePosition.X
+        local sx = items.Hue.Instance.AbsoluteSize.X
+
+        cp.Hue = clamp((input.Position.X - px) / sx, 0, 1)
+
+        local dx = clamp((input.Position.X - px) / sx, 0, 0.98)
+        items.HueDragger:Tween(tweenInfo, { Position = udim2(dx, 0, 0.5, 0) })
+        update()
+    end
+
+    local function slideAlpha(input)
+        if not slidingAlpha or not input then return end
+        local px = items.Alpha.Instance.AbsolutePosition.X
+        local sx = items.Alpha.Instance.AbsoluteSize.X
+
+        cp.Alpha = clamp((input.Position.X - px) / sx, 0, 1)
+
+        local dx = clamp((input.Position.X - px) / sx, 0, 0.98)
+        items.AlphaDragger:Tween(tweenInfo, { Position = udim2(dx, 0, 0.5, 0) })
+        update(true)
+    end
+
+    -- ── Inputs palette ────────────────────────────────────────────────────
+    local ic1
+    lib:Connect(items.Palette.Instance.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 and
+           input.UserInputType ~= Enum.UserInputType.Touch then return end
+        slidingPalette = true
+        slidePalette(input)
+        if ic1 then return end
+        ic1 = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                slidingPalette = false
+                ic1:Disconnect(); ic1 = nil
+            end
+        end)
     end)
 
-    -- sv drag
-    local svDragging = false
-    lib:Connect(palette.Instance.InputBegan, function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        svDragging = true
-    end)
-    lib:Connect(uis.InputChanged, function(input)
-        if not svDragging then return end
-        if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-        s = clamp((input.Position.X - palette.Instance.AbsolutePosition.X) / palette.Instance.AbsoluteSize.X, 0, 1)
-        v = 1 - clamp((input.Position.Y - palette.Instance.AbsolutePosition.Y) / palette.Instance.AbsoluteSize.Y, 0, 1)
-        buildColor()
-    end)
-    lib:Connect(uis.InputEnded, function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then svDragging = false end
+    -- ── Inputs hue ───────────────────────────────────────────────────────
+    local ic2
+    lib:Connect(items.Hue.Instance.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 and
+           input.UserInputType ~= Enum.UserInputType.Touch then return end
+        slidingHue = true
+        slideHue(input)
+        if ic2 then return end
+        ic2 = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                slidingHue = false
+                ic2:Disconnect(); ic2 = nil
+            end
+        end)
     end)
 
-    -- hex input
+    -- ── Inputs alpha ──────────────────────────────────────────────────────
+    local ic3
+    lib:Connect(items.Alpha.Instance.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 and
+           input.UserInputType ~= Enum.UserInputType.Touch then return end
+        slidingAlpha = true
+        slideAlpha(input)
+        if ic3 then return end
+        ic3 = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                slidingAlpha = false
+                ic3:Disconnect(); ic3 = nil
+            end
+        end)
+    end)
+
+    -- ── Mouse move global ─────────────────────────────────────────────────
+    lib:Connect(uis.InputChanged, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseMovement and
+           input.UserInputType ~= Enum.UserInputType.Touch then return end
+        if slidingPalette then slidePalette(input) end
+        if slidingHue     then slideHue(input)     end
+        if slidingAlpha   then slideAlpha(input)   end
+    end)
+
+    -- ── Fechar ao clicar fora ─────────────────────────────────────────────
+    lib:Connect(uis.InputBegan, function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if not cp.IsOpen then return end
+        if lib:IsMouseOver(items.Window) then return end
+        cp:SetOpen(false)
+    end)
+
+    -- ── Hex input ─────────────────────────────────────────────────────────
     hexInput:Connect("FocusLost", function()
         local hex = hexInput.Instance.Text:gsub("#", "")
         local ok, c = pcall(Color3.fromHex, hex)
-        if ok then
-            color = c
-            h, s, v = c:ToHSV()
-            hue = h
-            buildColor()
-        end
+        if ok then cp:Set(c, cp.Alpha) end
     end)
 
-    -- toggle window
-    local rs
-    local function toggleOpen(bool)
-        open = bool
-        items.Window.Instance.Visible = bool
+    -- ── SetOpen ───────────────────────────────────────────────────────────
+    function cp:SetOpen(bool)
+        cp.IsOpen = bool
+        items.Window.Instance.Parent = bool and lib.Holder.Instance or lib.UnusedHolder.Instance
+
         if bool then
-            rs = run.RenderStepped:Connect(function()
-                local p = items.Dot.Instance.AbsolutePosition
-                items.Window.Instance.Position = udim2(0, p.X - 190, 0, p.Y + 20)
-            end)
+            items.Window.Instance.Visible = true
+            local p = items.Dot.Instance.AbsolutePosition
+            items.Window.Instance.Position = udim2(0, p.X - 200, 0, p.Y + 25)
+
+            -- fecha outros colorpickers abertos
+            for _, f in lib.OpenFrames do
+                if f ~= cp and f.Type == "Colorpicker" then
+                    f:SetOpen(false)
+                end
+            end
+            lib.OpenFrames[flag] = cp
         else
-            if rs then rs:Disconnect(); rs = nil end
+            lib.OpenFrames[flag] = nil
+            items.Window.Instance.Visible = false
         end
     end
 
     items.Dot:Connect("MouseButton1Down", function()
-        for _, f in lib.OpenFrames do
-            if f.CloseCP then f:CloseCP() end
-        end
-        toggleOpen(not open)
-        if open then
-            lib.OpenFrames[flag] = { CloseCP = function() toggleOpen(false) end }
-        end
+        cp:SetOpen(not cp.IsOpen)
     end)
 
-    lib:Connect(uis.InputBegan, function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        if not open then return end
-        if lib:IsMouseOver(items.Window) then return end
-        if lib:IsMouseOver(items.Dot) then return end
-        toggleOpen(false)
-    end)
-
-    local obj = { Color = color, Alpha = alph, Flag = flag, Callback = cb }
-
-    function obj:Set(c, a)
-        color = c or color
-        alph  = a ~= nil and a or alph
-        h, s, v = color:ToHSV()
-        hue = h
-        buildColor()
+    -- ── Get / Set ─────────────────────────────────────────────────────────
+    function cp:Get()
+        return cp.Color, cp.Alpha
     end
 
-    function obj:Get() return color, alph end
+    function cp:Set(color, alpha)
+        if type(color) == "string" then
+            color = Color3.fromHex(color:gsub("#",""))
+        end
 
-    lib.Flags[flag] = { Color = color:ToHex(), Alpha = alph }
+        cp.Hue, cp.Saturation, cp.Value = color:ToHSV()
+        cp.Alpha = alpha ~= nil and alpha or cp.Alpha
+
+        local dx = clamp(1 - cp.Saturation, 0, 0.97)
+        local dy = clamp(1 - cp.Value,      0, 0.96)
+        local hx = clamp(cp.Hue,            0, 0.98)
+        local ax = clamp(cp.Alpha,          0, 0.98)
+
+        items.PaletteDragger:Tween(tweenInfo, { Position = udim2(dx, -4, dy, -4) })
+        items.HueDragger:Tween(tweenInfo,     { Position = udim2(hx, 0, 0.5, 0) })
+        items.AlphaDragger:Tween(tweenInfo,   { Position = udim2(ax, 0, 0.5, 0) })
+        update()
+    end
+
+    -- ── Init com default ──────────────────────────────────────────────────
+    if data.Default then
+        cp:Set(data.Default, data.Alpha or 0)
+    end
+
+    lib.Flags[flag]    = { Color = cp.Color:ToHex(), Alpha = cp.Alpha }
     lib.SetFlags[flag] = function(hex, a)
-        local ok, c = pcall(Color3.fromHex, hex:gsub("#",""))
-        if ok then obj:Set(c, a) end
+        local ok, c = pcall(Color3.fromHex, (hex or ""):gsub("#",""))
+        if ok then cp:Set(c, a) end
     end
 
-    return obj, items
+    getgenv().Options[flag] = cp
+
+    return cp, items
 end
 
 -- SLIDER
