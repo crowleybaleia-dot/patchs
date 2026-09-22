@@ -99,7 +99,7 @@ local lib = {
         -- bottombar
         Save     = "rbxassetid://116339777575852",   -- save configs (check icon)
         Palette  = "rbxassetid://9126796571",        -- theme/palette
-        Settings = "rbxassetid://9080568477801",     -- settings gear
+        Settings = "rbxassetid://111178525804834",     -- settings gear
     },
 }
 
@@ -2647,7 +2647,7 @@ lib.Sections.Section = function(self, data)
         Page    = self,
         Name    = data.Name or data.name or "Section",
         Side    = data.Side or data.side or 1,
-        Icon    = data.Icon or data.icon or "9080568477801",
+        Icon    = data.Icon or data.icon or "111178525804834",
         Items   = {},
     }
 
@@ -2969,7 +2969,7 @@ lib.Window = function(self, data)
     local win = {
         Name       = data.Name or data.name or "Alemanha",
         Version    = data.Version or data.version or "v1.0",
-        Logo       = data.Logo or data.logo or "9080568477801",
+        Logo       = data.Logo or data.logo or "111178525804834",
         Size       = data.Size or data.size or udim2(0, 659, 0, 511),
         FadeSpeed  = data.FadeSpeed or data.fadespeed or 0.24,
         IsOpen     = true,
@@ -3422,7 +3422,7 @@ lib.Window = function(self, data)
 
     -- ── page button helper ──
     function win:_addPageButton(page, frame)
-        local iconId = page.Icon or "9080568477801"
+        local iconId = page.Icon or "111178525804834"
         local btn = inst:Create("TextButton", {
             Parent = items.Bottombar.Instance,
             Name = "\0",
@@ -3607,14 +3607,14 @@ lib.Settings = function(self, win)
     -- Page de settings — ícone de gear
     local settingsPage = win:Page({
         Name = "Settings",
-        Icon = "9080568477801",
+        Icon = "111178525804834",
     })
 
     -- ── Col 1: Menu ─────────────────────────────────────────────────────────
 
     local menuSec = settingsPage:Section({
         Name = "menu",
-        Icon = "9080568477801",
+        Icon = "111178525804834",
         Side = 1,
     })
 
@@ -3666,7 +3666,7 @@ lib.Settings = function(self, win)
 
     local tweenSec = settingsPage:Section({
         Name = "tweening",
-        Icon = "9080568477801",
+        Icon = "111178525804834",
         Side = 1,
     })
 
@@ -3798,7 +3798,7 @@ lib.Settings = function(self, win)
 
     local autoSec = settingsPage:Section({
         Name = "autoload",
-        Icon = "9080568477801",
+        Icon = "111178525804834",
         Side = 2,
     })
 
