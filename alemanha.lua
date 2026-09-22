@@ -79,6 +79,13 @@ local lib = {
         Themes    = "Alemanha/Themes",
     },
 
+    Images = {
+        Saturation = { "Saturation.png", "https://github.com/sametexe001/images/blob/main/saturation.png?raw=true" },
+        Value      = { "Value.png",      "https://github.com/sametexe001/images/blob/main/value.png?raw=true"      },
+        Hue        = { "Hue.png",        "https://github.com/sametexe001/images/blob/main/horizontalhue.png?raw=true" },
+        Checkers   = { "Checkers.png",   "https://github.com/sametexe001/images/blob/main/checkers.png?raw=true"   },
+    },
+
     -- rbxassetids usados (exatos da kiwisense)
     Icons = {
         Check    = "rbxassetid://116339777575852",  -- checkmark dropdown
@@ -105,6 +112,14 @@ for _, v in lib.Folders do
     if not isfolder(v) then makefolder(v) end
 end
 
+-- imagens do colorpicker
+for _, img in lib.Images do
+    local path = lib.Folders.Assets .. "/" .. img[1]
+    if not isfile(path) then
+        writefile(path, game:HttpGet(img[2]))
+    end
+end
+
 -- font inter
 do
     local fontName = "Inter"
@@ -125,6 +140,12 @@ do
 end
 
 -- ─── HELPERS ────────────────────────────────────────────────────────────────
+
+lib.GetImage = function(self, name)
+    local img = self.Images[name]
+    if not img then return "" end
+    return getcustomasset(self.Folders.Assets .. "/" .. img[1])
+end
 
 lib.Round = function(n, dec)
     dec = dec or 1
@@ -1406,7 +1427,7 @@ comp.Colorpicker = function(data)
     inst:Create("ImageLabel", {
         Parent              = items.Palette.Instance,
         Name                = "\0",
-        Image               = "rbxassetid://698052001",
+        Image               = lib:GetImage("Saturation"),
         BackgroundTransparency = 1,
         Size                = udim2(1, 0, 1, 0),
         ZIndex              = 2,
@@ -1417,7 +1438,7 @@ comp.Colorpicker = function(data)
     inst:Create("ImageLabel", {
         Parent              = items.Palette.Instance,
         Name                = "\0",
-        Image               = "rbxassetid://698053492",
+        Image               = lib:GetImage("Value"),
         BackgroundTransparency = 1,
         Size                = udim2(1, 2, 1, 0),
         Position            = udim2(0, -1, 0, 0),
