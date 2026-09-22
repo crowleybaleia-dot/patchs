@@ -1376,7 +1376,7 @@ comp.Colorpicker = function(data)
         Size            = udim2(0, 219, 0, 245),
         Position        = udim2(0, 0, 0, 0),
         BorderSizePixel = 0,
-        ZIndex          = 20,
+        ZIndex          = 2,
         Visible         = false,
         BackgroundColor3 = lib.Theme.Background,
     })
