@@ -1687,7 +1687,7 @@ comp.Colorpicker = function(data)
     end)
 
     -- ── Fechar ao clicar fora ─────────────────────────────────────────────
-    lib:Connect(uis.InputBegan, function(input)
+    lib:Connect(uis.InputEnded, function(input)
         if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not cp.IsOpen then return end
         if lib:IsMouseOver(items.Window) then return end
