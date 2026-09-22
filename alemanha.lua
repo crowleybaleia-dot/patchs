@@ -1691,6 +1691,7 @@ comp.Colorpicker = function(data)
         if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if not cp.IsOpen then return end
         if lib:IsMouseOver(items.Window) then return end
+        if lib:IsMouseOver(items.Dot) then return end
         cp:SetOpen(false)
     end)
 
@@ -1703,7 +1704,6 @@ comp.Colorpicker = function(data)
 
     -- ── SetOpen ───────────────────────────────────────────────────────────
     function cp:SetOpen(bool)
-        print("[CP] SetOpen chamado — bool:", bool)
         cp.IsOpen = bool
 
         if bool then
@@ -1716,14 +1716,11 @@ comp.Colorpicker = function(data)
 
             items.Window.Instance.Parent  = lib.Holder.Instance
             items.Window.Instance.Visible = true
-            print("[CP] Window parent:", items.Window.Instance.Parent, "Visible:", items.Window.Instance.Visible)
 
             task.defer(function()
                 local p = items.Dot.Instance.AbsolutePosition
                 local s = items.Dot.Instance.AbsoluteSize
-                print("[CP] Dot AbsPos:", p, "AbsSize:", s)
                 items.Window.Instance.Position = udim2(0, p.X - 200, 0, p.Y + s.Y + 5)
-                print("[CP] Window Position setada:", items.Window.Instance.Position)
             end)
         else
             lib.OpenFrames[flag] = nil
@@ -1733,7 +1730,6 @@ comp.Colorpicker = function(data)
     end
 
     items.Dot:Connect("MouseButton1Down", function()
-        print("[CP] DOT CLICADO — IsOpen:", cp.IsOpen, "Flag:", flag)
         cp:SetOpen(not cp.IsOpen)
     end)
 
