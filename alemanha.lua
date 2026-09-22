@@ -1318,11 +1318,9 @@ comp.Colorpicker = function(data)
         Name            = "\0",
         Text            = "",
         AutoButtonColor = false,
-        AnchorPoint     = vec2(1, 0.5),
         BorderSizePixel = 0,
-        Position        = udim2(1, -25, 0.5, 0),
         Size            = udim2(0, 20, 0, 20),
-        ZIndex          = 2,
+        ZIndex          = 5,
         BackgroundColor3 = cp.Color,
     })
     inst:Create("UICorner", { Parent = items.Dot.Instance, Name = "\0", CornerRadius = udim(0, 4) })
@@ -1333,7 +1331,7 @@ comp.Colorpicker = function(data)
         Size            = udim2(1, -4, 1, -4),
         Position        = udim2(0, 2, 0, 2),
         BorderSizePixel = 0,
-        ZIndex          = 2,
+        ZIndex          = 6,
         BackgroundColor3 = cp.Color,
     })
     inst:Create("UICorner", { Parent = items.Inline.Instance, Name = "\0", CornerRadius = udim(0, 4) })
@@ -1357,7 +1355,7 @@ comp.Colorpicker = function(data)
         Size            = udim2(0, 219, 0, 245),
         Position        = udim2(0, 0, 0, 0),
         BorderSizePixel = 0,
-        ZIndex          = 2,
+        ZIndex          = 20,
         Visible         = false,
         BackgroundColor3 = lib.Theme.Background,
     })
@@ -1706,23 +1704,29 @@ comp.Colorpicker = function(data)
     -- ── SetOpen ───────────────────────────────────────────────────────────
     function cp:SetOpen(bool)
         cp.IsOpen = bool
-        items.Window.Instance.Parent = bool and lib.Holder.Instance or lib.UnusedHolder.Instance
 
         if bool then
-            items.Window.Instance.Visible = true
-            local p = items.Dot.Instance.AbsolutePosition
-            items.Window.Instance.Position = udim2(0, p.X - 200, 0, p.Y + 25)
-
-            -- fecha outros colorpickers abertos
+            -- fecha outros colorpickers primeiro
             for _, f in lib.OpenFrames do
                 if f ~= cp and f.Type == "Colorpicker" then
                     f:SetOpen(false)
                 end
             end
             lib.OpenFrames[flag] = cp
+
+            items.Window.Instance.Parent  = lib.Holder.Instance
+            items.Window.Instance.Visible = true
+
+            -- defer para garantir AbsolutePosition válido após reparent
+            task.defer(function()
+                local p = items.Dot.Instance.AbsolutePosition
+                local s = items.Dot.Instance.AbsoluteSize
+                items.Window.Instance.Position = udim2(0, p.X - 200, 0, p.Y + s.Y + 5)
+            end)
         else
             lib.OpenFrames[flag] = nil
             items.Window.Instance.Visible = false
+            items.Window.Instance.Parent  = lib.UnusedHolder.Instance
         end
     end
 
