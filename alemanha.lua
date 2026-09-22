@@ -1703,10 +1703,10 @@ comp.Colorpicker = function(data)
 
     -- ── SetOpen ───────────────────────────────────────────────────────────
     function cp:SetOpen(bool)
+        print("[CP] SetOpen chamado — bool:", bool)
         cp.IsOpen = bool
 
         if bool then
-            -- fecha outros colorpickers primeiro
             for _, f in lib.OpenFrames do
                 if f ~= cp and f.Type == "Colorpicker" then
                     f:SetOpen(false)
@@ -1716,12 +1716,14 @@ comp.Colorpicker = function(data)
 
             items.Window.Instance.Parent  = lib.Holder.Instance
             items.Window.Instance.Visible = true
+            print("[CP] Window parent:", items.Window.Instance.Parent, "Visible:", items.Window.Instance.Visible)
 
-            -- defer para garantir AbsolutePosition válido após reparent
             task.defer(function()
                 local p = items.Dot.Instance.AbsolutePosition
                 local s = items.Dot.Instance.AbsoluteSize
+                print("[CP] Dot AbsPos:", p, "AbsSize:", s)
                 items.Window.Instance.Position = udim2(0, p.X - 200, 0, p.Y + s.Y + 5)
+                print("[CP] Window Position setada:", items.Window.Instance.Position)
             end)
         else
             lib.OpenFrames[flag] = nil
@@ -1731,6 +1733,7 @@ comp.Colorpicker = function(data)
     end
 
     items.Dot:Connect("MouseButton1Down", function()
+        print("[CP] DOT CLICADO — IsOpen:", cp.IsOpen, "Flag:", flag)
         cp:SetOpen(not cp.IsOpen)
     end)
 
